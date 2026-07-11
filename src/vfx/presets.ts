@@ -15,8 +15,8 @@ export function popIn(obj: Object3D, targetScale: number, onDone?: () => void): 
   }
   obj.scale.setScalar(0.0001);
   return tweens.start({
-    duration: 0.28,
-    ease: easings.backOut,
+    duration: 0.34, // a touch longer so the extra bounce reads (user feedback)
+    ease: easings.popBounce,
     onUpdate: (t) => obj.scale.setScalar(Math.max(t * targetScale, 0.0001)),
     onComplete: () => {
       obj.scale.setScalar(targetScale);

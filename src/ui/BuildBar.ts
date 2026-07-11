@@ -108,13 +108,32 @@ export class BuildBar {
       this.cardsEl.appendChild(card);
     }
 
-    // tab filtering
+    // tab filtering with a staggered entrance cascade (ART §7.1.4 — cascade,
+    // don't sync). Visible cards re-trigger their pop-in animation with a small
+    // per-card delay so switching tabs feels alive, not a static show/hide.
+    let firstFilter = true;
     effect(() => {
       const tab = this.activeTab.get();
+      let visibleIndex = 0;
       for (const def of CATALOG) {
         const el = cardEls.get(def.id);
-        if (el) el.style.display = tab === 'all' || def.category === tab ? '' : 'none';
+        if (!el) continue;
+        const visible = tab === 'all' || def.category === tab;
+        if (!visible) {
+          el.style.display = 'none';
+          el.classList.remove('card-enter');
+          continue;
+        }
+        el.style.display = '';
+        // restart the CSS entrance animation (force reflow so it replays)
+        el.classList.remove('card-enter');
+        void el.offsetWidth;
+        el.style.animationDelay = `${visibleIndex * 24}ms`;
+        el.classList.add('card-enter');
+        visibleIndex++;
       }
+      if (!firstFilter) this.cardsEl.scrollLeft = 0; // reset scroll when switching tabs
+      firstFilter = false;
     });
 
     // collapse toggle (B)
