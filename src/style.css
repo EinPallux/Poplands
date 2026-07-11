@@ -1,0 +1,134 @@
+/* Poplands base styles — UI art direction in ART §8 (cream panels, soft ink, rounded). */
+
+:root {
+  --ui-cream: #fff6e8;
+  --ui-ink: #4a3f5e;
+  --accent-mint: #7fdca4;
+  --accent-coral: #ff8a70;
+  --accent-gold: #ffc94b;
+  --sky-top: #7ec8f5;
+  --sky-horizon: #eaf7ff;
+  --sky-cream: #ffe9c9;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+  color: var(--ui-ink);
+}
+
+#scene {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  touch-action: none;
+}
+
+#ui {
+  position: fixed;
+  inset: 0;
+  pointer-events: none; /* leaves opt back in with pointer-events: auto */
+}
+
+/* — loading screen — */
+.loading {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(
+    to bottom,
+    var(--sky-top) 0%,
+    var(--sky-horizon) 62%,
+    var(--sky-cream) 100%
+  );
+  transition: opacity 0.65s ease;
+  pointer-events: auto;
+}
+
+.loading-done {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.loading-card {
+  text-align: center;
+  padding: 2rem 3rem;
+}
+
+.loading-title {
+  font-size: clamp(2.6rem, 7vw, 4.2rem);
+  letter-spacing: 0.02em;
+  color: var(--ui-ink);
+  text-shadow: 0 2px 0 rgba(255, 255, 255, 0.7);
+}
+
+.loading-tagline {
+  margin-top: 0.5rem;
+  font-size: 1.05rem;
+  opacity: 0.75;
+}
+
+.loading-track {
+  margin: 1.4rem auto 0;
+  width: min(300px, 60vw);
+  height: 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.65);
+  box-shadow: inset 0 1px 3px rgba(74, 63, 94, 0.15);
+  overflow: hidden;
+}
+
+.loading-bar {
+  height: 100%;
+  width: 0%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent-mint), var(--accent-gold));
+  transition: width 0.25s ease;
+}
+
+.loading-hint {
+  margin-top: 1.1rem;
+  font-size: 0.85rem;
+  opacity: 0.55;
+}
+
+.loading-error {
+  margin-top: 1rem;
+  max-width: 34ch;
+  color: var(--accent-coral);
+  font-weight: 600;
+}
+
+/* — debug HUD — */
+.debug-hud {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(30, 26, 44, 0.72);
+  color: #d9f5e6;
+  font:
+    12px/1.5 ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    monospace;
+  white-space: pre;
+  pointer-events: none;
+}

@@ -1,0 +1,31 @@
+{
+  "$comment": "Curated asset manifest: logical id -> source path in /assets (raw packs). Only files listed here are shipped (TECH \u00a77). Paths are repo-relative.",
+  "models": {
+    "ground.grass-block": "assets/Platformer Assets/Models/GLB format/block-grass.glb",
+    "ground.path-stone": "assets/Nature Assets 2/Models/GLTF format/path_stone.glb",
+    "nature.tree": "assets/Nature Assets 2/Models/GLTF format/tree_default.glb",
+    "nature.pine": "assets/Nature Assets 2/Models/GLTF format/tree_pineTallA.glb",
+    "nature.bush": "assets/Nature Assets 2/Models/GLTF format/plant_bush.glb",
+    "nature.flower-purple": "assets/Nature Assets 2/Models/GLTF format/flower_purpleA.glb",
+    "nature.flower-red": "assets/Nature Assets 2/Models/GLTF format/flower_redA.glb",
+    "nature.flower-yellow": "assets/Nature Assets 2/Models/GLTF format/flower_yellowA.glb",
+    "nature.grass": "assets/Nature Assets 2/Models/GLTF format/grass.glb",
+    "nature.mushroom": "assets/Nature Assets 2/Models/GLTF format/mushroom_red.glb",
+    "nature.rock-small": "assets/Nature Assets 2/Models/GLTF format/rock_smallA.glb",
+    "deco.fence": "assets/Nature Assets 2/Models/GLTF format/fence_simple.glb",
+    "deco.fence-gate": "assets/Nature Assets 2/Models/GLTF format/fence_gate.glb",
+    "deco.bench": "assets/Graveyard Assets/Models/GLB format/bench.glb",
+    "deco.lantern": "assets/Fantasy Town Assets/Models/GLB format/lantern.glb",
+    "building.stall": "assets/Fantasy Town Assets/Models/GLB format/stall-green.glb",
+    "building.windmill": "assets/Fantasy Town Assets/Models/GLB format/windmill.glb",
+    "building.windmill-blade": "assets/Fantasy Town Assets/Models/GLB format/blade.glb",
+    "skirt.crag-a": "assets/Nature Assets 2/Models/GLTF format/rock_tallB.glb",
+    "skirt.crag-b": "assets/Nature Assets 2/Models/GLTF format/rock_tallE.glb",
+    "skirt.crag-c": "assets/Nature Assets 2/Models/GLTF format/rock_tallH.glb",
+    "kit.roof-point": "assets/Fantasy Town Assets/Models/GLB format/roof-high-point.glb",
+    "kit.wall-wood": "assets/Fantasy Town Assets/Models/GLB format/wall-wood.glb",
+    "kit.wall-wood-door": "assets/Fantasy Town Assets/Models/GLB format/wall-wood-door.glb",
+    "kit.wall-wood-window": "assets/Fantasy Town Assets/Models/GLB format/wall-wood-window-shutters.glb",
+    "building.house": "assets/Fantasy RTS Assets/House.glb"
+  }
+}
