@@ -65,6 +65,9 @@ export interface ItemDef {
    *  cast→nibble→catch minigame (FishingSystem). Purely interactive — no passive
    *  income; the reward is whatever you catch. */
   fishing?: true;
+  /** The Collections Hall (post-1.0): tapping this placeable opens the Museum,
+   *  where caught fish are donated onto display for a reward (MuseumSystem). */
+  museum?: true;
 }
 
 const def = (d: ItemDef): ItemDef => d;
@@ -132,6 +135,8 @@ export const CATALOG: readonly ItemDef[] = [
 
   // ——— Tier 7 · "Riverside" (unlocks at Level 7). Scales tuned against pipeline AABBs. ———
   def({ id: 'income.fish-market', nameKey: 'item.income.fish-market', category: 'income', tier: 7, footprint: { w: 3, d: 3 }, cost: 2600, income: { ratePerMin: 24, cap: 1100 }, model: 'building.fish-market', scale: 1.4, renderTier: 'unique' }),
+  // Collections Hall (post-1.0): tap it to open the Museum and donate caught fish onto display.
+  def({ id: 'decor.museum', nameKey: 'item.decor.museum', category: 'decor', tier: 7, footprint: { w: 3, d: 3 }, cost: 2500, model: 'building.museum', scale: 1.65, renderTier: 'unique', museum: true }),
   def({ id: 'ground.river', nameKey: 'item.ground.river', category: 'ground', tier: 7, footprint: { w: 1, d: 1 }, cost: 20, model: 'ground.river', scale: 1, yOffset: 0.002, renderTier: 'instanced', groundOverlay: true, tileKit: 'river' }),
   def({ id: 'decor.wooden-bridge', nameKey: 'item.decor.wooden-bridge', category: 'decor', tier: 7, footprint: { w: 1, d: 1 }, cost: 70, model: 'deco.bridge-wood', scale: 1.0, renderTier: 'instanced' }),
   def({ id: 'nature.lily-pad', nameKey: 'item.nature.lily-pad', category: 'nature', tier: 7, footprint: { w: 1, d: 1 }, cost: 35, model: 'nature.lily', scale: 2.4, renderTier: 'instanced', rotatable: false }),

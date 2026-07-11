@@ -19,6 +19,7 @@ import { IslanderSystem } from '@/sim/IslanderSystem';
 import { PalSystem } from '@/sim/PalSystem';
 import { FishingSystem } from '@/sim/FishingSystem';
 import { DailyGiftSystem } from '@/sim/DailyGiftSystem';
+import { MuseumSystem } from '@/sim/MuseumSystem';
 import { itemDef } from '@/content/catalog';
 import { STARTER_PLACEMENTS } from '@/content/starterIsland';
 
@@ -35,6 +36,7 @@ export class GameState {
   readonly pals: PalSystem;
   readonly fishing: FishingSystem;
   readonly dailyGift: DailyGiftSystem;
+  readonly museum: MuseumSystem;
   readonly isFresh: boolean;
   /** Supplies the item held in Move mode so the snapshot never drops it. */
   private carriedProvider: (() => Placement | null) | null = null;
@@ -83,6 +85,8 @@ export class GameState {
     this.fishing = new FishingSystem(this.island, this.save.fishing, this.save.seed);
     // daily gift owns the once-a-day present (mutates save.dailyGift in place)
     this.dailyGift = new DailyGiftSystem(this.save.dailyGift);
+    // the museum donates caught fish onto display (reads the fishing collection)
+    this.museum = new MuseumSystem(this.save.museum, () => Object.keys(this.fishing.collection().caught));
 
     // a bought chunk is appended to the persisted chunk set (only ExpansionSystem
     // grows the model, so save.chunks and the model stay in lock-step — themes stay
@@ -108,6 +112,7 @@ export class GameState {
       'pal:adopted', // a Pal came to visit → persist the roster
       'fishing:caught', // reeled in a fish → persist the collection
       'gift:claimed', // opened the daily present → persist the claim
+      'museum:donated', // put a fish on display → persist the donation
       'settings:changed',
     ] as const) {
       bus.on(ev, () => this.manager.requestSave());
@@ -173,6 +178,7 @@ export class GameState {
     Object.assign(this.save.player, snapshotWallet());
     this.save.economy = this.economy.snapshot();
     this.save.fishing = this.fishing.snapshot();
+    this.save.museum = this.museum.snapshot();
     this.save.settings = snapshotSettings();
     return this.save;
   }

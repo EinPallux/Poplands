@@ -71,6 +71,12 @@ export interface SaveDailyGift {
   claims: number;
 }
 
+/** Persisted museum state (post-1.0): `donated` is the set of fish-species ids put
+ *  on display in the Collections Hall (a stable id list; donating is one-time per species). */
+export interface SaveMuseum {
+  donated: string[];
+}
+
 /** Persisted quest state (S15). Cumulative predicates keep per-quest counters in `progress`. */
 export interface SaveQuests {
   tutorial: { activeId: string | null; done: string[] };
@@ -143,9 +149,15 @@ export interface SaveV6 extends Omit<SaveV5, 'v'> {
   dailyGift: SaveDailyGift;
 }
 
+/** v7 (post-1.0): the museum (Collections Hall) slice. */
+export interface SaveV7 extends Omit<SaveV6, 'v'> {
+  v: 7;
+  museum: SaveMuseum;
+}
+
 /** The current schema. Bump this alias (not scattered `SaveVn`s) each version. */
-export type Save = SaveV6;
-export const SAVE_VERSION = 6;
+export type Save = SaveV7;
+export const SAVE_VERSION = 7;
 
 export const DEFAULT_SETTINGS: SaveSettings = {
   volume: 0.8,
@@ -176,6 +188,10 @@ export function freshFishing(): SaveFishing {
 
 export function freshDailyGift(): SaveDailyGift {
   return { lastClaimDay: 0, claims: 0 };
+}
+
+export function freshMuseum(): SaveMuseum {
+  return { donated: [] };
 }
 
 /**
@@ -245,11 +261,16 @@ const migrations: Record<number, (s: AnySave) => AnySave> = {
     // Daily-gift starts un-claimed (lastClaimDay 0 → the first gift is ready).
     return { ...v5, v: 6, dailyGift: freshDailyGift() } as unknown as AnySave;
   },
+  6: (s) => {
+    const v6 = s as unknown as SaveV6;
+    // The museum starts empty — nothing on display yet.
+    return { ...v6, v: 7, museum: freshMuseum() } as unknown as AnySave;
+  },
 };
 
 export function freshSave(seed: number, now: number): Save {
   return {
-    v: 6,
+    v: 7,
     createdAt: now,
     lastSeenAt: now,
     seed,
@@ -269,6 +290,7 @@ export function freshSave(seed: number, now: number): Save {
     islanders: freshIslanders(), // IslanderSystem welcomes residents as homes appear
     fishing: freshFishing(), // empty catch log; fills as the player fishes
     dailyGift: freshDailyGift(), // un-claimed; the first gift is ready on day one
+    museum: freshMuseum(), // empty Collections Hall
     attic: [],
     settings: { ...DEFAULT_SETTINGS },
   };
@@ -331,6 +353,8 @@ function normalize(v2: Save): Save {
   v2.dailyGift ??= freshDailyGift();
   v2.dailyGift.lastClaimDay ??= 0;
   v2.dailyGift.claims ??= 0;
+  v2.museum ??= freshMuseum();
+  v2.museum.donated ??= [];
   v2.settings = { ...DEFAULT_SETTINGS, ...v2.settings };
   v2.island.placements ??= [];
   v2.player.level ??= 1;

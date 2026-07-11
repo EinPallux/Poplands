@@ -185,6 +185,18 @@ const en = {
   'fish.rainbowfin': 'Rainbowfin',
   'fish.starsturgeon': 'Star Sturgeon',
 
+  // collections hall / museum (post-1.0)
+  'museum.title': 'Collections Hall',
+  'museum.fishHall': 'Fish Hall',
+  'museum.progress': 'on display',
+  'museum.donate': 'Donate',
+  'museum.onDisplay': 'On display',
+  'museum.locked': 'Not yet caught',
+  'museum.hint': 'Catch fish at a Fishing Pond, then donate them here to fill the hall.',
+  'museum.overview': '{s} secrets found · {n} neighbours',
+  'museum.thanks': '{fish} is on display now — thank you!',
+  'museum.complete': 'The Fish Hall is complete! ✨🏛️',
+
   // daily gift (post-1.0)
   'gift.title': 'Daily Gift',
   'gift.ready': 'A present is waiting!',
@@ -287,6 +299,7 @@ const en = {
   'item.home.village-house': 'Village House',
   'item.decor.fountain': 'Fountain',
   'item.nature.fishing-pond': 'Fishing Pond',
+  'item.decor.museum': 'Collections Hall',
   'item.decor.lightpost': 'Street Lamp',
   'item.decor.banner': 'Town Banner',
   'item.income.watermill': 'Watermill',

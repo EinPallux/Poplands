@@ -1441,6 +1441,102 @@ body {
 .jf-count { font-size: 13px; font-weight: 800; color: var(--accent-gold); }
 .journal-hint { margin-top: 10px; font-size: 12px; font-style: italic; opacity: 0.7; }
 
+/* Collections Hall — a centered modal opened by tapping the building */
+.museum-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(40, 34, 54, 0.42);
+  pointer-events: auto;
+}
+.museum-panel {
+  position: relative;
+  width: min(360px, 92vw);
+  max-height: 82vh;
+  overflow-y: auto;
+  padding: 18px 20px;
+  border-radius: 18px;
+  background: var(--ui-cream);
+  color: var(--ui-ink);
+  box-shadow: 0 14px 40px rgba(40, 34, 54, 0.4);
+  transform-origin: 50% 50%;
+}
+.museum-close {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(120, 110, 130, 0.16);
+  color: var(--ui-ink);
+  font-size: 13px;
+  cursor: pointer;
+  line-height: 1;
+}
+.museum-panel h2 { margin: 0 0 4px; font-size: 20px; }
+.museum-sub { font-size: 13px; font-weight: 700; color: var(--accent-gold); margin-bottom: 2px; }
+.museum-overview { font-size: 11px; opacity: 0.7; margin-bottom: 12px; }
+.museum-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 5px; }
+.mu {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 9px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.45);
+  border-left: 4px solid var(--rarity, #cbb);
+}
+.mu.rarity-common { --rarity: #8a94a6; }
+.mu.rarity-uncommon { --rarity: #57b368; }
+.mu.rarity-rare { --rarity: #4a90d9; }
+.mu.rarity-legendary { --rarity: #f0b429; }
+.mu.locked { opacity: 0.5; border-left-color: rgba(120, 110, 130, 0.4); }
+.mu.display { background: rgba(240, 180, 41, 0.14); }
+.mu-icon { font-size: 20px; width: 24px; text-align: center; }
+.mu-name { flex: 1; font-size: 13px; font-weight: 700; }
+.mu-tag { font-size: 10px; font-weight: 700; color: var(--accent-gold); text-transform: uppercase; letter-spacing: 0.03em; }
+.mu-donate {
+  border: none;
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 800;
+  background: var(--accent-gold, #f0b429);
+  color: #4a3f2a;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(74, 63, 42, 0.22);
+}
+.mu-donate:hover { filter: brightness(1.05); }
+.museum-hint { margin-top: 12px; font-size: 12px; font-style: italic; opacity: 0.7; }
+.museum-done { margin-top: 12px; font-size: 14px; font-weight: 800; text-align: center; color: var(--accent-gold); }
+.museum-toast {
+  position: absolute;
+  left: 50%;
+  bottom: 22px;
+  transform: translateX(-50%);
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: var(--ui-ink);
+  color: var(--ui-cream);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.museum-cheer {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 46px;
+  pointer-events: none;
+}
+
 /* ——— Daily gift (post-1.0) ——— */
 .gift-root {
   position: absolute;

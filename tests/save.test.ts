@@ -96,7 +96,7 @@ describe('parseSave', () => {
     expect(withCarried(placements, null)).toBe(placements);
   });
 
-  it('migrates a v1 save through to v6, seeding economy + quests + xpGranted + secrets + islanders + fishing + dailyGift', () => {
+  it('migrates a v1 save through to v7, seeding economy + quests + xpGranted + secrets + islanders + fishing + dailyGift + museum', () => {
     // a hand-built v0.2-era v1 save
     const v1 = {
       v: 1,
@@ -116,7 +116,7 @@ describe('parseSave', () => {
     };
     const parsed = parseSave(JSON.stringify(v1));
     expect(parsed).not.toBeNull();
-    expect(parsed!.v).toBe(6); // chains v1→v2→v3→v4→v5→v6
+    expect(parsed!.v).toBe(7); // chains v1→v2→v3→v4→v5→v6→v7
     // wallets preserved, not reset
     expect(parsed!.player.pops).toBe(300);
     expect(parsed!.player.level).toBe(2);
@@ -139,6 +139,8 @@ describe('parseSave', () => {
     // v6: un-claimed daily-gift slice (the first gift is ready)
     expect(parsed!.dailyGift.lastClaimDay).toBe(0);
     expect(parsed!.dailyGift.claims).toBe(0);
+    // v7: empty museum slice (nothing on display yet)
+    expect(parsed!.museum.donated).toEqual([]);
   });
 
   it('a v4 save missing the islanders slice normalizes to an empty roster', () => {
@@ -165,6 +167,14 @@ describe('parseSave', () => {
     expect(parsed).not.toBeNull();
     expect(parsed!.dailyGift.lastClaimDay).toBe(0);
     expect(parsed!.dailyGift.claims).toBe(0);
+  });
+
+  it('a save predating the museum slice normalizes to an empty hall', () => {
+    const save = makeSave() as unknown as Record<string, unknown>;
+    delete save['museum'];
+    const parsed = parseSave(JSON.stringify(save));
+    expect(parsed).not.toBeNull();
+    expect(parsed!.museum.donated).toEqual([]);
   });
 
   it('back-fills a new settings field (uiScale) on a save that predates it', () => {

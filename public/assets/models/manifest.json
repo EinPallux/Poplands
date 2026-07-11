@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-11T21:19:11.027Z",
+  "generatedAt": "2026-07-11T22:40:55.605Z",
   "models": {
     "ground.grass-block": {
       "file": "assets/models/ground.grass-block.glb",
@@ -1373,6 +1373,31 @@
       ],
       "clips": [],
       "materials": 4,
+      "meshes": 1,
+      "phase": "early"
+    },
+    "building.museum": {
+      "file": "assets/models/building.museum.glb",
+      "bytes": 491916,
+      "aabb": {
+        "min": [
+          -0.9051523171365261,
+          -0.0005226757404681421,
+          -0.9051524790797582
+        ],
+        "max": [
+          0.9051523171365261,
+          3.0780141370290677,
+          0.9051521008942197
+        ]
+      },
+      "size": [
+        1.8103046342730522,
+        3.078536812769536,
+        1.8103045799739779
+      ],
+      "clips": [],
+      "materials": 3,
       "meshes": 1,
       "phase": "early"
     },

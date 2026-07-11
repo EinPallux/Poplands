@@ -41,6 +41,7 @@ import { Album } from '@/ui/Album';
 import { FishJournal } from '@/ui/FishJournal';
 import { FishingLayer } from '@/ui/FishingLayer';
 import { DailyGiftUI } from '@/ui/DailyGiftUI';
+import { MuseumPanel } from '@/ui/MuseumPanel';
 import { PhotoMode } from '@/ui/PhotoMode';
 import { WorldFx } from '@/ui/WorldFx';
 import { SurveyLayer } from '@/ui/SurveyLayer';
@@ -278,6 +279,8 @@ export class App {
     bus.on('cmd:castLine', ({ placementId }) => state.fishing.castLine(placementId)); // tap a pond
     bus.on('cmd:claimGift', () => state.dailyGift.claim()); // open the daily present
     bus.on('gift:claimed', () => audio.reel()); // a cheerful open-the-present flourish
+    bus.on('cmd:donate', ({ species }) => state.museum.donate(species)); // hall → put a fish on display
+    bus.on('museum:donated', () => audio.chime()); // a bright donation chime (reward credited by Economy)
     bus.on('income:collected', () => audio.chime()); // coin-arc handled by WorldFx
     bus.on('income:ripe', (e) => {
       const p = island.placement(e.placementId);
@@ -406,6 +409,17 @@ export class App {
     }));
     const journal = new FishJournal(uiRoot, () => state.fishing.collection());
     new DailyGiftUI(uiRoot); // the once-a-day present (self-wires to gift:* events)
+    const museumPanel = new MuseumPanel(uiRoot, () => {
+      const v = state.museum.view();
+      return {
+        fish: v.fish,
+        donatedCount: v.donatedCount,
+        total: v.total,
+        secretsFound: state.save.quests.milestones.secretsFound,
+        neighbours: state.islanders.agents.length,
+      };
+    });
+    bus.on('cmd:openMuseum', () => museumPanel.openPanel()); // tapping the Collections Hall opens it
     const photo = new PhotoMode(uiRoot, () => {
       rm.render(scene, rig.camera); // one fresh frame, then read it back
       return rm.renderer.domElement.toDataURL('image/png');
@@ -478,6 +492,7 @@ export class App {
       },
       onEscape: () => {
         if (photo.active) photo.toggle(false);
+        else if (museumPanel.open) museumPanel.close();
         else if (album.open) album.toggle(false);
         else if (journal.open) journal.toggle(false);
         else if (settings.open) settings.toggle(false);
@@ -655,6 +670,9 @@ export class App {
         fishTimer: () => state.fishing.remaining,
         fishSkipWait: () => state.fishing.debugSkipWait(),
         fishCast: (id: string) => bus.emit('cmd:castLine', { placementId: id }),
+        museumView: () => state.museum.view(),
+        openMuseum: () => bus.emit('cmd:openMuseum', undefined),
+        donate: (species: string) => bus.emit('cmd:donate', { species }),
         ripen: (id: string, frac = 1) => state.economy.debugRipen(id, frac),
         placementsOf: (def: string) =>
           island.allPlacements().filter((p) => p.def === def).map((p) => p.id),
