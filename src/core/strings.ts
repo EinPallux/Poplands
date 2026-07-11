@@ -39,6 +39,22 @@ const en = {
   'chunk.popup.title': 'New chunk!',
   'chunk.popup.sub': 'Chunk {n} floated up to join your island 🌱',
 
+  // islander chatter (S16) — cute one-liners shown in a speech bubble on tap
+  'npc.say.1': 'Best little island in the sky!',
+  'npc.say.2': 'Is that cloud shaped like a bun? 🥐',
+  'npc.say.3': 'I could nap here forever…',
+  'npc.say.4': 'Ooh, what are you building next?',
+  'npc.say.5': 'The flowers smell amazing today.',
+  'npc.say.6': 'Morning stroll = the best stroll.',
+  'npc.say.7': 'Did you hear? A new chunk floated up!',
+  'npc.say.8': 'I found a shiny pebble. It’s my favorite now.',
+  'npc.say.9': 'Wave hello to the Pals for me! 🐾',
+  'npc.say.10': 'So cozy up here. Thank you.',
+  'npc.say.11': 'Wanna watch the stars later?',
+  'npc.say.12': 'I’m just vibing, honestly.',
+  'npc.say.13': 'You’re doing a wonderful job. ✨',
+  'npc.say.14': 'Careful near the edge — big drop! 😅',
+
   // islanders (S16) — proper names; localized tables may transliterate
   'npc.mo.name': 'Mo',
   'npc.pia.name': 'Pia',

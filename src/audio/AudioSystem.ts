@@ -160,6 +160,29 @@ export class AudioSystem {
     });
   }
 
+  /** Cute "talking" blips when an Islander greets you (Animal-Crossing-ish babble). */
+  chatter(): void {
+    const ctx = this.ensure();
+    if (!ctx || !this.master) return;
+    const now = ctx.currentTime;
+    const blips = 3 + Math.floor(Math.random() * 2); // 3–4 little syllables
+    for (let i = 0; i < blips; i++) {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'triangle';
+      const at = now + i * 0.092;
+      const freq = 360 + Math.random() * 300; // wobbly pitch = friendly babble
+      osc.frequency.setValueAtTime(freq, at);
+      osc.frequency.exponentialRampToValueAtTime(freq * 1.14, at + 0.06);
+      gain.gain.setValueAtTime(0.0001, at);
+      gain.gain.exponentialRampToValueAtTime(0.2, at + 0.008);
+      gain.gain.exponentialRampToValueAtTime(0.0001, at + 0.075);
+      osc.connect(gain).connect(this.master);
+      osc.start(at);
+      osc.stop(at + 0.1);
+    }
+  }
+
   /** Airy poof for removals — filtered noise burst. */
   poof(): void {
     const ctx = this.ensure();

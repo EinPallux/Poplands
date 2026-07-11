@@ -31,6 +31,7 @@ import { Mailbox } from '@/ui/Mailbox';
 import { WorldFx } from '@/ui/WorldFx';
 import { SurveyLayer } from '@/ui/SurveyLayer';
 import { SecretLayer } from '@/ui/SecretLayer';
+import { SpeechLayer } from '@/ui/SpeechLayer';
 import { ChunkPopup } from '@/ui/ChunkPopup';
 import '@/ui/questState'; // side-effect: registers quest signal subscriptions
 import { initToasts, showToast } from '@/ui/Toasts';
@@ -257,6 +258,8 @@ export class App {
       if (a) particles.sparkle(a.x, 0.9, a.z);
       audio.chime();
     });
+    // tap-to-greet: a cute babble when an Islander speaks (bubble handled by SpeechLayer)
+    bus.on('npc:spoke', () => audio.chatter());
 
     // — UI (thumbnails render post-boot; they'd otherwise delay first frame)
     initToasts(uiRoot);
@@ -271,6 +274,7 @@ export class App {
     );
     const surveyLayer = new SurveyLayer(uiRoot, (x, y, z) => rig.projectToScreen(x, y, z));
     const secretLayer = new SecretLayer(uiRoot, (x, y, z) => rig.projectToScreen(x, y, z));
+    const speechLayer = new SpeechLayer(uiRoot, (x, y, z) => rig.projectToScreen(x, y, z));
     new ChunkPopup(uiRoot); // self-wires to chunk:unlocked
     const buildBar = new BuildBar(uiRoot);
     setTimeout(() => buildBar.setThumbnails(renderThumbnails(assets)), 80);
@@ -319,6 +323,16 @@ export class App {
       onToolMove: () => bus.emit('cmd:setTool', { tool: 'move' }),
       onToolRemove: () => bus.emit('cmd:setTool', { tool: 'remove' }),
       onToggleDebug: () => debugHud.toggle(),
+      // tap an Islander (when not mid-build) to greet them — consumes the click
+      onPrimaryClick: (x, y) => {
+        if (session.isActive) return false;
+        const id = agents.pickAt(x, y, rig.camera);
+        if (id) {
+          bus.emit('cmd:clickNpc', { id });
+          return true;
+        }
+        return false;
+      },
     });
 
     // soft input-lock during the chunk-arrival set piece (first 0.8 s): the camera
@@ -336,6 +350,7 @@ export class App {
     loop.add((dt) => {
       state.islanders.update(dt); // sim integrates kinematics (three.js-free)…
       agents.sync(state.islanders.agents, dt); // …then Tier C projects + animates
+      speechLayer.update(state.islanders.agents, dt); // bubbles track their speaker
     });
     loop.add((dt) => rig.update(dt));
     loop.add((dt) => tweens.update(dt));
@@ -387,9 +402,10 @@ export class App {
         clickSecret: (cx: number, cz: number) => bus.emit('cmd:clickSecret', { cx, cz }),
         milestones: () => state.save.quests.milestones,
         islanders: () =>
-          state.islanders.agents.map((a) => ({ id: a.id, x: a.x, z: a.z, moving: a.moving })),
+          state.islanders.agents.map((a) => ({ id: a.id, x: a.x, z: a.z, yaw: a.yaw, moving: a.moving })),
         residents: () => state.islanders.snapshot().residents.slice(),
         agentMeshes: () => agents.count,
+        clickNpc: (id: string) => bus.emit('cmd:clickNpc', { id }),
         /** Debug soak (non-persistent): grow the lattice to N chunks + rebuild once,
          *  skipping economy/arrival — for the draw/tri budget measurement only. */
         growTo: (n: number) => {

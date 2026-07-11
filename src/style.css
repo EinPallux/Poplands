@@ -856,6 +856,57 @@ body {
   }
 }
 
+/* Islander speech bubbles (S16) — world-anchored cozy bubble over a tapped
+   neighbour. Positioned inline per frame; the .in class springs it in. */
+.speech-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.speech-bubble {
+  position: absolute;
+  top: 0;
+  left: 0;
+  max-width: 190px;
+  padding: 7px 11px;
+  border-radius: 14px;
+  background: var(--ui-cream);
+  color: var(--ui-ink);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.25;
+  text-align: center;
+  white-space: normal;
+  box-shadow: 0 4px 14px rgba(74, 63, 94, 0.28);
+  opacity: 0;
+  transform-origin: 50% 100%;
+  transition:
+    opacity 0.18s ease,
+    scale 0.24s cubic-bezier(0.34, 1.56, 0.64, 1);
+  scale: 0.6;
+  will-change: transform, scale, opacity;
+}
+
+.speech-bubble.in {
+  opacity: 1;
+  scale: 1;
+}
+
+.speech-bubble::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  width: 12px;
+  height: 12px;
+  background: var(--ui-cream);
+  border-radius: 0 0 3px 0;
+  transform: translateX(-50%) rotate(45deg);
+  box-shadow: 3px 3px 6px rgba(74, 63, 94, 0.14);
+}
+
 /* Chunk-arrival celebration popup (S21) — springs in, wiggles, auto-dismisses.
    Non-modal (pointer-events: none). The card's transform does the spring; the
    emoji child wiggles on its own transform. */
