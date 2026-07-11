@@ -29,6 +29,7 @@ const en = {
   'build.blocked.occupied': 'Something is already there',
   'build.blocked.island': 'That’s open sky!',
   'build.blocked.afford': 'Not enough Pops yet',
+  'build.blocked.edge': 'Needs to reach the island’s edge',
   'build.locked': 'Unlocks at Level {level}',
   'toast.levelUp': 'Level {level}! ✨ New things to build',
   'toast.questDone': 'Postcard complete! 💌',

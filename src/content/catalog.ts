@@ -40,6 +40,11 @@ export interface ItemDef {
   groundOverlay?: boolean;
   /** Default true; false for radially symmetric items where rotation is noise. */
   rotatable?: boolean;
+  /** Edge-anchor items (S8): the footprint must straddle the island boundary —
+   *  ≥1 on-island anchor cell AND ≥1 off-island cell in the facing direction, so
+   *  docks/moored boats hang out over the void. Rotation is load-bearing (never
+   *  pair with rotatable: false); needs footprint depth ≥2 along the faced axis. */
+  edgeAnchor?: true;
 }
 
 const def = (d: ItemDef): ItemDef => d;
@@ -116,7 +121,7 @@ export const CATALOG: readonly ItemDef[] = [
 
   // ——— Tier 9 · "Harbor" (unlocks at Level 9) ———
   def({ id: 'income.harbor-market', nameKey: 'item.income.harbor-market', category: 'income', tier: 9, footprint: { w: 3, d: 3 }, cost: 4200, income: { ratePerMin: 32, cap: 1500 }, model: 'building.harbor-market', scale: 0.95, renderTier: 'unique' }),
-  def({ id: 'decor.dock', nameKey: 'item.decor.dock', category: 'decor', tier: 9, footprint: { w: 2, d: 2 }, cost: 80, model: 'deco.dock', scale: 0.85, renderTier: 'instanced' }),
+  def({ id: 'decor.dock', nameKey: 'item.decor.dock', category: 'decor', tier: 9, footprint: { w: 2, d: 2 }, cost: 80, model: 'deco.dock', scale: 0.85, renderTier: 'instanced', edgeAnchor: true }),
   def({ id: 'nature.palm', nameKey: 'item.nature.palm', category: 'nature', tier: 9, footprint: { w: 1, d: 1 }, cost: 50, model: 'nature.palm', scale: 0.42, renderTier: 'instanced' }),
   def({ id: 'nature.beach-rock', nameKey: 'item.nature.beach-rock', category: 'nature', tier: 9, footprint: { w: 1, d: 1 }, cost: 15, model: 'nature.beach-rock', scale: 0.22, renderTier: 'instanced' }),
   def({ id: 'decor.crate', nameKey: 'item.decor.crate', category: 'decor', tier: 9, footprint: { w: 1, d: 1 }, cost: 25, model: 'deco.crate', scale: 0.75, renderTier: 'instanced' }),
@@ -124,7 +129,7 @@ export const CATALOG: readonly ItemDef[] = [
 
   // ——— Tier 10 · "Harbor" (unlocks at Level 10) ———
   def({ id: 'income.lighthouse', nameKey: 'item.income.lighthouse', category: 'income', tier: 10, footprint: { w: 2, d: 2 }, cost: 5600, income: { ratePerMin: 38, cap: 1800 }, model: 'building.lighthouse', scale: 0.5, renderTier: 'unique' }),
-  def({ id: 'decor.moored-sloop', nameKey: 'item.decor.moored-sloop', category: 'decor', tier: 10, footprint: { w: 3, d: 2 }, cost: 2400, costStardust: 2, model: 'deco.sloop', scale: 0.3, renderTier: 'unique' }),
+  def({ id: 'decor.moored-sloop', nameKey: 'item.decor.moored-sloop', category: 'decor', tier: 10, footprint: { w: 3, d: 2 }, cost: 2400, costStardust: 2, model: 'deco.sloop', scale: 0.3, renderTier: 'unique', edgeAnchor: true }),
   def({ id: 'decor.pennant', nameKey: 'item.decor.pennant', category: 'decor', tier: 10, footprint: { w: 1, d: 1 }, cost: 60, model: 'deco.pennant', scale: 0.55, renderTier: 'instanced' }),
   // ——— Tiers 11-14 (v0.6 Living Canvas: Harbor/Spooky/Winter/Grand) ———
   // ——— Tier 11 ———
@@ -134,7 +139,7 @@ export const CATALOG: readonly ItemDef[] = [
   def({ id: 'nature.sea-boulder', nameKey: 'item.nature.sea-boulder', category: 'nature', tier: 11, footprint: { w: 2, d: 2 }, cost: 40, model: 'nature.sea-boulder', scale: 0.43, renderTier: 'instanced' }),
   def({ id: 'nature.tropical-brush', nameKey: 'item.nature.tropical-brush', category: 'nature', tier: 11, footprint: { w: 2, d: 2 }, cost: 26, model: 'nature.tropical-brush', scale: 0.42, renderTier: 'instanced' }),
   def({ id: 'decor.rowboat', nameKey: 'item.decor.rowboat', category: 'decor', tier: 11, footprint: { w: 2, d: 2 }, cost: 130, model: 'deco.rowboat', scale: 0.84, renderTier: 'unique' }),
-  def({ id: 'decor.jetty', nameKey: 'item.decor.jetty', category: 'decor', tier: 11, footprint: { w: 2, d: 2 }, cost: 70, model: 'deco.jetty', scale: 0.9, renderTier: 'instanced' }),
+  def({ id: 'decor.jetty', nameKey: 'item.decor.jetty', category: 'decor', tier: 11, footprint: { w: 2, d: 2 }, cost: 70, model: 'deco.jetty', scale: 0.9, renderTier: 'instanced', edgeAnchor: true }),
   def({ id: 'decor.raft', nameKey: 'item.decor.raft', category: 'decor', tier: 11, footprint: { w: 2, d: 2 }, cost: 55, model: 'deco.raft', scale: 0.89, renderTier: 'instanced' }),
   def({ id: 'decor.treasure-chest', nameKey: 'item.decor.treasure-chest', category: 'decor', tier: 11, footprint: { w: 1, d: 1 }, cost: 220, costStardust: 2, model: 'deco.treasure-chest', scale: 0.82, renderTier: 'unique' }),
   def({ id: 'decor.bottle-crate', nameKey: 'item.decor.bottle-crate', category: 'decor', tier: 11, footprint: { w: 1, d: 1 }, cost: 30, model: 'deco.bottle-crate', scale: 0.76, renderTier: 'instanced' }),

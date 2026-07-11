@@ -12,6 +12,7 @@ import {
   footprintCenter,
   rotYaw,
   chunksBounds,
+  edgeAnchorOrigin,
 } from '@/core/grid';
 
 describe('grid math', () => {
@@ -91,5 +92,14 @@ describe('grid math', () => {
   it('chunkKey is stable and unique per coordinate', () => {
     expect(chunkKey(1, -2)).toBe('1,-2');
     expect(chunkKey(1, -2)).not.toBe(chunkKey(-1, 2));
+  });
+
+  it('edgeAnchorOrigin shifts back only for negative-facing rotations (S8)', () => {
+    const fp = { w: 2, d: 2 };
+    const a = { wx: 10, wz: 10 };
+    expect(edgeAnchorOrigin(a, fp, 0)).toEqual({ wx: 10, wz: 10 }); // +Z, no shift
+    expect(edgeAnchorOrigin(a, fp, 1)).toEqual({ wx: 10, wz: 10 }); // +X, no shift
+    expect(edgeAnchorOrigin(a, fp, 2)).toEqual({ wx: 10, wz: 9 }); // -Z, wz back by d-1
+    expect(edgeAnchorOrigin(a, fp, 3)).toEqual({ wx: 9, wz: 10 }); // -X, wx back by w-1
   });
 });

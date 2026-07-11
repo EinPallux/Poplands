@@ -181,6 +181,6 @@ export interface AppEvents extends Record<string, unknown> {
 }
 
 /** Why a placement is blocked, as surfaced to the UI (occupied/off-island/can't afford). */
-export type BlockReasonUi = 'off-island' | 'occupied' | 'unaffordable';
+export type BlockReasonUi = 'off-island' | 'occupied' | 'unaffordable' | 'needs-edge';
 
 export const bus = new EventBus<AppEvents>();
