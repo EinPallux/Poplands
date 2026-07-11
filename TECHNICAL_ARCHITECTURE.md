@@ -213,6 +213,7 @@ Runtime AssetRegistry:
 - **World-anchored UI** (ripen bubbles, name tags, "+15 ●" floaters): a `WorldAnchors` layer projects 3D positions → CSS transforms each frame for ≤ 30 anchors; occlusion-fade by depth check against island AABB (cheap heuristic, not per-pixel).
 - UI motion uses the same tween module (it accepts any setter — DOM or three.js), keeping one motion language (ART_DIRECTION §8).
 - Accessibility: DOM = semantic buttons/labels for free screen-reader baseline; focus states; `prefers-reduced-motion` respected and mirrored in settings.
+- **i18n-ready from day 1:** every user-facing string flows through `core/strings.ts` (`t('key')` against an English table; content defs reference string keys). Shipping v1.0 English-only, but no string is ever hardcoded in components — adding a language later is a data task, not a refactor.
 
 ## 11. Error Handling, Debug & Telemetry
 

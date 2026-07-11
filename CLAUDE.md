@@ -8,7 +8,10 @@ Guidance for Claude Code (and humans) working in this repository.
 
 ## Current state
 
-**PLANNING PHASE — no code yet.** The planning docs below are complete and approved-for-planning; **implementation starts only after explicit user confirmation**, beginning with ROADMAP milestone v0.1. `/assets` contains 17 raw low-poly packs (~2,100 GLB models) that are the game's content library.
+**v0.1 "First Light" built — awaiting user milestone review before starting v0.2.**
+Implemented: Vite/TS scaffold, core modules (grid/tween/spring/events/signals/strings) with 26 passing tests, asset pipeline v1 (31 curated models → `public/assets`), renderer + lighting + sky/cloud-sea/clouds/islets, damped camera rig + input + hover picking, starter island (face-culled vertex-colored ground, crag skirt, prop layout, spinning composed windmill), loading screen, debug HUD (`?debug=1`), CI. Dev tools: `scripts/screenshot.mts` (headless beauty shots), `scripts/inspect-model.mts`.
+Known polish items for v0.2: backlit foliage reads too dark from low north angles; hanging-moss models render as black shards (cut, needs DoubleSide); windmill is a hardcoded composition (replace via prefab pipeline).
+`/assets` contains 17 raw low-poly packs (~2,100 GLB models) — the content library (never loaded at runtime).
 
 ## Document map (read before working)
 
@@ -34,6 +37,7 @@ Precedence on conflict: GDD states intent → SYSTEMS/TECH state mechanism → c
 - Sim/presentation seam: sim is three.js-free and event-driven (`cmd:*` in, domain events out). UI talks to sim only via bus/stores.
 - Assets: **GLB only at runtime**, loaded from `public/assets` produced by the manifest pipeline. Never import from `/assets` (raw packs) at runtime, never hand-copy files into `public/`.
 - 100% refunds, no fail states, no FOMO timers — the no-grind covenant (GDD §7.5) is a testable requirement.
+- Confirmed by user (2026-07-11): **perspective camera** (35° FOV, not orthographic) · **English-first, i18n-ready** (all user-facing text via the string table `src/core/strings.ts`; never hardcode UI strings; more languages post-1.0) · **desktop-first** (touch polish post-1.0) · **milestone cadence: pause after each milestone** for user review (push + screenshots + status) before starting the next.
 
 ## Working conventions
 

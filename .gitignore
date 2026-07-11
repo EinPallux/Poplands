@@ -1,0 +1,17 @@
+# dependencies / build
+node_modules/
+dist/
+coverage/
+
+# local captures (screenshot tool output)
+shots/
+
+# editor & OS noise
+.DS_Store
+*.local
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# note: public/assets (pipeline output) IS committed for now — small curated set,
+# lets the app run without the pipeline. Revisit if it outgrows ~30 MB (TECH §7).

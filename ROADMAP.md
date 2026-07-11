@@ -80,7 +80,7 @@
 Elevation/terraces (cliff kit is ready for it) · weather (rain sparkle, rainbows) · seasons & events (12 reserve Pals, Graveyard/Snow packs go seasonal) · fishing pond minigame · island-code sharing (URL-encoded save) · touch/mobile tuning · Suburbia/Tinker novelty tiers (City/Factory/Market/Space packs) · ambient hop-over-fence NPC moment (S16 note) · Steam wrapper · localization framework.
 
 ## Standing Rhythm (every milestone)
-Playtest with ≥ 3 outsiders → feel-gate honestly · perf check vs budgets on min-spec · docs & CHANGELOG updated · content added only via pipeline+manifest (never hand-copied files) · a 10-second "milestone beauty GIF" recorded for the log.
+Playtest with ≥ 3 outsiders → feel-gate honestly · perf check vs budgets on min-spec · docs & CHANGELOG updated · content added only via pipeline+manifest (never hand-copied files) · a 10-second "milestone beauty GIF" recorded for the log · **end of milestone: push + screenshots + status summary, then pause for user review before starting the next** (user-confirmed cadence, 2026-07-11).
 
 ## Immediate Next Steps (upon user confirmation — see CLAUDE.md)
 1. v0.1 scaffold: Vite + TS strict + ESLint/Prettier + Vitest + CI check.
