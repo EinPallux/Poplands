@@ -48,20 +48,26 @@ export interface MilestoneDef {
 const FLOWERS = ['nature.flower.purple', 'nature.flower.red', 'nature.flower.yellow'] as const;
 const PATHS = ['ground.path.dirt', 'ground.path.stone'] as const;
 
-/** "Welcome to the Drift" — 12 steps, v0.3-adapted (no chunks/islanders yet). */
+/**
+ * "Welcome to the Drift" — 12 steps, v0.3-adapted (no chunks/islanders yet).
+ * Each build step also grants XP so the tutorial itself funds the reachLevel
+ * checkpoints (L2 = 60 XP, L3 = 240 XP): the rewards below sum to ~208 XP which,
+ * with the ~37 placement-XP the mandated builds earn, lands the player at L3 as
+ * they finish — no grind wall, honouring the no-grind covenant (GDD §7.5).
+ */
 export const TUTORIAL: readonly QuestDef[] = [
-  { id: 'tut.flowers', kind: 'tutorial', titleKey: 'quest.tut.flowers.t', descKey: 'quest.tut.flowers.d', predicate: { kind: 'place', sel: { defs: FLOWERS }, n: 3 }, rewards: { pops: 30 }, nextId: 'tut.path' },
-  { id: 'tut.path', kind: 'tutorial', titleKey: 'quest.tut.path.t', descKey: 'quest.tut.path.d', predicate: { kind: 'place', sel: { defs: PATHS }, n: 3 }, rewards: { pops: 25 }, nextId: 'tut.bench' },
-  { id: 'tut.bench', kind: 'tutorial', titleKey: 'quest.tut.bench.t', descKey: 'quest.tut.bench.d', predicate: { kind: 'place', sel: { def: 'decor.bench' }, n: 1 }, rewards: { pops: 40 }, nextId: 'tut.stall' },
-  { id: 'tut.stall', kind: 'tutorial', titleKey: 'quest.tut.stall.t', descKey: 'quest.tut.stall.d', predicate: { kind: 'place', sel: { def: 'income.stall' }, n: 1 }, rewards: { pops: 60 }, nextId: 'tut.collect' },
-  { id: 'tut.collect', kind: 'tutorial', titleKey: 'quest.tut.collect.t', descKey: 'quest.tut.collect.d', predicate: { kind: 'collectPops', n: 1 }, rewards: { pops: 25 }, nextId: 'tut.hut' },
-  { id: 'tut.hut', kind: 'tutorial', titleKey: 'quest.tut.hut.t', descKey: 'quest.tut.hut.d', predicate: { kind: 'place', sel: { def: 'home.hut' }, n: 1 }, rewards: { pops: 80 }, nextId: 'tut.cozycorner' },
-  { id: 'tut.cozycorner', kind: 'tutorial', titleKey: 'quest.tut.cozycorner.t', descKey: 'quest.tut.cozycorner.d', predicate: { kind: 'adjacency', a: { def: 'decor.lantern' }, b: { def: 'home.hut' }, dist: 2, n: 1 }, rewards: { pops: 20 }, nextId: 'tut.lanterns' },
-  { id: 'tut.lanterns', kind: 'tutorial', titleKey: 'quest.tut.lanterns.t', descKey: 'quest.tut.lanterns.d', predicate: { kind: 'place', sel: { def: 'decor.lantern' }, n: 2 }, rewards: { pops: 40 }, nextId: 'tut.level2' },
-  { id: 'tut.level2', kind: 'tutorial', titleKey: 'quest.tut.level2.t', descKey: 'quest.tut.level2.d', predicate: { kind: 'reachLevel', level: 2 }, rewards: { stardust: 3 }, nextId: 'tut.pops150' },
-  { id: 'tut.pops150', kind: 'tutorial', titleKey: 'quest.tut.pops150.t', descKey: 'quest.tut.pops150.d', predicate: { kind: 'collectPops', n: 150 }, rewards: { pops: 50 }, nextId: 'tut.level3' },
-  { id: 'tut.level3', kind: 'tutorial', titleKey: 'quest.tut.level3.t', descKey: 'quest.tut.level3.d', predicate: { kind: 'reachLevel', level: 3 }, rewards: { pops: 60 }, nextId: 'tut.capstone' },
-  { id: 'tut.capstone', kind: 'tutorial', titleKey: 'quest.tut.capstone.t', descKey: 'quest.tut.capstone.d', predicate: { kind: 'own', sel: { any: true }, n: 30 }, rewards: { pops: 100, stardust: 2 } },
+  { id: 'tut.flowers', kind: 'tutorial', titleKey: 'quest.tut.flowers.t', descKey: 'quest.tut.flowers.d', predicate: { kind: 'place', sel: { defs: FLOWERS }, n: 3 }, rewards: { pops: 30, xp: 12 }, nextId: 'tut.path' },
+  { id: 'tut.path', kind: 'tutorial', titleKey: 'quest.tut.path.t', descKey: 'quest.tut.path.d', predicate: { kind: 'place', sel: { defs: PATHS }, n: 3 }, rewards: { pops: 25, xp: 12 }, nextId: 'tut.bench' },
+  { id: 'tut.bench', kind: 'tutorial', titleKey: 'quest.tut.bench.t', descKey: 'quest.tut.bench.d', predicate: { kind: 'place', sel: { def: 'decor.bench' }, n: 1 }, rewards: { pops: 40, xp: 15 }, nextId: 'tut.stall' },
+  { id: 'tut.stall', kind: 'tutorial', titleKey: 'quest.tut.stall.t', descKey: 'quest.tut.stall.d', predicate: { kind: 'place', sel: { def: 'income.stall' }, n: 1 }, rewards: { pops: 60, xp: 22 }, nextId: 'tut.collect' },
+  { id: 'tut.collect', kind: 'tutorial', titleKey: 'quest.tut.collect.t', descKey: 'quest.tut.collect.d', predicate: { kind: 'collectPops', n: 1 }, rewards: { pops: 25, xp: 12 }, nextId: 'tut.hut' },
+  { id: 'tut.hut', kind: 'tutorial', titleKey: 'quest.tut.hut.t', descKey: 'quest.tut.hut.d', predicate: { kind: 'place', sel: { def: 'home.hut' }, n: 1 }, rewards: { pops: 80, xp: 30 }, nextId: 'tut.cozycorner' },
+  { id: 'tut.cozycorner', kind: 'tutorial', titleKey: 'quest.tut.cozycorner.t', descKey: 'quest.tut.cozycorner.d', predicate: { kind: 'adjacency', a: { def: 'decor.lantern' }, b: { def: 'home.hut' }, dist: 2, n: 1 }, rewards: { pops: 20, xp: 12 }, nextId: 'tut.lanterns' },
+  { id: 'tut.lanterns', kind: 'tutorial', titleKey: 'quest.tut.lanterns.t', descKey: 'quest.tut.lanterns.d', predicate: { kind: 'place', sel: { def: 'decor.lantern' }, n: 2 }, rewards: { pops: 40, xp: 20 }, nextId: 'tut.level2' },
+  { id: 'tut.level2', kind: 'tutorial', titleKey: 'quest.tut.level2.t', descKey: 'quest.tut.level2.d', predicate: { kind: 'reachLevel', level: 2 }, rewards: { stardust: 3, xp: 28 }, nextId: 'tut.pops150' },
+  { id: 'tut.pops150', kind: 'tutorial', titleKey: 'quest.tut.pops150.t', descKey: 'quest.tut.pops150.d', predicate: { kind: 'collectPops', n: 150 }, rewards: { pops: 50, xp: 45 }, nextId: 'tut.level3' },
+  { id: 'tut.level3', kind: 'tutorial', titleKey: 'quest.tut.level3.t', descKey: 'quest.tut.level3.d', predicate: { kind: 'reachLevel', level: 3 }, rewards: { pops: 60, xp: 30 }, nextId: 'tut.capstone' },
+  { id: 'tut.capstone', kind: 'tutorial', titleKey: 'quest.tut.capstone.t', descKey: 'quest.tut.capstone.d', predicate: { kind: 'own', sel: { any: true }, n: 30 }, rewards: { pops: 100, stardust: 2, xp: 50 } },
 ];
 
 export const TUTORIAL_FIRST_ID = TUTORIAL[0]!.id;

@@ -112,7 +112,13 @@ export class GameState {
     // Fold a Move-mode carried building back into the snapshot at its home so a
     // mid-carry autosave can never lose it (no fail states).
     const carried = this.carriedProvider?.() ?? null;
-    this.save.island.placements = withCarried(this.island.snapshotPlacements(), carried);
+    const placements = withCarried(this.island.snapshotPlacements(), carried);
+    this.save.island.placements = placements;
+    // Bound the XP idempotence ledger to live placements — a removed id retires
+    // forever (ids are never reused), so pruning it can't cause a double-grant
+    // and keeps xpGranted from growing without limit over a long-lived save.
+    const live = new Set(placements.map((p) => p.id));
+    this.save.player.xpGranted = this.save.player.xpGranted.filter((id) => live.has(id));
     Object.assign(this.save.player, snapshotWallet());
     this.save.economy = this.economy.snapshot();
     this.save.settings = snapshotSettings();

@@ -49,3 +49,7 @@ bus.on('quest:completed', (e) => {
   if (e.kind === 'milestone') return;
   activeQuestsSignal.update((list) => list.filter((q) => q.id !== e.id));
 });
+
+bus.on('quest:dismissed', (e) => {
+  activeQuestsSignal.update((list) => list.filter((q) => q.id !== e.id));
+});

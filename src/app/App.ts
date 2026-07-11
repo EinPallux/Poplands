@@ -268,6 +268,7 @@ export class App {
     loop.add((dt) => input.update(dt));
     loop.add((dt) => session.update(dt));
     loop.add((dt) => state.economy.tick(dt));
+    loop.add(() => state.quests.tick()); // refill postcard slots once a cooldown lapses
     loop.add((dt) => rig.update(dt));
     loop.add((dt) => tweens.update(dt));
     loop.add((dt) => sky.update(dt));

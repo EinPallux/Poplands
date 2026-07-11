@@ -126,6 +126,7 @@ export interface AppEvents extends Record<string, unknown> {
   };
   'quest:progress': { id: string; current: number; target: number };
   'quest:completed': { id: string; kind: QuestKind; rewards: QuestReward; nextId?: string };
+  'quest:dismissed': { id: string }; // a postcard was skipped — HUD removes its card
 
   // persistence
   'save:written': void;

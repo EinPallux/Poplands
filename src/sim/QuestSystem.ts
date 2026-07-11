@@ -133,7 +133,14 @@ export class QuestSystem {
     this.lastCurrent.delete(id);
     if (!this.state.postcards.skipped.includes(id)) this.state.postcards.skipped.push(id);
     this.state.postcards.cooldownUntil = this.now() + POSTCARD_COOLDOWN_MS;
+    bus.emit('quest:dismissed', { id }); // HUD drops the card immediately (no desync)
     this.drawPostcards();
+  }
+
+  /** Low-frequency tick (App loop): refill postcard slots once a cooldown lapses.
+   *  Without this, a slot freed on completion/skip never refills until a level-up. */
+  tick(): void {
+    if (this.state.freePlayUnlocked) this.drawPostcards();
   }
 
   private reevalActive(): void {
@@ -239,13 +246,18 @@ export class QuestSystem {
   }
 
   private eligiblePostcards(): QuestDef[] {
-    const { done, active } = this.state.postcards;
+    const { done, active, skipped } = this.state.postcards;
     return POSTCARDS.filter((p) => {
       if (this.level < (p.minLevel ?? 1) || this.level > (p.maxLevel ?? Infinity)) return false;
       if (done.includes(p.id) || active.some((a) => a.id === p.id)) return false;
       if (p.predicate.kind === 'findSecret') return false; // v0.4
       return predicateSelectors(p.predicate).every(selectorItemsExist);
-    }).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+    }).sort((a, b) => {
+      // deprioritize skipped cards — a skip defers a card behind the fresh pool
+      const sa = skipped.includes(a.id) ? 1 : 0;
+      const sb = skipped.includes(b.id) ? 1 : 0;
+      return sa - sb || (a.order ?? 0) - (b.order ?? 0);
+    });
   }
 
   // ——— milestones (counters only in v0.3; Album UI is v0.6) ———
