@@ -19,6 +19,7 @@ export interface SaveSettings {
   volume: number; // 0..1
   quality: 'auto' | 'high' | 'medium' | 'low';
   reducedMotion: boolean;
+  timeOfDay: 'auto' | 'day' | 'dusk' | 'night'; // 'auto' = cycle; others freeze the sky
 }
 
 /** Per-income-building banked Pops + collection timestamp (S13). */
@@ -113,7 +114,12 @@ export interface SaveV4 extends Omit<SaveV3, 'v'> {
 export type Save = SaveV4;
 export const SAVE_VERSION = 4;
 
-export const DEFAULT_SETTINGS: SaveSettings = { volume: 0.8, quality: 'auto', reducedMotion: false };
+export const DEFAULT_SETTINGS: SaveSettings = {
+  volume: 0.8,
+  quality: 'auto',
+  reducedMotion: false,
+  timeOfDay: 'auto',
+};
 
 const KEY = 'poplands.save';
 const BACKUP_KEYS = [`${KEY}.bak1`, `${KEY}.bak2`];

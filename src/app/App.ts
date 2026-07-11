@@ -8,6 +8,7 @@ import { RendererManager } from '@/render/RendererManager';
 import { CameraRig } from '@/render/CameraRig';
 import { Lights } from '@/render/Lights';
 import { Sky } from '@/render/Sky';
+import { TimeOfDay } from '@/render/TimeOfDay';
 import { QualityProbe, QUALITY_PRESETS, type QualityConfig } from '@/render/Quality';
 import { AssetRegistry } from '@/assets/AssetRegistry';
 import { buildGround } from '@/world/GroundBuilder';
@@ -17,6 +18,7 @@ import { buildIslet } from '@/world/IsletBuilder';
 import { HoverHighlight } from '@/world/HoverHighlight';
 import { PropRenderer } from '@/world/PropRenderer';
 import { AgentRenderer } from '@/world/AgentRenderer';
+import { GlowLayer } from '@/world/GlowLayer';
 import { ChunkArrival } from '@/world/ChunkArrival';
 import { disposeObject } from '@/world/dispose';
 import { BuildSession } from '@/build/BuildSession';
@@ -45,7 +47,7 @@ import { palette } from '@/render/palette';
 import { tweens } from '@/core/tween';
 import { t } from '@/core/strings';
 import { bus } from '@/core/events';
-import { qualitySignal } from '@/core/settingsStore';
+import { qualitySignal, timeOfDaySignal } from '@/core/settingsStore';
 import { popsSignal, stardustSignal, levelSignal, xpSignal } from '@/core/playerStore';
 import { effect } from '@/core/signals';
 import { footprintCenter } from '@/core/grid';
@@ -77,12 +79,14 @@ export class App {
     loading: LoadingScreen,
   ): Promise<void> {
     const scene = new Scene();
-    scene.fog = new Fog(palette.fog, 150, 420);
+    const fog = new Fog(palette.fog, 150, 420);
+    scene.fog = fog;
 
     const lights = new Lights();
     scene.add(lights.group);
     const sky = new Sky(lights.sunDirection);
     scene.add(sky.group);
+    const timeOfDay = new TimeOfDay(lights, sky, fog); // day-night cycle (S7)
     const rig = new CameraRig(rm.aspect);
 
     // — assets, then state
@@ -119,6 +123,8 @@ export class App {
     scene.add(agents.group);
     const palAgents = new AgentRenderer(assets, { targetHeight: 0.7 }); // Pals (S18) — smaller
     scene.add(palAgents.group);
+    const glow = new GlowLayer(island); // lantern/lamp halos at night (S7/S20)
+    scene.add(glow.group);
 
     const hover = new HoverHighlight();
     scene.add(hover.mesh);
@@ -383,6 +389,10 @@ export class App {
     });
     loop.add((dt) => rig.update(dt));
     loop.add((dt) => tweens.update(dt));
+    loop.add((dt) => {
+      timeOfDay.update(dt); // advance dawn→day→dusk→night, tint lights/sky/fog
+      glow.update(timeOfDay.nightFactor); // lantern halos fade in with the dark
+    });
     loop.add((dt) => sky.update(dt));
     loop.add((dt) => landmarks.update(dt));
     loop.add((dt) => particles.update(dt));
@@ -439,6 +449,9 @@ export class App {
         palRoster: () => state.pals.snapshot().pals.slice(),
         palMeshes: () => palAgents.count,
         clickPal: (id: string) => bus.emit('cmd:clickPal', { id }),
+        setTime: (mode: 'auto' | 'day' | 'dusk' | 'night') => timeOfDaySignal.set(mode),
+        nightFactor: () => timeOfDay.nightFactor,
+        glowCount: () => glow.count,
         /** Debug soak (non-persistent): grow the lattice to N chunks + rebuild once,
          *  skipping economy/arrival — for the draw/tri budget measurement only. */
         growTo: (n: number) => {

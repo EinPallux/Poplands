@@ -8,6 +8,7 @@ import {
   volumeSignal,
   qualitySignal,
   reducedMotionSignal,
+  timeOfDaySignal,
 } from '@/core/settingsStore';
 import { bus } from '@/core/events';
 import type { SaveSettings } from '@/core/save';
@@ -51,6 +52,15 @@ export class SettingsPanel {
         </select>
       </label>
       <label class="settings-row">
+        <span>${t('settings.time')}</span>
+        <select class="s-time">
+          <option value="auto">${t('settings.time.auto')}</option>
+          <option value="day">${t('settings.time.day')}</option>
+          <option value="dusk">${t('settings.time.dusk')}</option>
+          <option value="night">${t('settings.time.night')}</option>
+        </select>
+      </label>
+      <label class="settings-row">
         <span>${t('settings.volume')}</span>
         <input class="s-volume" type="range" min="0" max="1" step="0.05">
       </label>
@@ -67,16 +77,22 @@ export class SettingsPanel {
     this.root.appendChild(this.panel);
 
     const quality = this.panel.querySelector('.s-quality') as HTMLSelectElement;
+    const time = this.panel.querySelector('.s-time') as HTMLSelectElement;
     const volume = this.panel.querySelector('.s-volume') as HTMLInputElement;
     const motion = this.panel.querySelector('.s-motion') as HTMLInputElement;
     const file = this.panel.querySelector('.s-file') as HTMLInputElement;
 
     effect(() => (quality.value = qualitySignal.get()));
+    effect(() => (time.value = timeOfDaySignal.get()));
     effect(() => (volume.value = String(volumeSignal.get())));
     effect(() => (motion.checked = reducedMotionSignal.get()));
 
     quality.addEventListener('change', () => {
       qualitySignal.set(quality.value as SaveSettings['quality']);
+      bus.emit('settings:changed', undefined);
+    });
+    time.addEventListener('change', () => {
+      timeOfDaySignal.set(time.value as SaveSettings['timeOfDay']);
       bus.emit('settings:changed', undefined);
     });
     volume.addEventListener('input', () => {

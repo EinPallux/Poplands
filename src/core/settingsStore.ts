@@ -12,11 +12,13 @@ export const reducedMotionSignal = signal(
     ? true
     : DEFAULT_SETTINGS.reducedMotion,
 );
+export const timeOfDaySignal = signal<SaveSettings['timeOfDay']>(DEFAULT_SETTINGS.timeOfDay);
 
 export function loadSettings(s: SaveSettings): void {
   volumeSignal.set(s.volume);
   qualitySignal.set(s.quality);
   reducedMotionSignal.set(s.reducedMotion);
+  timeOfDaySignal.set(s.timeOfDay);
 }
 
 export function snapshotSettings(): SaveSettings {
@@ -24,6 +26,7 @@ export function snapshotSettings(): SaveSettings {
     volume: volumeSignal.get(),
     quality: qualitySignal.get(),
     reducedMotion: reducedMotionSignal.get(),
+    timeOfDay: timeOfDaySignal.get(),
   };
 }
 
