@@ -222,6 +222,7 @@ body {
 }
 
 .build-card {
+  position: relative;
   flex: 0 0 auto;
   width: 86px;
   border: 2px solid transparent;
@@ -308,6 +309,78 @@ body {
 
 .card-cost {
   color: #b8860b;
+}
+
+.card-cost-sd {
+  color: #7a6ad0;
+  margin-left: 4px;
+}
+
+/* locked (tier not yet unlocked) */
+.card-lock {
+  display: none;
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--ui-ink);
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 8px;
+  padding: 2px 5px;
+}
+
+.build-card.locked {
+  filter: grayscale(0.85) brightness(0.96);
+  cursor: not-allowed;
+}
+
+.build-card.locked .card-thumb {
+  opacity: 0.4;
+}
+
+.build-card.locked .card-lock {
+  display: block;
+}
+
+.build-card.locked:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+/* unaffordable — dim the cost, never block */
+.build-card.unaffordable:not(.locked) .card-cost {
+  color: var(--accent-coral);
+}
+
+.build-card.unaffordable:not(.locked) {
+  opacity: 0.82;
+}
+
+/* freshly unlocked "New!" badge */
+.build-card.card-new::after {
+  content: 'New!';
+  position: absolute;
+  top: -6px;
+  left: -6px;
+  font-size: 9px;
+  font-weight: 800;
+  color: #fff;
+  background: var(--accent-mint);
+  border-radius: 999px;
+  padding: 2px 6px;
+  box-shadow: 0 2px 5px rgba(58, 48, 80, 0.25);
+  animation: newPulse 1.4s ease-in-out infinite;
+}
+
+@keyframes newPulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.12);
+  }
 }
 
 .build-hint {
@@ -449,6 +522,252 @@ body {
 .toast-in {
   opacity: 1;
   transform: translateY(0) scale(1);
+}
+
+/* — top HUD: wallets + level ring — */
+.hud-wallet {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  display: flex;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.hud-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--ui-cream);
+  border: 1px solid rgba(74, 63, 94, 0.12);
+  border-radius: 999px;
+  box-shadow: 0 3px 10px rgba(58, 48, 80, 0.15);
+  padding: 6px 14px 6px 10px;
+  font-weight: 800;
+  font-size: 15px;
+  color: var(--ui-ink);
+  transform-origin: center;
+}
+
+.hud-pops .pill-icon {
+  color: var(--accent-gold);
+}
+
+.hud-stardust .pill-icon {
+  color: #7a6ad0;
+}
+
+.hud-level {
+  position: absolute;
+  top: 10px;
+  right: 62px;
+  width: 48px;
+  height: 48px;
+  pointer-events: none;
+}
+
+.hud-level svg {
+  position: absolute;
+  inset: 0;
+}
+
+.ring-bg {
+  fill: var(--ui-cream);
+  stroke: rgba(74, 63, 94, 0.12);
+  stroke-width: 4;
+}
+
+.ring-fg {
+  fill: none;
+  stroke: var(--accent-mint);
+  stroke-width: 4;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.4s ease;
+}
+
+.level-num {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: 16px;
+  color: var(--ui-ink);
+}
+
+/* — mailbox (left) — */
+.mailbox {
+  position: absolute;
+  top: 70px;
+  left: 12px;
+  width: 232px;
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mailbox-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--ui-ink);
+  opacity: 0.7;
+  padding-left: 6px;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.mailbox.empty .mailbox-title {
+  display: none;
+}
+
+.mail-card {
+  position: relative;
+  background: var(--ui-cream);
+  border: 1px solid rgba(74, 63, 94, 0.12);
+  border-left: 4px solid var(--accent-mint);
+  border-radius: 12px;
+  box-shadow: 0 4px 14px rgba(58, 48, 80, 0.14);
+  padding: 10px 12px;
+  animation: mailIn 0.4s cubic-bezier(0.34, 1.5, 0.5, 1);
+}
+
+.mail-postcard {
+  border-left-color: var(--accent-gold);
+}
+
+@keyframes mailIn {
+  from {
+    opacity: 0;
+    transform: translateX(-16px) rotate(-3deg);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.mail-step {
+  position: absolute;
+  top: -7px;
+  right: 8px;
+  font-size: 9px;
+  font-weight: 800;
+  color: #fff;
+  background: var(--accent-mint);
+  border-radius: 999px;
+  padding: 2px 7px;
+}
+
+.mail-head {
+  font-weight: 800;
+  font-size: 13.5px;
+  color: var(--ui-ink);
+}
+
+.mail-desc {
+  font-size: 11.5px;
+  line-height: 1.35;
+  color: var(--ui-ink);
+  opacity: 0.75;
+  margin: 3px 0 7px;
+}
+
+.mail-progress {
+  position: relative;
+  height: 12px;
+  border-radius: 999px;
+  background: rgba(74, 63, 94, 0.1);
+  overflow: hidden;
+}
+
+.mail-bar {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent-mint), var(--accent-gold));
+  transition: width 0.35s cubic-bezier(0.34, 1.4, 0.5, 1);
+}
+
+.mail-count {
+  position: absolute;
+  right: 6px;
+  top: -1px;
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--ui-ink);
+  opacity: 0.7;
+}
+
+.mail-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 7px;
+}
+
+.mail-reward {
+  font-size: 11px;
+  font-weight: 800;
+  color: #b8860b;
+}
+
+.mail-skip {
+  border: none;
+  background: transparent;
+  color: var(--ui-ink);
+  opacity: 0.55;
+  font: 600 11px/1 inherit;
+  font-family: inherit;
+  cursor: pointer;
+  padding: 3px 6px;
+  border-radius: 6px;
+}
+
+.mail-skip:hover {
+  opacity: 1;
+  background: rgba(74, 63, 94, 0.08);
+}
+
+/* — world-anchored ripe bubbles + coin arc — */
+.worldfx {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.ripe-bubble {
+  position: absolute;
+  top: 0;
+  left: 0;
+  font-size: 15px;
+  color: var(--accent-gold);
+  opacity: calc(0.4 + var(--fill, 0) * 0.6);
+  filter: drop-shadow(0 1px 2px rgba(120, 90, 0, 0.4));
+  will-change: transform;
+}
+
+.ripe-bubble.ripe {
+  animation: ripePulse 1.1s ease-in-out infinite;
+}
+
+@keyframes ripePulse {
+  0%,
+  100% {
+    filter: drop-shadow(0 1px 2px rgba(120, 90, 0, 0.4));
+  }
+  50% {
+    filter: drop-shadow(0 0 8px rgba(255, 201, 75, 0.9));
+  }
+}
+
+.fly-coin {
+  position: absolute;
+  top: 0;
+  left: 0;
+  font-size: 15px;
+  color: var(--accent-gold);
+  will-change: transform, opacity;
+  filter: drop-shadow(0 1px 2px rgba(120, 90, 0, 0.4));
 }
 
 /* — debug HUD — */

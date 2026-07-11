@@ -10,6 +10,8 @@ export const selectedDefSignal = signal<string | null>(null);
 export const toolSignal = signal<BuildTool>('none');
 export const carryingSignal = signal(false);
 export const catalogOpenSignal = signal(true);
+/** Item ids freshly unlocked by a level-up — badged in the catalog, cleared on view. */
+export const catalogRevealSignal = signal<ReadonlySet<string>>(new Set());
 
 bus.on('build:modeChanged', ({ tool, carrying }) => {
   toolSignal.set(tool);

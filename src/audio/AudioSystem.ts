@@ -76,6 +76,26 @@ export class AudioSystem {
     osc.stop(now + 0.14);
   }
 
+  /** Bright two-note chime when Pops are collected. */
+  chime(): void {
+    const ctx = this.ensure();
+    if (!ctx || !this.master) return;
+    const now = ctx.currentTime;
+    for (const [i, freq] of [880, 1318.5].entries()) {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      const t = now + i * 0.06;
+      osc.frequency.setValueAtTime(freq, t);
+      gain.gain.setValueAtTime(0.0001, t);
+      gain.gain.exponentialRampToValueAtTime(0.4, t + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.25);
+      osc.connect(gain).connect(this.master);
+      osc.start(t);
+      osc.stop(t + 0.28);
+    }
+  }
+
   /** Airy poof for removals — filtered noise burst. */
   poof(): void {
     const ctx = this.ensure();

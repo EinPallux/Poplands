@@ -8,7 +8,16 @@ import { t, type StringKey } from '@/core/strings';
 import { effect } from '@/core/signals';
 import { CATALOG, CATEGORIES, type Category } from '@/content/catalog';
 import { signal } from '@/core/signals';
-import { selectedDefSignal, toolSignal, carryingSignal, catalogOpenSignal } from './uiState';
+import { levelSignal, popsSignal, stardustSignal } from '@/core/playerStore';
+import { tierUnlockLevel } from '@/sim/progression';
+import { showToast } from './Toasts';
+import {
+  selectedDefSignal,
+  toolSignal,
+  carryingSignal,
+  catalogOpenSignal,
+  catalogRevealSignal,
+} from './uiState';
 
 const TAB_KEYS: Record<Category | 'all', StringKey> = {
   all: 'build.tab.all',
@@ -25,6 +34,18 @@ export class BuildBar {
   private hintEl: HTMLDivElement;
   private activeTab = signal<Category | 'all'>('all');
   private thumbEls = new Map<string, HTMLElement>();
+
+  /** Clear "New!" badges for items in a tab (called on tab click, NOT inside an
+   *  effect — else a level-up that adds reveals would self-clear them, bug #2). */
+  private clearRevealForTab(tab: Category | 'all'): void {
+    const reveal = catalogRevealSignal.get();
+    if (!reveal.size) return;
+    const next = new Set(reveal);
+    for (const def of CATALOG) {
+      if ((tab === 'all' || def.category === tab) && next.has(def.id)) next.delete(def.id);
+    }
+    if (next.size !== reveal.size) catalogRevealSignal.set(next);
+  }
 
   /** Thumbnails render after boot (they're expensive on slow GPUs) — patch in. */
   setThumbnails(thumbnails: Map<string, string>): void {
@@ -62,7 +83,10 @@ export class BuildBar {
       const tab = document.createElement('button');
       tab.className = 'build-tab';
       tab.textContent = t(TAB_KEYS[cat]);
-      tab.addEventListener('click', () => this.activeTab.set(cat));
+      tab.addEventListener('click', () => {
+        this.activeTab.set(cat);
+        this.clearRevealForTab(cat); // viewing a tab clears its "New!" badges
+      });
       effect(() => tab.classList.toggle('active', this.activeTab.get() === cat));
       tabs.appendChild(tab);
     }
@@ -92,18 +116,39 @@ export class BuildBar {
     for (const def of CATALOG) {
       const card = document.createElement('button');
       card.className = 'build-card';
+      const costHtml = `<span class="card-cost">● ${def.cost}</span>${
+        def.costStardust ? `<span class="card-cost-sd">✦ ${def.costStardust}</span>` : ''
+      }`;
       card.innerHTML = `
         <div class="card-thumb card-thumb-empty"></div>
+        <span class="card-lock">🔒 <span class="lock-lv"></span></span>
         <span class="card-name"></span>
-        <span class="card-meta"><span class="card-size">${def.footprint.w}×${def.footprint.d}</span><span class="card-cost">● ${def.cost}</span></span>`;
+        <span class="card-meta"><span class="card-size">${def.footprint.w}×${def.footprint.d}</span>${costHtml}</span>`;
       (card.querySelector('.card-name') as HTMLElement).textContent = t(def.nameKey);
+      (card.querySelector('.lock-lv') as HTMLElement).textContent = `L${tierUnlockLevel(def.tier)}`;
       this.thumbEls.set(def.id, card.querySelector('.card-thumb') as HTMLElement);
+
       card.addEventListener('click', () => {
+        if (tierUnlockLevel(def.tier) > levelSignal.get()) {
+          showToast(t('build.locked').replace('{level}', String(tierUnlockLevel(def.tier))));
+          return;
+        }
         const next = selectedDefSignal.get() === def.id ? null : def.id;
         selectedDefSignal.set(next);
         bus.emit('cmd:selectItem', { defId: next });
       });
+
       effect(() => card.classList.toggle('active', selectedDefSignal.get() === def.id));
+      // locked until its tier's level is reached (re-runs live as the player levels)
+      effect(() => card.classList.toggle('locked', tierUnlockLevel(def.tier) > levelSignal.get()));
+      // dim (never block) when unaffordable
+      effect(() => {
+        const short = popsSignal.get() < def.cost || stardustSignal.get() < (def.costStardust ?? 0);
+        card.classList.toggle('unaffordable', short);
+      });
+      // "New!" badge for freshly-unlocked items
+      effect(() => card.classList.toggle('card-new', catalogRevealSignal.get().has(def.id)));
+
       cardEls.set(def.id, card);
       this.cardsEl.appendChild(card);
     }

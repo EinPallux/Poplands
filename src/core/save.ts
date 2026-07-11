@@ -20,6 +20,30 @@ export interface SaveSettings {
   reducedMotion: boolean;
 }
 
+/** Per-income-building banked Pops + collection timestamp (S13). */
+export interface SaveEconomy {
+  accrual: Array<{ id: string; storedPops: number; lastCollectAt: number }>;
+}
+
+/** Lifetime counters that drive milestones (v0.3 subset). */
+export type CounterId = 'itemsPlaced' | 'popsCollected' | 'questsDone' | 'levelsGained';
+
+/** Persisted quest state (S15). Cumulative predicates keep per-quest counters in `progress`. */
+export interface SaveQuests {
+  tutorial: { activeId: string | null; done: string[] };
+  postcards: {
+    active: Array<{ id: string; progress: number }>;
+    done: string[];
+    skipped: string[];
+    cooldownUntil: number;
+  };
+  progress: Record<string, number>;
+  milestones: Record<CounterId, number>;
+  milestoneTier: Record<string, number>;
+  freePlayUnlocked: boolean;
+}
+
+/** v1 was the first shipped schema (v0.2). Kept for migration typing. */
 export interface SaveV1 {
   v: 1;
   createdAt: number;
@@ -30,10 +54,31 @@ export interface SaveV1 {
     chunks: Array<{ cx: number; cz: number; theme: 'meadow' | 'sandbar' | 'spooky' | 'snowcap' }>;
     placements: SavePlacement[];
   };
+  attic: SavePlacement[];
+  settings: SaveSettings;
+}
+
+/** v2 (v0.3): adds economy accrual, XP ledger, and quest state. */
+export interface SaveV2 {
+  v: 2;
+  createdAt: number;
+  lastSeenAt: number;
+  seed: number;
+  player: { pops: number; stardust: number; xp: number; level: number; xpGranted: string[] };
+  island: {
+    chunks: Array<{ cx: number; cz: number; theme: 'meadow' | 'sandbar' | 'spooky' | 'snowcap' }>;
+    placements: SavePlacement[];
+  };
+  economy: SaveEconomy;
+  quests: SaveQuests;
   /** Placements referencing unknown item defs are parked here, never dropped. */
   attic: SavePlacement[];
   settings: SaveSettings;
 }
+
+/** The current schema. Bump this alias (not scattered `SaveV1`s) each version. */
+export type Save = SaveV2;
+export const SAVE_VERSION = 2;
 
 export const DEFAULT_SETTINGS: SaveSettings = { volume: 0.8, quality: 'auto', reducedMotion: false };
 
@@ -41,17 +86,56 @@ const KEY = 'poplands.save';
 const BACKUP_KEYS = [`${KEY}.bak1`, `${KEY}.bak2`];
 const AUTOSAVE_DEBOUNCE_MS = 5000;
 
-/** Future migrations chain here: (older) → SaveV1-next. v1 is the first schema. */
-type AnySave = { v: number } & Record<string, unknown>;
-const migrations: Record<number, (s: AnySave) => AnySave> = {};
+export function freshEconomy(): SaveEconomy {
+  return { accrual: [] };
+}
 
-export function freshSave(seed: number, now: number): SaveV1 {
+/**
+ * Fold a Move-mode carried placement back into the snapshot at its home, so a
+ * building held mid-move is never lost if a save lands before the drop (the
+ * no-fail-state covenant). Pure — GameState.collect() uses it.
+ */
+export function withCarried(placements: SavePlacement[], carried: SavePlacement | null): SavePlacement[] {
+  if (!carried || placements.some((p) => p.id === carried.id)) return placements;
+  return [...placements, carried];
+}
+
+/** Fresh quest state. `activeId: null` — QuestSystem.announce() seeds the first
+ * tutorial step on a genuinely-fresh save, so this stays content-free (core layer). */
+export function freshQuests(itemsPlaced = 0): SaveQuests {
   return {
-    v: 1,
+    tutorial: { activeId: null, done: [] },
+    postcards: { active: [], done: [], skipped: [], cooldownUntil: 0 },
+    progress: {},
+    milestones: { itemsPlaced, popsCollected: 0, questsDone: 0, levelsGained: 0 },
+    milestoneTier: {},
+    freePlayUnlocked: false,
+  };
+}
+
+/** Migrations chain: index N transforms a vN save into v(N+1). */
+type AnySave = { v: number } & Record<string, unknown>;
+const migrations: Record<number, (s: AnySave) => AnySave> = {
+  1: (s) => {
+    const v1 = s as unknown as SaveV1;
+    const placements = v1.island?.placements ?? [];
+    return {
+      ...v1,
+      v: 2,
+      player: { ...v1.player, xpGranted: placements.map((p) => p.id) }, // pre-economy items = already XP-granted
+      economy: freshEconomy(),
+      quests: freshQuests(placements.length),
+    } as unknown as AnySave;
+  },
+};
+
+export function freshSave(seed: number, now: number): Save {
+  return {
+    v: 2,
     createdAt: now,
     lastSeenAt: now,
     seed,
-    player: { pops: 150, stardust: 0, xp: 0, level: 1 },
+    player: { pops: 150, stardust: 0, xp: 0, level: 1, xpGranted: [] },
     island: {
       chunks: [
         { cx: 0, cz: 0, theme: 'meadow' },
@@ -61,21 +145,30 @@ export function freshSave(seed: number, now: number): SaveV1 {
       ],
       placements: [],
     },
+    economy: freshEconomy(),
+    quests: freshQuests(0),
     attic: [],
     settings: { ...DEFAULT_SETTINGS },
   };
 }
 
+function isObject(v: unknown): v is Record<string, unknown> {
+  return typeof v === 'object' && v !== null;
+}
+
 function isPlausibleSave(data: unknown): data is AnySave {
+  // NB: `typeof null === 'object'`, so null-check island/player explicitly —
+  // otherwise a corrupt {island:null} save passes the guard and later throws
+  // in the normalizers, bricking boot instead of falling through to backups.
   return (
-    typeof data === 'object' &&
-    data !== null &&
-    typeof (data as AnySave).v === 'number' &&
-    typeof (data as { island?: unknown }).island === 'object'
+    isObject(data) &&
+    typeof data['v'] === 'number' &&
+    isObject(data['island']) &&
+    isObject(data['player'])
   );
 }
 
-export function parseSave(json: string): SaveV1 | null {
+export function parseSave(json: string): Save | null {
   let data: unknown;
   try {
     data = JSON.parse(json);
@@ -83,25 +176,59 @@ export function parseSave(json: string): SaveV1 | null {
     return null;
   }
   if (!isPlausibleSave(data)) return null;
-  let save = data;
-  while (save.v < 1) return null;
-  while (migrations[save.v]) {
-    save = migrations[save.v]!(save);
+  try {
+    let save = data;
+    if (save.v < 1) return null;
+    while (migrations[save.v]) {
+      save = migrations[save.v]!(save);
+    }
+    if (save.v !== SAVE_VERSION) return null;
+    return normalizeV2(save as unknown as Save);
+  } catch {
+    // any surprise (hand-edited / partially-corrupt slice) → treat as unusable so
+    // load() falls through to the backup slots or a fresh save (no fail states).
+    return null;
   }
-  if (save.v !== 1) return null;
-  const v1 = save as unknown as SaveV1;
-  // normalize gently (older exports / hand-edited files)
-  v1.attic ??= [];
-  v1.settings = { ...DEFAULT_SETTINGS, ...v1.settings };
-  v1.island.placements ??= [];
-  return v1;
+}
+
+function normalizeV2(v2: Save): Save {
+  // normalize gently (older exports / hand-edited files / partial slices). Default
+  // NESTED fields too, not just top-level slices: a present-but-partial object must
+  // never survive parse and then throw in the sim at boot. (A `postcards` missing
+  // its `skipped` array would crash the eligiblePostcards sort → brick load, which
+  // the no-fail-states covenant forbids; a `player` missing `level`/`xp` would NaN
+  // the HUD.) A wrong-TYPED slice still throws here and is caught by parseSave → backup.
+  v2.attic ??= [];
+  v2.settings = { ...DEFAULT_SETTINGS, ...v2.settings };
+  v2.island.placements ??= [];
+  v2.player.level ??= 1;
+  v2.player.xp ??= 0;
+  v2.player.pops ??= 0;
+  v2.player.stardust ??= 0;
+  v2.player.xpGranted ??= [];
+  v2.economy ??= freshEconomy();
+  v2.economy.accrual ??= [];
+  v2.quests ??= freshQuests(v2.island.placements.length);
+  v2.quests.freePlayUnlocked ??= false;
+  v2.quests.progress ??= {};
+  v2.quests.milestones ??= { itemsPlaced: 0, popsCollected: 0, questsDone: 0, levelsGained: 0 };
+  v2.quests.milestoneTier ??= {};
+  v2.quests.postcards ??= { active: [], done: [], skipped: [], cooldownUntil: 0 };
+  v2.quests.postcards.active ??= [];
+  v2.quests.postcards.done ??= [];
+  v2.quests.postcards.skipped ??= [];
+  v2.quests.postcards.cooldownUntil ??= 0;
+  v2.quests.tutorial ??= { activeId: null, done: [] };
+  v2.quests.tutorial.activeId ??= null;
+  v2.quests.tutorial.done ??= [];
+  return v2;
 }
 
 export class SaveManager {
   private timer: ReturnType<typeof setTimeout> | null = null;
   private storage: Storage | null;
 
-  constructor(private readonly collect: () => SaveV1) {
+  constructor(private readonly collect: () => Save) {
     this.storage = typeof localStorage === 'undefined' ? null : localStorage;
     if (typeof window !== 'undefined') {
       window.addEventListener('pagehide', () => this.writeNow());
@@ -112,7 +239,7 @@ export class SaveManager {
   }
 
   /** Try main slot, then backups, oldest last. Null = no usable save. */
-  load(): SaveV1 | null {
+  load(): Save | null {
     if (!this.storage) return null;
     for (const key of [KEY, ...BACKUP_KEYS]) {
       const raw = this.storage.getItem(key);
@@ -159,7 +286,7 @@ export class SaveManager {
   }
 
   /** Validate + persist an imported save. Caller reloads the world after. */
-  importString(json: string): SaveV1 | null {
+  importString(json: string): Save | null {
     const parsed = parseSave(json);
     if (!parsed || !this.storage) return null;
     this.storage.setItem(KEY, JSON.stringify(parsed));

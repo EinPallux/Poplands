@@ -16,7 +16,7 @@ describe('easings', () => {
     expect(max).toBeGreaterThan(1.05);
   });
 
-  it('popBounce overshoots ~1.16, dips back below 1, then settles (the "boing")', () => {
+  it('popBounce overshoots ~1.19, dips back below 1, then settles (the "boing")', () => {
     let peak = 0;
     let peakT = 0;
     for (let t = 0; t <= 1; t += 0.005) {

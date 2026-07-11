@@ -46,6 +46,8 @@ export default [
         HTMLButtonElement: 'readonly',
         HTMLInputElement: 'readonly',
         HTMLSelectElement: 'readonly',
+        SVGCircleElement: 'readonly',
+        SVGElement: 'readonly',
         Storage: 'readonly',
         File: 'readonly',
         Blob: 'readonly',

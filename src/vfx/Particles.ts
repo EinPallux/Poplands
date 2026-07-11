@@ -35,6 +35,8 @@ interface Puff {
 
 const DUST = new Color('#efe3c4');
 const POOF = new Color('#ffffff');
+const GOLD = new Color('#ffc94b');
+const STAR = new Color('#fff3c4');
 
 export class Particles {
   readonly mesh: InstancedMesh;
@@ -94,6 +96,49 @@ export class Particles {
         maxLife: 0.45 + Math.random() * 0.15,
         size: (0.22 + Math.random() * 0.14) * scale,
       }, POOF);
+    }
+  }
+
+  /** Golden burst when income is collected (placeholder until the HUD coin-arc, #26). */
+  coinBurst(x: number, y: number, z: number): void {
+    if (isReducedMotion()) return;
+    for (let i = 0; i < 6; i++) {
+      const a = Math.random() * Math.PI * 2;
+      this.spawn(
+        {
+          x,
+          y,
+          z,
+          vx: Math.cos(a) * (0.7 + Math.random() * 0.5),
+          vy: 1.8 + Math.random() * 0.9,
+          vz: Math.sin(a) * (0.7 + Math.random() * 0.5),
+          life: 0,
+          maxLife: 0.5 + Math.random() * 0.15,
+          size: 0.14 + Math.random() * 0.06,
+        },
+        GOLD,
+      );
+    }
+  }
+
+  /** Twinkle over a building that just went ripe. */
+  sparkle(x: number, y: number, z: number): void {
+    if (isReducedMotion()) return;
+    for (let i = 0; i < 4; i++) {
+      this.spawn(
+        {
+          x: x + (Math.random() - 0.5) * 0.5,
+          y: y + Math.random() * 0.3,
+          z: z + (Math.random() - 0.5) * 0.5,
+          vx: (Math.random() - 0.5) * 0.4,
+          vy: 0.5 + Math.random() * 0.4,
+          vz: (Math.random() - 0.5) * 0.4,
+          life: 0,
+          maxLife: 0.55 + Math.random() * 0.2,
+          size: 0.1 + Math.random() * 0.06,
+        },
+        STAR,
+      );
     }
   }
 

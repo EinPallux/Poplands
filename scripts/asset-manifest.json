@@ -32,6 +32,26 @@
     "deco.stump": "assets/Nature Assets 2/Models/GLTF format/stump_round.glb",
     "deco.sign": "assets/Nature Assets 2/Models/GLTF format/sign.glb",
     "deco.hedge": "assets/Fantasy Town Assets/Models/GLB format/hedge.glb",
-    "building.hut": "assets/Fantasy RTS Assets/Hut.glb"
+    "building.hut": "assets/Fantasy RTS Assets/Hut.glb",
+    "crop.pumpkin": "assets/Nature Assets 2/Models/GLTF format/crop_pumpkin.glb",
+    "crop.wheat": "assets/Nature Assets 2/Models/GLTF format/crops_wheatStageB.glb",
+    "crop.corn": "assets/Nature Assets 2/Models/GLTF format/crops_cornStageD.glb",
+    "crop.carrot": "assets/Nature Assets 2/Models/GLTF format/crop_carrot.glb",
+    "nature.oak": "assets/Nature Assets 2/Models/GLTF format/tree_oak.glb",
+    "nature.berry-bush": "assets/Nature Assets 2/Models/GLTF format/plant_bushDetailed.glb",
+    "deco.hay-bale": "assets/Graveyard Assets/Models/GLB format/hay-bale.glb",
+    "deco.campfire": "assets/Nature Assets 2/Models/GLTF format/campfire_logs.glb",
+    "deco.cart": "assets/Fantasy Town Assets/Models/GLB format/cart.glb",
+    "deco.log-pile": "assets/Nature Assets 2/Models/GLTF format/log_stack.glb",
+    "deco.fountain": "assets/Fantasy Town Assets/Models/GLB format/fountain-round.glb",
+    "deco.lightpost": "assets/Graveyard Assets/Models/GLB format/lightpost-single.glb",
+    "deco.banner": "assets/Fantasy Town Assets/Models/GLB format/banner-red.glb",
+    "deco.statue": "assets/Nature Assets 2/Models/GLTF format/statue_obelisk.glb",
+    "deco.bridge": "assets/Nature Assets 2/Models/GLTF format/bridge_stone.glb",
+    "building.farm": "assets/Fantasy RTS Assets/Small Farm.glb",
+    "building.market-stall": "assets/Fantasy Town Assets/Models/GLB format/stall-red.glb",
+    "building.bakery": "assets/Fantasy RTS Assets/Business Building.glb",
+    "building.village-house": "assets/Fantasy RTS Assets/House-k6tP5nFUd2.glb",
+    "building.watermill": "assets/Fantasy Town Assets/Models/GLB format/watermill.glb"
   }
 }

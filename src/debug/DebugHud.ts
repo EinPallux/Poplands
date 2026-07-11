@@ -9,6 +9,7 @@ import type { CameraRig } from '@/render/CameraRig';
 import type { PropRenderer } from '@/world/PropRenderer';
 import { tweens } from '@/core/tween';
 import { t } from '@/core/strings';
+import { popsSignal, stardustSignal, levelSignal, xpSignal } from '@/core/playerStore';
 
 export class DebugHud {
   private root: HTMLDivElement;
@@ -49,6 +50,7 @@ export class DebugHud {
       `${t('debug.title')} — ${this.loop.fps.toFixed(0)} fps (${(1000 / Math.max(this.loop.fps, 1)).toFixed(1)} ms)`,
       `draws ${info.render.calls}  tris ${(info.render.triangles / 1000).toFixed(0)}k`,
       `geo ${info.memory.geometries}  tex ${info.memory.textures}  tweens ${tweens.count}`,
+      `● ${Math.floor(popsSignal.get())}  ✦ ${stardustSignal.get()}  L${levelSignal.get()} xp${xpSignal.get()}`,
       propStats,
       `cam az ${deg(cam.azimuth)}°  pol ${deg(cam.polar)}°  dist ${cam.distance.toFixed(1)}`,
     ]

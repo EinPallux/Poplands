@@ -11,6 +11,7 @@ import { bus } from '@/core/events';
 import type { IslandBounds } from './Lights';
 
 const DEG = Math.PI / 180;
+const tmpProject = new Vector3();
 
 const POLAR_MIN = 30 * DEG;
 const POLAR_MAX = 65 * DEG;
@@ -143,6 +144,16 @@ export class CameraRig {
 
   get state(): { azimuth: number; polar: number; distance: number } {
     return { azimuth: ((this.azimuth % TAU) + TAU) % TAU, polar: this.polar, distance: this.distance };
+  }
+
+  /** Project a world point to screen pixels for world-anchored DOM (S21). */
+  projectToScreen(x: number, y: number, z: number): { x: number; y: number; behind: boolean } {
+    const v = tmpProject.set(x, y, z).project(this.camera);
+    return {
+      x: ((v.x + 1) / 2) * window.innerWidth,
+      y: ((1 - v.y) / 2) * window.innerHeight,
+      behind: v.z > 1, // beyond the far plane / behind camera
+    };
   }
 
   update(dt: number): void {
