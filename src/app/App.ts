@@ -370,6 +370,41 @@ export class App {
         secrets: () => state.secrets.snapshot(),
         clickSecret: (cx: number, cz: number) => bus.emit('cmd:clickSecret', { cx, cz }),
         milestones: () => state.save.quests.milestones,
+        /** Debug soak (non-persistent): grow the lattice to N chunks + rebuild once,
+         *  skipping economy/arrival — for the draw/tri budget measurement only. */
+        growTo: (n: number) => {
+          let guard = 0;
+          while (island.chunkCount < n && guard++ < 200) {
+            const slots = island.expandableSlots();
+            if (slots.length === 0) break;
+            // grow toward the centroid → a compact blob (realistic + a fair worst
+            // case: more perimeter than a strip means more traced-slab triangles)
+            const cs = island.allChunks();
+            let mx = 0;
+            let mz = 0;
+            for (const c of cs) {
+              mx += c.cx;
+              mz += c.cz;
+            }
+            mx /= cs.length;
+            mz /= cs.length;
+            let best = slots[0]!;
+            let bestD = Infinity;
+            for (const s of slots) {
+              const d = (s.cx - mx) ** 2 + (s.cz - mz) ** 2;
+              if (d < bestD) {
+                bestD = d;
+                best = s;
+              }
+            }
+            island.addChunk(best.cx, best.cz);
+          }
+          rebuildIsland();
+          const b = island.bounds();
+          lights.fitShadowsTo(b);
+          rig.frameIsland(b);
+        },
+        stats: () => ({ draws: rm.renderer.info.render.calls, tris: rm.renderer.info.render.triangles }),
         /** Screen pixel position of a block center (headless click targeting). */
         projectCell: (wx: number, wz: number) => {
           const v = new Vector3(wx + 0.5, 0, wz + 0.5).project(rig.camera);
