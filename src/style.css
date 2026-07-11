@@ -241,6 +241,30 @@ body {
     box-shadow 0.12s ease;
 }
 
+/* Staggered entrance when a tab is (re)selected — see BuildBar tab effect.
+   `backwards` fill applies the from-state during the per-card delay so cards
+   don't flash at full opacity before their turn. */
+@keyframes cardEnter {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.build-card.card-enter {
+  animation: cardEnter 0.3s cubic-bezier(0.34, 1.5, 0.5, 1) backwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .build-card.card-enter {
+    animation: none;
+  }
+}
+
 .build-card:hover {
   transform: translateY(-3px);
   box-shadow: 0 4px 10px rgba(58, 48, 80, 0.15);

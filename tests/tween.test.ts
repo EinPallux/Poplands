@@ -15,6 +15,26 @@ describe('easings', () => {
     for (let t = 0; t <= 1; t += 0.01) max = Math.max(max, easings.backOut(t));
     expect(max).toBeGreaterThan(1.05);
   });
+
+  it('popBounce overshoots ~1.16, dips back below 1, then settles (the "boing")', () => {
+    let peak = 0;
+    let peakT = 0;
+    for (let t = 0; t <= 1; t += 0.005) {
+      const v = easings.popBounce(t);
+      if (v > peak) {
+        peak = v;
+        peakT = t;
+      }
+    }
+    expect(peak).toBeGreaterThan(1.12);
+    expect(peak).toBeLessThan(1.25); // bouncier than backOut, but still cozy
+    // after the peak it must settle back through a sub-1 dip (the secondary bounce)
+    let minAfterPeak = 2;
+    for (let t = peakT; t <= 0.99; t += 0.005) {
+      minAfterPeak = Math.min(minAfterPeak, easings.popBounce(t));
+    }
+    expect(minAfterPeak).toBeLessThan(1);
+  });
 });
 
 describe('Tweens', () => {

@@ -19,6 +19,21 @@ export const easings = {
     const c3 = c1 + 1;
     return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
   }) as Ease,
+  /**
+   * Bouncier pop (ART §7.1, tuned by user feedback 2026-07-11): a damped spring
+   * that overshoots to ~1.16, settles back through a gentle ~0.99 dip, and comes
+   * to rest — one clear "boing" without the wobbliness of full elastic. A linear
+   * residual correction pins the endpoints exactly: f(0)=0, f(1)=1.
+   */
+  popBounce: ((t) => {
+    if (t <= 0) return 0;
+    if (t >= 1) return 1;
+    const omega = 7.0;
+    const decay = 4.5;
+    const raw = (x: number) => 1 - Math.cos(omega * x) * Math.exp(-decay * x);
+    const residual = 1 - raw(1); // tiny; keeps f(1)=1 exact
+    return raw(t) + t * residual;
+  }) as Ease,
   /** Departure: pulls back before leaving. */
   backIn: ((t) => {
     const c1 = 1.70158;
