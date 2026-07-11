@@ -21,6 +21,7 @@ import { AgentRenderer } from '@/world/AgentRenderer';
 import { GlowLayer } from '@/world/GlowLayer';
 import { AmbientLife } from '@/world/AmbientLife';
 import { ThemeAmbience } from '@/world/ThemeAmbience';
+import { AuroraLayer } from '@/world/AuroraLayer';
 import { ChunkArrival } from '@/world/ChunkArrival';
 import { LivelinessSystem } from '@/sim/LivelinessSystem';
 import { disposeObject } from '@/world/dispose';
@@ -148,10 +149,19 @@ export class App {
     scene.add(ambient.group);
     const themeAmbience = new ThemeAmbience(island); // per-biome mist/bats, snow, sand (S20)
     scene.add(themeAmbience.group);
-    // a lively island quietly pays a little extra (S13 liveliness dividend)
+    const aurora = new AuroraLayer(island); // The Wonder's permanent aurora (S20 capstone)
+    scene.add(aurora.group);
+    // a lively island quietly pays a little extra (S13 liveliness dividend), lifted
+    // island-wide by each Grand Assembly Hall (+5% each, capped at +20%).
+    const livelinessBonus = (): number => {
+      let sum = 0;
+      for (const p of island.allPlacements()) sum += itemDef(p.def)?.livelinessBonus ?? 0;
+      return Math.min(sum, 0.2);
+    };
     const liveliness = new LivelinessSystem(
       state.economy,
       () => state.islanders.snapshot().residents.length + state.pals.snapshot().pals.length,
+      livelinessBonus,
     );
     {
       const c = island.center();
@@ -193,6 +203,22 @@ export class App {
       const c = footprintCenter(e.wx, e.wz, def.footprint, e.rot);
       particles.dustRing(c.x, c.z, Math.max(def.footprint.w, def.footprint.d) * 0.45);
       audio.plop();
+    });
+
+    // — The Wonder capstone (S20): a big one-time "you built it" moment. Only a real
+    // build fires it (`!silent`); load/rebuild re-shows the aurora quietly.
+    bus.on('item:placed', (e) => {
+      if (e.silent || e.def !== 'decor.the-wonder') return;
+      const def = itemDef(e.def)!;
+      const c = footprintCenter(e.wx, e.wz, def.footprint, e.rot);
+      for (let i = 0; i < 4; i++) particles.coinBurst(c.x, 1.6 + i * 0.4, c.z);
+      for (let i = 0; i < 8; i++) {
+        const a = (i / 8) * Math.PI * 2;
+        particles.sparkle(c.x + Math.cos(a) * 2.4, 1.4, c.z + Math.sin(a) * 2.4);
+      }
+      audio.chunkArrival(); // the whoosh→thunk→fanfare cue
+      rig.frameIsland(island.bounds()); // ease out to take in the whole island
+      showToast(t('toast.wonderBuilt'));
     });
 
     bus.on('item:removed', (e) => {
@@ -473,6 +499,7 @@ export class App {
       glow.update(timeOfDay.nightFactor); // lantern halos fade in with the dark
       ambient.update(dt, timeOfDay.nightFactor); // fireflies, shooting stars, balloons
       themeAmbience.update(dt, timeOfDay.nightFactor); // per-biome mist/bats/snow/sand
+      aurora.update(dt, timeOfDay.nightFactor); // The Wonder's aurora shimmer (S20)
       liveliness.update(dt); // periodic Pops dividend from the island's residents
     });
     // ambient audio bed (S22): a single spaced chirp/cricket — never a machine-gun
@@ -559,6 +586,7 @@ export class App {
         setTime: (mode: 'auto' | 'day' | 'dusk' | 'night') => timeOfDaySignal.set(mode),
         nightFactor: () => timeOfDay.nightFactor,
         glowCount: () => glow.count,
+        auroraCount: () => aurora.count,
         themeAmbience: () => themeAmbience.counts,
         // — S4 phased loading (headless verify): which models are cached now + on-demand phase loads
         loadPhase: (phase: AssetPhase) => assets.loadPhase(phase),

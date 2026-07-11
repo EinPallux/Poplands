@@ -20,7 +20,7 @@ export interface ItemDef {
   nameKey: StringKey;
   category: Category;
   /** Catalog tier — gated by level (Tier N unlocks at Level N; Tiers 1–2 at L1). */
-  tier: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14;
+  tier: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20;
   footprint: Footprint;
   /** Pops charged on placement (100% refunded on remove). */
   cost: number;
@@ -53,6 +53,14 @@ export interface ItemDef {
    *  item's model rides its `themed:<theme>` phase, so a meadow-only island never
    *  fetches the Sandbar/Spooky/Snowcap sets. Untagged ⇒ boot (tier ≤6) or early. */
   theme?: ChunkTheme;
+  /** Convenience auto-collector (S13, GDD §7.2 — the "Pop Post"). Every few seconds
+   *  it banks the ripe income of every income building whose footprint is within this
+   *  many blocks (Chebyshev). Purely a quality-of-life late-game unlock. */
+  autoCollectRadius?: number;
+  /** Island-wide liveliness dividend bonus (GDD §7 — the "Grand Assembly Hall").
+   *  Each placed instance adds this fraction to the per-tick liveliness payout
+   *  (stacking is capped in LivelinessSystem). 0.05 = +5%. */
+  livelinessBonus?: number;
 }
 
 const def = (d: ItemDef): ItemDef => d;
@@ -206,6 +214,31 @@ export const CATALOG: readonly ItemDef[] = [
   def({ id: 'decor.market-square', nameKey: 'item.decor.market-square', category: 'decor', tier: 14, footprint: { w: 2, d: 2 }, cost: 2400, model: 'deco.market-square', scale: 1.01, renderTier: 'unique' }),
   def({ id: 'decor.town-gate', nameKey: 'item.decor.town-gate', category: 'decor', tier: 14, footprint: { w: 1, d: 1 }, cost: 1400, model: 'deco.town-gate', scale: 1.82, renderTier: 'instanced' }),
   def({ id: 'decor.grand-banner', nameKey: 'item.decor.grand-banner', category: 'decor', tier: 14, footprint: { w: 1, d: 1 }, cost: 800, model: 'deco.grand-banner', scale: 1.59, renderTier: 'instanced' }),
+
+  // ——— Tier 15 · "Castle" (Level 15) ———
+  def({ id: 'home.keep', nameKey: 'item.home.keep', category: 'home', tier: 15, footprint: { w: 4, d: 5 }, cost: 15000, costStardust: 3, houses: 3, model: 'building.keep', scale: 1.9, renderTier: 'unique' }),
+  def({ id: 'decor.castle-tower', nameKey: 'item.decor.castle-tower', category: 'decor', tier: 15, footprint: { w: 2, d: 2 }, cost: 4000, model: 'deco.castle-tower', scale: 1.85, renderTier: 'unique' }),
+  def({ id: 'decor.castle-wall', nameKey: 'item.decor.castle-wall', category: 'decor', tier: 15, footprint: { w: 1, d: 1 }, cost: 300, model: 'deco.castle-wall', scale: 0.86, renderTier: 'instanced' }),
+  def({ id: 'decor.drawbridge', nameKey: 'item.decor.drawbridge', category: 'decor', tier: 15, footprint: { w: 2, d: 3 }, cost: 900, model: 'deco.drawbridge', scale: 1.7, renderTier: 'unique' }),
+
+  // ——— Tier 16 · "Convenience" (Level 16) ———
+  def({ id: 'income.tavern', nameKey: 'item.income.tavern', category: 'income', tier: 16, footprint: { w: 3, d: 4 }, cost: 12000, income: { ratePerMin: 60, cap: 3000 }, model: 'building.tavern', scale: 2.4, renderTier: 'unique' }),
+  def({ id: 'income.pop-post', nameKey: 'item.income.pop-post', category: 'income', tier: 16, footprint: { w: 1, d: 1 }, cost: 10000, costStardust: 10, autoCollectRadius: 5, model: 'deco.pop-post', scale: 1.5, renderTier: 'unique' }),
+
+  // ——— Tier 17 · "Wonders" (Level 17) ———
+  def({ id: 'income.civic-hall', nameKey: 'item.income.civic-hall', category: 'income', tier: 17, footprint: { w: 5, d: 5 }, cost: 30000, costStardust: 5, income: { ratePerMin: 100, cap: 5000 }, livelinessBonus: 0.05, model: 'building.civic-hall', scale: 3.2, renderTier: 'unique' }),
+  def({ id: 'decor.marble-column', nameKey: 'item.decor.marble-column', category: 'decor', tier: 17, footprint: { w: 1, d: 1 }, cost: 400, model: 'deco.marble-column', scale: 1.43, renderTier: 'instanced' }),
+
+  // ——— Tier 18 · "Wonders" (Level 18) ———
+  def({ id: 'decor.statue-hero', nameKey: 'item.decor.statue-hero', category: 'decor', tier: 18, footprint: { w: 1, d: 1 }, cost: 600, model: 'deco.statue-hero', scale: 1.23, renderTier: 'unique' }),
+  def({ id: 'decor.trophy', nameKey: 'item.decor.trophy', category: 'decor', tier: 18, footprint: { w: 1, d: 1 }, cost: 700, costStardust: 1, model: 'deco.trophy', scale: 1.5, renderTier: 'unique' }),
+
+  // ——— Tier 19 · "Dreamer" (Level 19) ———
+  def({ id: 'nature.golden-tree', nameKey: 'item.nature.golden-tree', category: 'nature', tier: 19, footprint: { w: 1, d: 1 }, cost: 8000, costStardust: 5, model: 'nature.golden-tree', scale: 1.3, renderTier: 'instanced' }),
+  def({ id: 'decor.cog-sculpture', nameKey: 'item.decor.cog-sculpture', category: 'decor', tier: 19, footprint: { w: 2, d: 2 }, cost: 4000, model: 'deco.cog-sculpture', scale: 1.7, renderTier: 'unique' }),
+
+  // ——— Tier 20 · "Dreamer" (Level 20) — the v1.0 capstone ———
+  def({ id: 'decor.the-wonder', nameKey: 'item.decor.the-wonder', category: 'decor', tier: 20, footprint: { w: 5, d: 5 }, cost: 50000, costStardust: 30, model: 'building.the-wonder', scale: 2.1, renderTier: 'unique' }),
 ] as const;
 
 const byId = new Map(CATALOG.map((d) => [d.id, d]));

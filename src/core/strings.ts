@@ -323,6 +323,24 @@ const en = {
   'item.decor.market-square': 'Market Square Stalls',
   'item.decor.town-gate': 'Town Gate',
   'item.decor.grand-banner': 'Grand Banner',
+  // Tier 15–20 "Grand Opening"
+  'item.home.keep': 'Great Keep',
+  'item.decor.castle-tower': 'Castle Tower',
+  'item.decor.castle-wall': 'Castle Wall',
+  'item.decor.drawbridge': 'Drawbridge',
+  'item.income.tavern': 'Cozy Tavern',
+  'item.income.pop-post': 'Pop Post',
+  'item.income.civic-hall': 'Grand Assembly Hall',
+  'item.decor.marble-column': 'Marble Column',
+  'item.decor.statue-hero': 'Hero Statue',
+  'item.decor.trophy': 'Golden Trophy',
+  'item.nature.golden-tree': 'Golden Tree',
+  'item.decor.cog-sculpture': 'Cog Sculpture',
+  'item.decor.the-wonder': 'The Wonder',
+  // capstone
+  'toast.wonderBuilt': 'The Wonder is complete! Your island is legendary. ✨',
+  'quest.pc.wonder.t': 'The Grand Opening',
+  'quest.pc.wonder.d': 'Build The Wonder — your island’s crowning marvel.',
 } as const;
 
 export type StringKey = keyof typeof en;

@@ -44,7 +44,7 @@ export function countOwned(island: IslandModel, sel: ItemSelector): number {
 }
 
 /** Min Chebyshev distance between two placements' footprint cells (0 = touching). */
-function minChebyshev(a: Placement, b: Placement): number {
+export function minChebyshev(a: Placement, b: Placement): number {
   const da = itemDef(a.def);
   const db = itemDef(b.def);
   if (!da || !db) return Infinity;

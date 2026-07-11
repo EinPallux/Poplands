@@ -23,4 +23,8 @@ export const palette = {
   accentMint: 0x7fdca4,
   accentCoral: 0xff8a70,
   accentGold: 0xffc94b,
+  // The Wonder's aurora (S20 capstone) — a soft green→teal→violet curtain.
+  auroraGreen: 0x8affc1,
+  auroraTeal: 0x6fe0e6,
+  auroraViolet: 0xb99cff,
 } as const;

@@ -161,6 +161,19 @@
     "ground.river-straight": "assets/Nature Assets 2/Models/GLTF format/ground_riverStraight.glb",
     "ground.river-corner": "assets/Nature Assets 2/Models/GLTF format/ground_riverCorner.glb",
     "ground.river-tee": "assets/Nature Assets 2/Models/GLTF format/ground_riverSplit.glb",
-    "ground.river-cross": "assets/Nature Assets 2/Models/GLTF format/ground_riverCross.glb"
+    "ground.river-cross": "assets/Nature Assets 2/Models/GLTF format/ground_riverCross.glb",
+    "building.keep": "assets/Fantasy RTS Assets/Castle.glb",
+    "deco.castle-tower": "assets/Castle Assets/Models/GLB format/tower-square-mid.glb",
+    "deco.castle-wall": "assets/Castle Assets/Models/GLB format/wall.glb",
+    "deco.drawbridge": "assets/Castle Assets/Models/GLB format/bridge-draw.glb",
+    "building.tavern": "assets/Fantasy RTS Assets/Barracks.glb",
+    "deco.pop-post": "assets/Fantasy Town Assets/Models/GLB format/pillar-wood.glb",
+    "building.civic-hall": "assets/Fantasy RTS Assets/Town Center.glb",
+    "deco.marble-column": "assets/Arena Assets/Models/GLB format/column.glb",
+    "deco.statue-hero": "assets/Arena Assets/Models/GLB format/statue.glb",
+    "deco.trophy": "assets/Arena Assets/Models/GLB format/trophy.glb",
+    "nature.golden-tree": "assets/Nature Assets 2/Models/GLTF format/tree_detailed_fall.glb",
+    "deco.cog-sculpture": "assets/Factory Assets/Models/GLB format/cog-a.glb",
+    "building.the-wonder": "assets/Fantasy RTS Assets/Wonder First Age Leve.glb"
   }
 }

@@ -28,9 +28,11 @@ describe('catalog integrity', () => {
     expect(new Set(ids).size).toBe(ids.length);
   });
 
-  it('every income item has a positive ratePerMin and cap', () => {
+  it('every income-producing item has a positive ratePerMin and cap', () => {
     for (const d of CATALOG) {
-      if (d.category === 'income') {
+      // the Pop Post is an income-category utility (auto-collector) with no income of
+      // its own — every OTHER income item must define a real income field.
+      if (d.category === 'income' && !d.autoCollectRadius) {
         expect(d.income, `${d.id} missing income`).toBeDefined();
         expect(d.income!.ratePerMin).toBeGreaterThan(0);
         expect(d.income!.cap).toBeGreaterThan(0);
@@ -46,10 +48,10 @@ describe('catalog integrity', () => {
     }
   });
 
-  it('tiers are within 1..10', () => {
+  it('tiers are within 1..20', () => {
     for (const d of CATALOG) {
       expect(d.tier).toBeGreaterThanOrEqual(1);
-      expect(d.tier).toBeLessThanOrEqual(14);
+      expect(d.tier).toBeLessThanOrEqual(20);
     }
   });
 });
