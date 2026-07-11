@@ -96,6 +96,70 @@ export class AudioSystem {
     }
   }
 
+  /**
+   * The chunk-arrival signature (S22, GDD §13): a rising whoosh as the chunk
+   * lifts, a low thunk as it docks, then a bright ascending fanfare. Scheduled on
+   * the WebAudio clock (offsets from `now`) so it stays synced to the ~1.9 s
+   * choreography regardless of frame timing.
+   */
+  chunkArrival(): void {
+    const ctx = this.ensure();
+    if (!ctx || !this.master) return;
+    const master = this.master;
+    const now = ctx.currentTime;
+
+    // — whoosh: bandpassed noise sweeping upward as the chunk rises (0.3→1.55 s)
+    const wDur = 1.25;
+    const buffer = ctx.createBuffer(1, Math.ceil(ctx.sampleRate * wDur), ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+    const src = ctx.createBufferSource();
+    src.buffer = buffer;
+    const bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.Q.value = 1.2;
+    const wStart = now + 0.3;
+    bp.frequency.setValueAtTime(180, wStart);
+    bp.frequency.exponentialRampToValueAtTime(1500, wStart + wDur);
+    const wGain = ctx.createGain();
+    wGain.gain.setValueAtTime(0.0001, wStart);
+    wGain.gain.exponentialRampToValueAtTime(0.22, wStart + wDur * 0.6);
+    wGain.gain.exponentialRampToValueAtTime(0.0001, wStart + wDur);
+    src.connect(bp).connect(wGain).connect(master);
+    src.start(wStart);
+    src.stop(wStart + wDur);
+
+    // — thunk: a low pitch-dropping body as it docks (~1.5 s)
+    const tAt = now + 1.5;
+    const tOsc = ctx.createOscillator();
+    const tGain = ctx.createGain();
+    tOsc.type = 'triangle';
+    tOsc.frequency.setValueAtTime(150, tAt);
+    tOsc.frequency.exponentialRampToValueAtTime(55, tAt + 0.18);
+    tGain.gain.setValueAtTime(0.0001, tAt);
+    tGain.gain.exponentialRampToValueAtTime(0.55, tAt + 0.012);
+    tGain.gain.exponentialRampToValueAtTime(0.0001, tAt + 0.3);
+    tOsc.connect(tGain).connect(master);
+    tOsc.start(tAt);
+    tOsc.stop(tAt + 0.32);
+
+    // — fanfare: a bright ascending major arpeggio + sparkle top (~1.62 s)
+    const fAt = now + 1.62;
+    [523.25, 659.25, 783.99, 1046.5].forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      const t = fAt + i * 0.085;
+      osc.frequency.setValueAtTime(freq, t);
+      gain.gain.setValueAtTime(0.0001, t);
+      gain.gain.exponentialRampToValueAtTime(0.3, t + 0.015);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.34);
+      osc.connect(gain).connect(master);
+      osc.start(t);
+      osc.stop(t + 0.36);
+    });
+  }
+
   /** Airy poof for removals — filtered noise burst. */
   poof(): void {
     const ctx = this.ensure();

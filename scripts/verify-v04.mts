@@ -119,7 +119,9 @@ async function main(): Promise<void> {
   await page.evaluate(() => (window as never as Win).__poplands.state.economy.credit(2000, 10));
   const slot = surveys0[0]!;
   await page.evaluate((s) => (window as never as Win).__poplands.buyChunk(s.cx, s.cz), slot);
-  await page.waitForTimeout(3000); // let the ~2.2 s arrival play out
+  await page.waitForTimeout(1150); // popup up + chunk mid-rise
+  await page.screenshot({ path: path.join(ROOT, 'shots/v04-2-arriving.png') });
+  await page.waitForTimeout(1900); // let the ~2.2 s arrival finish
 
   const c1 = await chunkCount(page);
   check('island grew to 5 chunks after purchase', c1 === 5, `${c1}`);

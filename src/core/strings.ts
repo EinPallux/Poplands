@@ -36,6 +36,8 @@ const en = {
 
   // expansion (S8) — survey markers on the island's free edges
   'survey.call': 'Call this chunk',
+  'chunk.popup.title': 'New chunk!',
+  'chunk.popup.sub': 'Chunk {n} floated up to join your island 🌱',
 
   // mailbox
   'mailbox.title': 'Postcards',
