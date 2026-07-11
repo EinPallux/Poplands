@@ -22,6 +22,7 @@ export interface SaveSettings {
   quality: 'auto' | 'high' | 'medium' | 'low';
   reducedMotion: boolean;
   timeOfDay: 'auto' | 'day' | 'dusk' | 'night'; // 'auto' = cycle; others freeze the sky
+  season: 'auto' | 'spring' | 'summer' | 'autumn' | 'winter'; // 'auto' = follow the real month
   fpsCap: 'off' | '30' | '60'; // frame-rate cap (S23)
   uiScale: number; // 0.85 | 1 | 1.15 | 1.3 — UI zoom (S23 accessibility)
 }
@@ -138,6 +139,7 @@ export const DEFAULT_SETTINGS: SaveSettings = {
   quality: 'auto',
   reducedMotion: false,
   timeOfDay: 'auto',
+  season: 'auto',
   fpsCap: 'off',
   uiScale: 1,
 };

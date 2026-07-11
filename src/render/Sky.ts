@@ -268,6 +268,20 @@ export class Sky {
     }
   }
 
+  /** Multiply a seasonal tint onto the live sky colors. Called AFTER setSky each
+   *  frame by SeasonSystem, so the day-night cycle re-copies the base first and
+   *  this modulation never accumulates. */
+  setSeasonTint(tint: Color): void {
+    (this.domeMat.uniforms['topColor']!.value as Color).multiply(tint);
+    (this.domeMat.uniforms['horizonColor']!.value as Color).multiply(tint);
+    (this.domeMat.uniforms['creamColor']!.value as Color).multiply(tint);
+    for (const m of this.cloudSea.mats) {
+      (m.uniforms['uCloud']!.value as Color).multiply(tint);
+      (m.uniforms['uShade']!.value as Color).multiply(tint);
+      (m.uniforms['uCream']!.value as Color).multiply(tint);
+    }
+  }
+
   /** Puffball clouds around the island; count is quality-gated (re-callable). */
   buildClouds(count: number): void {
     for (const c of this.clouds) this.group.remove(c.object);
