@@ -185,6 +185,12 @@ const en = {
   'fish.rainbowfin': 'Rainbowfin',
   'fish.starsturgeon': 'Star Sturgeon',
 
+  // daily gift (post-1.0)
+  'gift.title': 'Daily Gift',
+  'gift.ready': 'A present is waiting!',
+  'gift.day': 'Day {n}',
+  'gift.claimed': 'See you tomorrow! 🎁',
+
   // photo mode (S23, v0.6)
   'photo.hint': 'Photo Mode — drag to frame your island',
   'photo.save': 'Save PNG',

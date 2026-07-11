@@ -17,6 +17,7 @@ import { SecretSystem } from '@/sim/SecretSystem';
 import { IslanderSystem } from '@/sim/IslanderSystem';
 import { PalSystem } from '@/sim/PalSystem';
 import { FishingSystem } from '@/sim/FishingSystem';
+import { DailyGiftSystem } from '@/sim/DailyGiftSystem';
 import { itemDef } from '@/content/catalog';
 import { STARTER_PLACEMENTS } from '@/content/starterIsland';
 
@@ -32,6 +33,7 @@ export class GameState {
   readonly islanders: IslanderSystem;
   readonly pals: PalSystem;
   readonly fishing: FishingSystem;
+  readonly dailyGift: DailyGiftSystem;
   readonly isFresh: boolean;
   /** Supplies the item held in Move mode so the snapshot never drops it. */
   private carriedProvider: (() => Placement | null) | null = null;
@@ -78,6 +80,8 @@ export class GameState {
     this.pals = new PalSystem(this.island, this.save.islanders, this.save.seed);
     // fishing owns the pond minigame + catch collection (mutates save.fishing on snapshot)
     this.fishing = new FishingSystem(this.island, this.save.fishing, this.save.seed);
+    // daily gift owns the once-a-day present (mutates save.dailyGift in place)
+    this.dailyGift = new DailyGiftSystem(this.save.dailyGift);
 
     // a bought chunk is appended to the persisted chunk set (only ExpansionSystem
     // grows the model, so save.chunks and the model stay in lock-step — themes stay
@@ -102,6 +106,7 @@ export class GameState {
       'npc:arrived', // a neighbour moved in → persist the roster
       'pal:adopted', // a Pal came to visit → persist the roster
       'fishing:caught', // reeled in a fish → persist the collection
+      'gift:claimed', // opened the daily present → persist the claim
       'settings:changed',
     ] as const) {
       bus.on(ev, () => this.manager.requestSave());
@@ -128,6 +133,7 @@ export class GameState {
     this.secrets.announce();
     this.islanders.announce();
     this.pals.announce();
+    this.dailyGift.announce(); // surface today's present if it's ready
   }
 
   private static makeFreshSave(): Save {

@@ -1416,3 +1416,64 @@ body {
 .jf-badge { font-size: 10px; font-weight: 700; color: var(--rarity, #8a94a6); text-transform: uppercase; letter-spacing: 0.03em; }
 .jf-count { font-size: 13px; font-weight: 800; color: var(--accent-gold); }
 .journal-hint { margin-top: 10px; font-size: 12px; font-style: italic; opacity: 0.7; }
+
+/* ——— Daily gift (post-1.0) ——— */
+.gift-root {
+  position: absolute;
+  left: 14px;
+  top: 46%;
+  pointer-events: none;
+  z-index: 7;
+  transform: scale(var(--ui-scale, 1));
+  transform-origin: 0% 50%;
+}
+.gift-btn {
+  pointer-events: auto;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: none;
+  background: var(--ui-cream);
+  font-size: 28px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(74, 63, 94, 0.3);
+}
+.gift-btn.ready {
+  animation: giftWobble 1.6s ease-in-out infinite;
+}
+@keyframes giftWobble {
+  0%, 100% {
+    transform: rotate(-6deg) scale(1);
+    box-shadow: 0 4px 14px rgba(74, 63, 94, 0.3), 0 0 0 0 rgba(255, 201, 75, 0.6);
+  }
+  50% {
+    transform: rotate(6deg) scale(1.08);
+    box-shadow: 0 4px 18px rgba(74, 63, 94, 0.35), 0 0 22px 4px rgba(255, 201, 75, 0.55);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gift-btn.ready { animation: none; }
+}
+.gift-popup {
+  position: fixed;
+  left: 50%;
+  top: 26%;
+  transform: translate(-50%, 0);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 18px 30px 14px;
+  border-radius: 20px;
+  background: var(--ui-cream);
+  color: var(--ui-ink);
+  box-shadow: 0 10px 30px rgba(74, 63, 94, 0.35);
+  border: 3px solid var(--accent-gold);
+  pointer-events: none;
+  z-index: 20;
+  will-change: transform, opacity;
+}
+.gp-icon { font-size: 46px; line-height: 1.1; }
+.gp-day { font-size: 15px; font-weight: 800; letter-spacing: 0.02em; }
+.gp-reward { font-size: 18px; font-weight: 800; color: var(--accent-gold); }
+.gp-note { font-size: 12px; opacity: 0.7; margin-top: 3px; }

@@ -40,6 +40,7 @@ import { Mailbox } from '@/ui/Mailbox';
 import { Album } from '@/ui/Album';
 import { FishJournal } from '@/ui/FishJournal';
 import { FishingLayer } from '@/ui/FishingLayer';
+import { DailyGiftUI } from '@/ui/DailyGiftUI';
 import { PhotoMode } from '@/ui/PhotoMode';
 import { WorldFx } from '@/ui/WorldFx';
 import { SurveyLayer } from '@/ui/SurveyLayer';
@@ -275,6 +276,8 @@ export class App {
     bus.on('cmd:collect', ({ placementId }) => state.economy.collect(placementId));
     bus.on('cmd:collectAll', () => state.economy.collectAll());
     bus.on('cmd:castLine', ({ placementId }) => state.fishing.castLine(placementId)); // tap a pond
+    bus.on('cmd:claimGift', () => state.dailyGift.claim()); // open the daily present
+    bus.on('gift:claimed', () => audio.reel()); // a cheerful open-the-present flourish
     bus.on('income:collected', () => audio.chime()); // coin-arc handled by WorldFx
     bus.on('income:ripe', (e) => {
       const p = island.placement(e.placementId);
@@ -402,6 +405,7 @@ export class App {
       themes: island.allChunks().map((c) => island.themeAt(c.cx, c.cz)),
     }));
     const journal = new FishJournal(uiRoot, () => state.fishing.collection());
+    new DailyGiftUI(uiRoot); // the once-a-day present (self-wires to gift:* events)
     const photo = new PhotoMode(uiRoot, () => {
       rm.render(scene, rig.camera); // one fresh frame, then read it back
       return rm.renderer.domElement.toDataURL('image/png');
@@ -627,6 +631,8 @@ export class App {
         weather: () => weather.counts,
         weatherShower: () => weather.forceShower(),
         weatherRainbow: () => weather.forceRainbow(),
+        giftPreview: () => state.dailyGift.preview(),
+        claimGift: () => bus.emit('cmd:claimGift', undefined),
         fishCollection: () => state.fishing.collection(),
         fishPhase: () => state.fishing.phase,
         fishTimer: () => state.fishing.remaining,

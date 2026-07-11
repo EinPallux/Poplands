@@ -181,6 +181,11 @@ export interface AppEvents extends Record<string, unknown> {
   };
   'fishing:missed': { placementId: string; wx: number; wz: number }; // it got away (no penalty)
 
+  // daily gift (post-1.0): a cozy welcome present each real-world day
+  'cmd:claimGift': void; // player clicked the present
+  'gift:available': void; // a gift is ready to claim (emitted on start if claimable)
+  'gift:claimed': { day: number; rewards: QuestReward }; // claimed → Economy credits the reward
+
   // ambient events (S19, v0.5): night sky life
   'event:shootingStar': void; // a star streaks by — make a wish ✨
 
