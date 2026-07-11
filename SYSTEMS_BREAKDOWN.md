@@ -118,7 +118,7 @@ Conventions: each system lists **Purpose · Owns · Interface sketch · Events (
 **Purpose:** XP intake, level curve, catalog tier gating, level-up reward payout.
 **Owns:** XP ledger, curve function (CONTENT §6.1), tier-unlock table, "New in Catalog" reveal queue.
 **Events:** ▸ `xp:gained{amount,source}`, `level:up{level,rewards,unlockedTier}` ◂ `item:placed`, `quest:completed`, `secret:found`.
-**Perf/edge:** XP sources centrally rate-sane (placing/removing/replacing the same flower loops grants placement XP once per unique placement id — idempotence ledger).
+**Perf/edge:** XP sources centrally rate-sane; the idempotence ledger grants placement XP at most once per *unique* placement id (so hydration/move-return never double-count, and the ledger is GC'd to live ids each save — note ids recur across reloads as `IslandModel.nextId` recomputes from live placements, which the GC accounts for). A remove-then-place is a NEW id and legitimately re-grants: the resulting place→remove churn is an **accepted, unpoliced self-grind** (100%-refund consequence, see GDD §7.5), not a bug.
 **Milestone:** v0.3. **DoD:** L1→L20 simulated script matches pacing targets ±20%; tier reveals fire once each, persist correctly.
 
 ## S15 🧠 Quest System (Postcards & Milestones)

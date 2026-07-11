@@ -190,6 +190,8 @@ Design intent: **generous, legible, un-grindy.** Numbers stay small (a flower co
 - Prices never require selling/undoing previous work (refunds are 100% anyway).
 - If playtesting finds any moment where the player has *nothing* affordable and *nothing* to do — that's a balancing bug, fix the curve.
 
+**Accepted self-grind (place→remove churn).** Because refunds are 100% (pillar 1) and placement XP + milestone counters are never revoked, a player *can* spam place→remove of one building to grind XP → levels → Stardust at zero net Pops cost. This is an accepted consequence of the covenant, not a bug: it is self-inflicted, tedious (nobody enjoys 300 clicks), affects no one else (single-player, no leaderboards, no FOMO), and is left **unpoliced** — the cozy-genre norm (Stardew/Animal Crossing don't police self-grind either). It was surfaced and deliberately accepted in the v0.3 review (2026-07-11). Revisit *only* if the v0.4+ Stardust **sink** (chunk pricing) shows in playtests that the shortcut actually distorts expansion pacing — the available fixes (net-growth XP / net counters) trade against the satisfying per-placement XP "tick", so any change is deferred until the sink it would protect actually exists.
+
 ## 8. Quests — Postcards & Milestones
 
 ### 8.1 Tutorial chain — "Welcome to the Drift" (12 steps)
