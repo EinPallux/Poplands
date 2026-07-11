@@ -63,6 +63,12 @@ export class EconomySystem {
     return popsSignal.get() < def.cost ? 'pops' : 'stardust';
   }
 
+  /** Denial reason for a raw cost — Pops checked first, else Stardust is the blocker
+   *  (S7 chunk purchase; only called after trySpend already failed). */
+  shortOf(pops: number): 'pops' | 'stardust' {
+    return popsSignal.get() < pops ? 'pops' : 'stardust';
+  }
+
   charge(def: ItemDef): void {
     popsSignal.update((p) => p - def.cost);
     if (def.costStardust) stardustSignal.update((s) => s - (def.costStardust ?? 0));
@@ -81,6 +87,16 @@ export class EconomySystem {
     if (pops) popsSignal.update((p) => p + pops);
     if (stardust) stardustSignal.update((s) => s + stardust);
     if (pops || stardust) this.emitWallet();
+  }
+
+  /** Spend from both wallets iff affordable — atomic (chunk purchase, reroll fee,
+   *  S7). Returns false WITHOUT mutating either wallet if short on either. */
+  trySpend(pops: number, stardust = 0): boolean {
+    if (popsSignal.get() < pops || stardustSignal.get() < stardust) return false;
+    if (pops) popsSignal.update((p) => p - pops);
+    if (stardust) stardustSignal.update((s) => s - stardust);
+    if (pops || stardust) this.emitWallet();
+    return true;
   }
 
   /** Subscribe to reward-bearing events so Economy is the SINGLE crediter

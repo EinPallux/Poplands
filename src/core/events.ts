@@ -15,6 +15,9 @@ export interface QuestReward {
   xp?: number;
 }
 
+/** Per-chunk secret kinds (S19, GDD §10 distribution). */
+export type SecretKind = 'dig' | 'chest' | 'flora';
+
 export class EventBus<M extends Record<string, unknown>> {
   private handlers = new Map<keyof M, Set<Handler<never>>>();
 
@@ -77,6 +80,11 @@ export interface AppEvents extends Record<string, unknown> {
   'cmd:collectAll': void;
   'cmd:skipPostcard': { id: string };
 
+  // expansion commands (S7/S8, v0.4)
+  'cmd:buyChunk': { cx: number; cz: number };
+  'cmd:rerollSurveys': void;
+  'cmd:clickSecret': { cx: number; cz: number };
+
   // domain events (sim → presentation)
   'item:placed': { id: string; def: string; wx: number; wz: number; rot: 0 | 1 | 2 | 3; silent?: boolean };
   'item:removed': { id: string; def: string; wx: number; wz: number; rot: 0 | 1 | 2 | 3; silent?: boolean };
@@ -127,6 +135,27 @@ export interface AppEvents extends Record<string, unknown> {
   'quest:progress': { id: string; current: number; target: number };
   'quest:completed': { id: string; kind: QuestKind; rewards: QuestReward; nextId?: string };
   'quest:dismissed': { id: string }; // a postcard was skipped — HUD removes its card
+
+  // expansion (S7/S8, v0.4): the F2 flow — survey → buy → land rises → new surveys
+  'chunk:offered': { slots: Array<{ cx: number; cz: number; pops: number; stardust: number }> };
+  'chunk:unlocked': { cx: number; cz: number; index: number }; // index = chunk count AFTER add
+  'island:grew': void; // world visuals must rebuild for the new chunk shape (base/ground/outline)
+
+  // secrets & discoveries (S19, v0.4): seeded per-chunk hidden things
+  'secret:spawned': { cx: number; cz: number; kind: SecretKind; wx: number; wz: number };
+  'secret:progress': { cx: number; cz: number; clicks: number; total: number; wx: number; wz: number };
+  'secret:found': {
+    cx: number;
+    cz: number;
+    kind: SecretKind;
+    rewards: QuestReward;
+    wx: number;
+    wz: number;
+  };
+
+  // juice set-piece framing (S11): the chunk-arrival soft input-lock window
+  'juice:setPieceStarted': { kind: 'chunk-arrival' };
+  'juice:setPieceEnded': { kind: 'chunk-arrival' };
 
   // persistence
   'save:written': void;

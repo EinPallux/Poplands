@@ -51,6 +51,45 @@ export class IslandModel {
     return this.chunks.has(chunkKey(cx, cz));
   }
 
+  get chunkCount(): number {
+    return this.chunks.size;
+  }
+
+  /** Add a chunk to the lattice (S7 expansion). Idempotent; returns false if it
+   *  already existed. Blocks/bounds/outline all derive from the chunk set, so the
+   *  world visuals just rebuild from the new shape. */
+  addChunk(cx: number, cz: number): boolean {
+    const k = chunkKey(cx, cz);
+    if (this.chunks.has(k)) return false;
+    this.chunks.set(k, { cx, cz });
+    return true;
+  }
+
+  /** Unowned chunk cells edge-adjacent to the island — the survey candidates (S8).
+   *  Deterministically ordered (by cz, then cx) so offers are stable/reproducible.
+   *  Every slot is lattice-connected by construction (no detached islands). */
+  expandableSlots(): ChunkCoord[] {
+    const seen = new Set<string>();
+    const out: ChunkCoord[] = [];
+    for (const c of this.chunks.values()) {
+      for (const [dx, dz] of [
+        [1, 0],
+        [-1, 0],
+        [0, 1],
+        [0, -1],
+      ] as const) {
+        const nx = c.cx + dx;
+        const nz = c.cz + dz;
+        const k = chunkKey(nx, nz);
+        if (this.chunks.has(k) || seen.has(k)) continue;
+        seen.add(k);
+        out.push({ cx: nx, cz: nz });
+      }
+    }
+    out.sort((a, b) => a.cz - b.cz || a.cx - b.cx);
+    return out;
+  }
+
   hasBlock(wx: number, wz: number): boolean {
     const c = worldToChunk(wx, wz);
     return this.hasChunk(c.cx, c.cz);
