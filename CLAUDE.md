@@ -72,4 +72,4 @@ Precedence on conflict: GDD states intent → SYSTEMS/TECH state mechanism → c
 6. CHANGELOG updated.
 
 ## What to do next (as of last update)
-Waiting on the user's go-ahead to start **ROADMAP v0.1 "First Light"** (scaffold → pipeline v1 → renderer/sky → camera → static starter island). Follow ROADMAP §Immediate Next Steps.
+Waiting on the user's v0.2 milestone review. Next up on approval: **ROADMAP v0.3 "Pops & Purpose"** — economy (S13: Pops income/caps/offline/collect), progression (S14: XP/levels/tier gating), quests (S15: tutorial chain + postcards + milestones), full HUD (wallets, level ring, mailbox, coin-arc/ripen-bubble/celebrate presets), catalog Tiers 3–6.
