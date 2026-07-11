@@ -96,7 +96,7 @@ describe('parseSave', () => {
     expect(withCarried(placements, null)).toBe(placements);
   });
 
-  it('migrates a v1 save through to v5, seeding economy + quests + xpGranted + secrets + islanders + fishing', () => {
+  it('migrates a v1 save through to v6, seeding economy + quests + xpGranted + secrets + islanders + fishing + dailyGift', () => {
     // a hand-built v0.2-era v1 save
     const v1 = {
       v: 1,
@@ -116,7 +116,7 @@ describe('parseSave', () => {
     };
     const parsed = parseSave(JSON.stringify(v1));
     expect(parsed).not.toBeNull();
-    expect(parsed!.v).toBe(5); // chains v1→v2→v3→v4→v5
+    expect(parsed!.v).toBe(6); // chains v1→v2→v3→v4→v5→v6
     // wallets preserved, not reset
     expect(parsed!.player.pops).toBe(300);
     expect(parsed!.player.level).toBe(2);
@@ -136,6 +136,9 @@ describe('parseSave', () => {
     // v5: empty fishing collection (fills as the player fishes)
     expect(parsed!.fishing.caught).toEqual({});
     expect(parsed!.fishing.total).toBe(0);
+    // v6: un-claimed daily-gift slice (the first gift is ready)
+    expect(parsed!.dailyGift.lastClaimDay).toBe(0);
+    expect(parsed!.dailyGift.claims).toBe(0);
   });
 
   it('a v4 save missing the islanders slice normalizes to an empty roster', () => {
@@ -153,6 +156,15 @@ describe('parseSave', () => {
     expect(parsed).not.toBeNull();
     expect(parsed!.fishing.caught).toEqual({});
     expect(parsed!.fishing.total).toBe(0);
+  });
+
+  it('a save predating the daily-gift slice normalizes to un-claimed', () => {
+    const save = makeSave() as unknown as Record<string, unknown>;
+    delete save['dailyGift'];
+    const parsed = parseSave(JSON.stringify(save));
+    expect(parsed).not.toBeNull();
+    expect(parsed!.dailyGift.lastClaimDay).toBe(0);
+    expect(parsed!.dailyGift.claims).toBe(0);
   });
 
   it('back-fills a new settings field (uiScale) on a save that predates it', () => {

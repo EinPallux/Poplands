@@ -6,6 +6,7 @@
  */
 import { bus } from '@/core/events';
 import { freshSave, SaveManager, withCarried, type Save, type SavePlacement } from '@/core/save';
+import { encodeShareCode, decodeShareCode } from '@/core/islandCode';
 import { loadSettings, snapshotSettings } from '@/core/settingsStore';
 import { loadWallet, snapshotWallet, loadPlayer } from '@/core/playerStore';
 import { IslandModel, type Placement } from '@/world/IslandModel';
@@ -17,6 +18,7 @@ import { SecretSystem } from '@/sim/SecretSystem';
 import { IslanderSystem } from '@/sim/IslanderSystem';
 import { PalSystem } from '@/sim/PalSystem';
 import { FishingSystem } from '@/sim/FishingSystem';
+import { DailyGiftSystem } from '@/sim/DailyGiftSystem';
 import { itemDef } from '@/content/catalog';
 import { STARTER_PLACEMENTS } from '@/content/starterIsland';
 
@@ -32,6 +34,7 @@ export class GameState {
   readonly islanders: IslanderSystem;
   readonly pals: PalSystem;
   readonly fishing: FishingSystem;
+  readonly dailyGift: DailyGiftSystem;
   readonly isFresh: boolean;
   /** Supplies the item held in Move mode so the snapshot never drops it. */
   private carriedProvider: (() => Placement | null) | null = null;
@@ -78,6 +81,8 @@ export class GameState {
     this.pals = new PalSystem(this.island, this.save.islanders, this.save.seed);
     // fishing owns the pond minigame + catch collection (mutates save.fishing on snapshot)
     this.fishing = new FishingSystem(this.island, this.save.fishing, this.save.seed);
+    // daily gift owns the once-a-day present (mutates save.dailyGift in place)
+    this.dailyGift = new DailyGiftSystem(this.save.dailyGift);
 
     // a bought chunk is appended to the persisted chunk set (only ExpansionSystem
     // grows the model, so save.chunks and the model stay in lock-step — themes stay
@@ -102,6 +107,7 @@ export class GameState {
       'npc:arrived', // a neighbour moved in → persist the roster
       'pal:adopted', // a Pal came to visit → persist the roster
       'fishing:caught', // reeled in a fish → persist the collection
+      'gift:claimed', // opened the daily present → persist the claim
       'settings:changed',
     ] as const) {
       bus.on(ev, () => this.manager.requestSave());
@@ -128,6 +134,7 @@ export class GameState {
     this.secrets.announce();
     this.islanders.announce();
     this.pals.announce();
+    this.dailyGift.announce(); // surface today's present if it's ready
   }
 
   private static makeFreshSave(): Save {
@@ -188,5 +195,30 @@ export class GameState {
       return true;
     }
     return false;
+  }
+
+  /** A compact, copy-pasteable code encoding the current island (post-1.0). */
+  async shareCode(): Promise<string> {
+    return encodeShareCode(this.manager.exportString());
+  }
+
+  /** Decode + validate + persist a shared island to the main save slot (no reload).
+   *  Returns false (no side effects) if the code is malformed or not a valid save. */
+  async importShareCode(code: string): Promise<boolean> {
+    const json = await decodeShareCode(code);
+    if (json === null) return false;
+    return this.manager.importString(json) !== null; // parseSave-validates + writes the slot
+  }
+
+  /** Load a shared island from a code: import it, then reload to rebuild the world.
+   *  The CALLER confirms first — this replaces the current island. */
+  async loadShareCode(code: string): Promise<boolean> {
+    if (!(await this.importShareCode(code))) return false;
+    // drop only the ?island= param (keep any others) so a refresh won't re-prompt
+    const u = new URL(window.location.href);
+    u.searchParams.delete('island');
+    window.history.replaceState(null, '', u.pathname + u.search);
+    window.location.reload(); // placements-are-truth → rebuild from the new save
+    return true;
   }
 }

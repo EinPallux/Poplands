@@ -63,6 +63,14 @@ export interface SaveFishing {
   total: number;
 }
 
+/** Persisted daily-gift state (post-1.0): `lastClaimDay` is a YYYYMMDD day key of
+ *  the last claim (0 = never), `claims` is the lifetime claim count (drives the
+ *  looping 7-day reward cycle). Missing days never punish — the cycle is per-claim. */
+export interface SaveDailyGift {
+  lastClaimDay: number;
+  claims: number;
+}
+
 /** Persisted quest state (S15). Cumulative predicates keep per-quest counters in `progress`. */
 export interface SaveQuests {
   tutorial: { activeId: string | null; done: string[] };
@@ -129,9 +137,15 @@ export interface SaveV5 extends Omit<SaveV4, 'v'> {
   fishing: SaveFishing;
 }
 
+/** v6 (post-1.0): the daily-gift slice. */
+export interface SaveV6 extends Omit<SaveV5, 'v'> {
+  v: 6;
+  dailyGift: SaveDailyGift;
+}
+
 /** The current schema. Bump this alias (not scattered `SaveVn`s) each version. */
-export type Save = SaveV5;
-export const SAVE_VERSION = 5;
+export type Save = SaveV6;
+export const SAVE_VERSION = 6;
 
 export const DEFAULT_SETTINGS: SaveSettings = {
   volume: 0.8,
@@ -158,6 +172,10 @@ export function freshIslanders(): SaveIslanders {
 
 export function freshFishing(): SaveFishing {
   return { caught: {}, total: 0 };
+}
+
+export function freshDailyGift(): SaveDailyGift {
+  return { lastClaimDay: 0, claims: 0 };
 }
 
 /**
@@ -222,11 +240,16 @@ const migrations: Record<number, (s: AnySave) => AnySave> = {
     // The fishing collection starts empty — nothing to back-fill.
     return { ...v4, v: 5, fishing: freshFishing() } as unknown as AnySave;
   },
+  5: (s) => {
+    const v5 = s as unknown as SaveV5;
+    // Daily-gift starts un-claimed (lastClaimDay 0 → the first gift is ready).
+    return { ...v5, v: 6, dailyGift: freshDailyGift() } as unknown as AnySave;
+  },
 };
 
 export function freshSave(seed: number, now: number): Save {
   return {
-    v: 5,
+    v: 6,
     createdAt: now,
     lastSeenAt: now,
     seed,
@@ -245,6 +268,7 @@ export function freshSave(seed: number, now: number): Save {
     secrets: [], // SecretSystem seeds the starter chunks' secrets on first start
     islanders: freshIslanders(), // IslanderSystem welcomes residents as homes appear
     fishing: freshFishing(), // empty catch log; fills as the player fishes
+    dailyGift: freshDailyGift(), // un-claimed; the first gift is ready on day one
     attic: [],
     settings: { ...DEFAULT_SETTINGS },
   };
@@ -304,6 +328,9 @@ function normalize(v2: Save): Save {
   v2.fishing ??= freshFishing();
   v2.fishing.caught ??= {};
   v2.fishing.total ??= 0;
+  v2.dailyGift ??= freshDailyGift();
+  v2.dailyGift.lastClaimDay ??= 0;
+  v2.dailyGift.claims ??= 0;
   v2.settings = { ...DEFAULT_SETTINGS, ...v2.settings };
   v2.island.placements ??= [];
   v2.player.level ??= 1;
@@ -333,6 +360,10 @@ function normalize(v2: Save): Save {
 export class SaveManager {
   private timer: ReturnType<typeof setTimeout> | null = null;
   private storage: Storage | null;
+  /** After an import replaces the save (a reload is imminent), stop autosaving so the
+   *  pagehide / visibilitychange writeNow can't clobber the freshly-imported save with
+   *  the now-stale in-memory state. */
+  private suspended = false;
 
   constructor(private readonly collect: () => Save) {
     this.storage = typeof localStorage === 'undefined' ? null : localStorage;
@@ -361,12 +392,13 @@ export class SaveManager {
 
   /** Debounced autosave — call on any mutating domain event. */
   requestSave(): void {
+    if (this.suspended) return;
     if (this.timer) clearTimeout(this.timer);
     this.timer = setTimeout(() => this.writeNow(), AUTOSAVE_DEBOUNCE_MS);
   }
 
   writeNow(): void {
-    if (!this.storage) return;
+    if (!this.storage || this.suspended) return;
     if (this.timer) {
       clearTimeout(this.timer);
       this.timer = null;
@@ -412,11 +444,14 @@ export class SaveManager {
     return JSON.stringify(this.collect());
   }
 
-  /** Validate + persist an imported save. Caller reloads the world after. */
+  /** Validate + persist an imported save. Caller reloads the world after. Suspends
+   *  autosave so the imminent reload's pagehide writeNow can't overwrite the imported
+   *  save with the stale in-memory state. */
   importString(json: string): Save | null {
     const parsed = parseSave(json);
     if (!parsed || !this.storage) return null;
     this.storage.setItem(KEY, JSON.stringify(parsed));
+    this.suspended = true;
     return parsed;
   }
 

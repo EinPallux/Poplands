@@ -185,6 +185,12 @@ const en = {
   'fish.rainbowfin': 'Rainbowfin',
   'fish.starsturgeon': 'Star Sturgeon',
 
+  // daily gift (post-1.0)
+  'gift.title': 'Daily Gift',
+  'gift.ready': 'A present is waiting!',
+  'gift.day': 'Day {n}',
+  'gift.claimed': 'See you tomorrow! 🎁',
+
   // photo mode (S23, v0.6)
   'photo.hint': 'Photo Mode — drag to frame your island',
   'photo.save': 'Save PNG',
@@ -225,6 +231,16 @@ const en = {
   'settings.export': 'Export save',
   'settings.import': 'Import save',
   'settings.exported': 'Save copied — keep it somewhere cozy.',
+  'settings.share': 'Share island',
+  'settings.loadShare': 'Load island',
+  'settings.copyLink': 'Copy link',
+  'settings.load': 'Load',
+  'share.codePrompt': 'Copied! Share this code (or the link) with a friend:',
+  'share.pastePrompt': 'Paste an island code below, then Load:',
+  'share.copied': 'Island code copied to clipboard! 🏝️',
+  'share.linkCopied': 'Share link copied! 🔗',
+  'share.invalid': 'That doesn’t look like a valid island code.',
+  'share.loadPrompt': 'Load this shared island? Your current island will be replaced (export yours first to keep it).',
   'settings.imported': 'Island restored!',
   'settings.importFailed': 'That didn’t look like a Poplands save.',
 
