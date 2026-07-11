@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-11T14:17:48.108Z",
+  "generatedAt": "2026-07-11T14:33:07.128Z",
   "models": {
     "ground.grass-block": {
       "file": "assets/models/ground.grass-block.glb",
@@ -1275,7 +1275,7 @@
     },
     "ground.river": {
       "file": "assets/models/ground.river.glb",
-      "bytes": 5240,
+      "bytes": 7756,
       "aabb": {
         "min": [
           -0.5,
@@ -1284,13 +1284,13 @@
         ],
         "max": [
           0.5,
-          -0.05,
+          -0.04999999999999999,
           0.5
         ]
       },
       "size": [
         1,
-        0.05000000074505806,
+        0.050000000745058074,
         1
       ],
       "clips": [],
@@ -4029,6 +4029,294 @@
       ],
       "clips": [],
       "materials": 1,
+      "meshes": 1
+    },
+    "ground.path-dirt-end": {
+      "file": "assets/models/ground.path-dirt-end.glb",
+      "bytes": 4264,
+      "aabb": {
+        "min": [
+          -0.5,
+          -0.10000000074505806,
+          -0.5
+        ],
+        "max": [
+          0.5,
+          -0.05,
+          0.5
+        ]
+      },
+      "size": [
+        1,
+        0.05000000074505806,
+        1
+      ],
+      "clips": [],
+      "materials": 3,
+      "meshes": 1
+    },
+    "ground.path-dirt-straight": {
+      "file": "assets/models/ground.path-dirt-straight.glb",
+      "bytes": 4668,
+      "aabb": {
+        "min": [
+          -0.5,
+          -0.10000000074505806,
+          -0.5
+        ],
+        "max": [
+          0.5,
+          -0.05,
+          0.5
+        ]
+      },
+      "size": [
+        1,
+        0.05000000074505806,
+        1
+      ],
+      "clips": [],
+      "materials": 3,
+      "meshes": 1
+    },
+    "ground.path-dirt-corner": {
+      "file": "assets/models/ground.path-dirt-corner.glb",
+      "bytes": 3028,
+      "aabb": {
+        "min": [
+          -0.5,
+          -0.10000000074505806,
+          -0.5
+        ],
+        "max": [
+          0.5,
+          -0.05,
+          0.5
+        ]
+      },
+      "size": [
+        1,
+        0.05000000074505806,
+        1
+      ],
+      "clips": [],
+      "materials": 3,
+      "meshes": 1
+    },
+    "ground.path-dirt-tee": {
+      "file": "assets/models/ground.path-dirt-tee.glb",
+      "bytes": 4956,
+      "aabb": {
+        "min": [
+          -0.5,
+          -0.10000000074505806,
+          -0.5
+        ],
+        "max": [
+          0.5,
+          -0.05,
+          0.5
+        ]
+      },
+      "size": [
+        1,
+        0.05000000074505806,
+        1
+      ],
+      "clips": [],
+      "materials": 3,
+      "meshes": 1
+    },
+    "ground.path-dirt-cross": {
+      "file": "assets/models/ground.path-dirt-cross.glb",
+      "bytes": 5272,
+      "aabb": {
+        "min": [
+          -0.5,
+          -0.10000000074505806,
+          -0.5
+        ],
+        "max": [
+          0.5,
+          -0.05,
+          0.5
+        ]
+      },
+      "size": [
+        1,
+        0.05000000074505806,
+        1
+      ],
+      "clips": [],
+      "materials": 3,
+      "meshes": 1
+    },
+    "ground.path-stone-end": {
+      "file": "assets/models/ground.path-stone-end.glb",
+      "bytes": 6640,
+      "aabb": {
+        "min": [
+          -0.11823346465826035,
+          -0.05,
+          -0.29294857382774353
+        ],
+        "max": [
+          0.5,
+          7.450580569168253e-10,
+          0.2780592739582062
+        ]
+      },
+      "size": [
+        0.6182334646582603,
+        0.05000000074505806,
+        0.5710078477859497
+      ],
+      "clips": [],
+      "materials": 3,
+      "meshes": 1
+    },
+    "ground.path-stone-corner": {
+      "file": "assets/models/ground.path-stone-corner.glb",
+      "bytes": 7604,
+      "aabb": {
+        "min": [
+          -0.47041061520576477,
+          -0.05,
+          -0.30395808815956116
+        ],
+        "max": [
+          0.26785895228385925,
+          7.450580569168253e-10,
+          0.4744146466255188
+        ]
+      },
+      "size": [
+        0.738269567489624,
+        0.05000000074505806,
+        0.77837273478508
+      ],
+      "clips": [],
+      "materials": 3,
+      "meshes": 1
+    },
+    "ground.river-end": {
+      "file": "assets/models/ground.river-end.glb",
+      "bytes": 4856,
+      "aabb": {
+        "min": [
+          -0.5,
+          -0.10000000074505806,
+          -0.5
+        ],
+        "max": [
+          0.5,
+          -0.05,
+          0.5
+        ]
+      },
+      "size": [
+        1,
+        0.05000000074505806,
+        1
+      ],
+      "clips": [],
+      "materials": 4,
+      "meshes": 1
+    },
+    "ground.river-straight": {
+      "file": "assets/models/ground.river-straight.glb",
+      "bytes": 5240,
+      "aabb": {
+        "min": [
+          -0.5,
+          -0.10000000074505806,
+          -0.5
+        ],
+        "max": [
+          0.5,
+          -0.05,
+          0.5
+        ]
+      },
+      "size": [
+        1,
+        0.05000000074505806,
+        1
+      ],
+      "clips": [],
+      "materials": 4,
+      "meshes": 1
+    },
+    "ground.river-corner": {
+      "file": "assets/models/ground.river-corner.glb",
+      "bytes": 4288,
+      "aabb": {
+        "min": [
+          -0.5,
+          -0.10000000074505806,
+          -0.5
+        ],
+        "max": [
+          0.5,
+          -0.05,
+          0.5
+        ]
+      },
+      "size": [
+        1,
+        0.05000000074505806,
+        1
+      ],
+      "clips": [],
+      "materials": 4,
+      "meshes": 1
+    },
+    "ground.river-tee": {
+      "file": "assets/models/ground.river-tee.glb",
+      "bytes": 5728,
+      "aabb": {
+        "min": [
+          -0.5,
+          -0.10000000074505806,
+          -0.5
+        ],
+        "max": [
+          0.5,
+          -0.05,
+          0.5
+        ]
+      },
+      "size": [
+        1,
+        0.05000000074505806,
+        1
+      ],
+      "clips": [],
+      "materials": 4,
+      "meshes": 1
+    },
+    "ground.river-cross": {
+      "file": "assets/models/ground.river-cross.glb",
+      "bytes": 6264,
+      "aabb": {
+        "min": [
+          -0.5,
+          -0.10000000074505806,
+          -0.5
+        ],
+        "max": [
+          0.5,
+          -0.05,
+          0.5
+        ]
+      },
+      "size": [
+        1,
+        0.05000000074505806,
+        1
+      ],
+      "clips": [],
+      "materials": 4,
       "meshes": 1
     }
   }

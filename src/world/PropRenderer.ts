@@ -24,8 +24,10 @@ import {
 } from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { footprintCenter, rotYaw } from '@/core/grid';
+import { DIRS, resolveTileShape } from '@/core/autotile';
 import { itemDef, type ItemDef } from '@/content/catalog';
-import type { Placement, PlacementId } from '@/world/IslandModel';
+import { TILE_KITS } from '@/content/tileKits';
+import type { IslandModel, Placement, PlacementId } from '@/world/IslandModel';
 import type { AssetRegistry } from '@/assets/AssetRegistry';
 import { palette } from '@/render/palette';
 
@@ -136,11 +138,17 @@ export class PropRenderer {
   private pools = new Map<string, InstancedPool>();
   private merged = new Map<string, { geometry: BufferGeometry; materials: Material[] }>();
   private uniques = new Map<PlacementId, Object3D>();
+  /** For auto-tile items only: the pool key each placement currently lives in
+   *  (its resolved shape can change as neighbours come and go). */
+  private groundPoolKey = new Map<PlacementId, string>();
 
   private readonly ghostValid: MeshStandardMaterial;
   private readonly ghostInvalid: MeshStandardMaterial;
 
-  constructor(private readonly assets: AssetRegistry) {
+  constructor(
+    private readonly assets: AssetRegistry,
+    private readonly island: IslandModel,
+  ) {
     this.group.name = 'props';
     const ghostBase = {
       transparent: true,
@@ -167,7 +175,7 @@ export class PropRenderer {
     const def = itemDef(placement.def);
     if (!def) return;
     if (def.renderTier === 'instanced') {
-      this.pool(def).add(placement.id, this.matrixFor(def, placement.wx, placement.wz, placement.rot));
+      this.commitInstanced(placement, def);
     } else {
       const obj = this.assets.cloneModel(def.model);
       this.applyTransform(obj, def, placement);
@@ -199,7 +207,7 @@ export class PropRenderer {
     if (!def) return;
     if (def.renderTier === 'instanced') {
       this.group.remove(promoted);
-      this.pool(def).add(placement.id, this.matrixFor(def, placement.wx, placement.wz, placement.rot));
+      this.commitInstanced(placement, def);
     }
   }
 
@@ -211,8 +219,13 @@ export class PropRenderer {
     const def = itemDef(placement.def);
     if (!def) return null;
     if (def.renderTier === 'instanced') {
-      const pool = this.pools.get(def.id);
+      const key = def.tileKit ? this.groundPoolKey.get(placement.id) : def.id;
+      const pool = key ? this.pools.get(key) : undefined;
       if (!pool?.remove(placement.id)) return null;
+      if (def.tileKit) {
+        this.groundPoolKey.delete(placement.id);
+        this.refreshGroundNeighbors(def, placement.wx, placement.wz); // placement already gone from sim
+      }
       const obj = this.assets.cloneModel(def.model);
       this.applyTransform(obj, def, placement);
       this.group.add(obj);
@@ -229,7 +242,12 @@ export class PropRenderer {
     const def = itemDef(placement.def);
     if (!def) return;
     if (def.renderTier === 'instanced') {
-      this.pools.get(def.id)?.remove(placement.id);
+      const key = def.tileKit ? this.groundPoolKey.get(placement.id) : def.id;
+      if (key) this.pools.get(key)?.remove(placement.id);
+      if (def.tileKit) {
+        this.groundPoolKey.delete(placement.id);
+        this.refreshGroundNeighbors(def, placement.wx, placement.wz);
+      }
     } else {
       const obj = this.uniques.get(placement.id);
       if (obj) {
@@ -253,6 +271,7 @@ export class PropRenderer {
       pool.mesh.dispose();
     }
     this.pools.clear();
+    this.groundPoolKey.clear();
     for (const p of placements) this.show(p);
   }
 
@@ -272,18 +291,68 @@ export class PropRenderer {
     return { object, setValid };
   }
 
-  private pool(def: ItemDef): InstancedPool {
-    let pool = this.pools.get(def.id);
+  private pool(poolKey: string, modelId: string): InstancedPool {
+    let pool = this.pools.get(poolKey);
     if (!pool) {
-      let merged = this.merged.get(def.model);
+      let merged = this.merged.get(modelId);
       if (!merged) {
-        merged = mergeModel(this.assets.sharedScene(def.model));
-        this.merged.set(def.model, merged);
+        merged = mergeModel(this.assets.sharedScene(modelId));
+        this.merged.set(modelId, merged);
       }
       pool = new InstancedPool(this.group, merged.geometry, merged.materials);
-      this.pools.set(def.id, pool);
+      this.pools.set(poolKey, pool);
     }
     return pool;
+  }
+
+  // ——— auto-tiling (S10, v0.6) ———
+
+  /** OR of DIRS bits for same-kit neighbours around (wx,wz). */
+  private groundMask(tileKit: string, wx: number, wz: number): number {
+    let mask = 0;
+    for (const { dx, dz, bit } of DIRS) {
+      const occ = this.island.occupantAt(wx + dx, wz + dz, { preferGround: true });
+      if (occ && itemDef(occ.def)?.tileKit === tileKit) mask |= bit;
+    }
+    return mask;
+  }
+
+  /** Resolve a placement to its pool key + model + rotation. Non-kit items are
+   *  identity (pool key = def.id, model = def.model, rot = placement.rot). */
+  private resolveVariant(
+    placement: Placement,
+    def: ItemDef,
+  ): { poolKey: string; modelId: string; rot: 0 | 1 | 2 | 3 } {
+    if (!def.tileKit) return { poolKey: def.id, modelId: def.model, rot: placement.rot };
+    const kit = TILE_KITS[def.tileKit]!;
+    const { shape, rot } = resolveTileShape(this.groundMask(def.tileKit, placement.wx, placement.wz));
+    const modelId = shape === 'isolated' ? kit.fallback : (kit.variants[shape] ?? kit.fallback);
+    return { poolKey: `${def.id}::${shape}`, modelId, rot };
+  }
+
+  /** Commit an instanced placement into its resolved pool (moving pools if the
+   *  shape changed), then ripple to same-kit neighbours whose shape may shift. */
+  private commitInstanced(placement: Placement, def: ItemDef): void {
+    const v = this.resolveVariant(placement, def);
+    const prev = this.groundPoolKey.get(placement.id);
+    if (prev === v.poolKey && this.pools.get(prev)?.has(placement.id)) return; // no-op
+    if (prev) this.pools.get(prev)?.remove(placement.id);
+    this.pool(v.poolKey, v.modelId).add(placement.id, this.matrixFor(def, placement.wx, placement.wz, v.rot));
+    if (def.tileKit) {
+      this.groundPoolKey.set(placement.id, v.poolKey);
+      this.refreshGroundNeighbors(def, placement.wx, placement.wz);
+    }
+  }
+
+  /** Re-resolve already-rendered same-kit neighbours (their mask just changed). */
+  private refreshGroundNeighbors(def: ItemDef, wx: number, wz: number): void {
+    for (const { dx, dz } of DIRS) {
+      const occ = this.island.occupantAt(wx + dx, wz + dz, { preferGround: true });
+      const nDef = occ && itemDef(occ.def);
+      if (!occ || !nDef || nDef.tileKit !== def.tileKit) continue;
+      if (!this.groundPoolKey.has(occ.id)) continue; // not currently shown
+      this.commitInstanced(occ, nDef);
+    }
   }
 
   private applyTransform(obj: Object3D, def: ItemDef, placement: Placement): void {
@@ -297,5 +366,11 @@ export class PropRenderer {
     let instanced = 0;
     for (const pool of this.pools.values()) instanced += pool.count;
     return { pools: this.pools.size, instanced, uniques: this.uniques.size };
+  }
+
+  /** Debug: the resolved auto-tile shape a placement is currently rendered as. */
+  shapeOf(placementId: PlacementId): string | null {
+    const key = this.groundPoolKey.get(placementId);
+    return key ? (key.split('::')[1] ?? null) : null;
   }
 }

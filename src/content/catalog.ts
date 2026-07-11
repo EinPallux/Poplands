@@ -45,6 +45,10 @@ export interface ItemDef {
    *  docks/moored boats hang out over the void. Rotation is load-bearing (never
    *  pair with rotatable: false); needs footprint depth ≥2 along the faced axis. */
   edgeAnchor?: true;
+  /** Auto-tiling kit id (S10, v0.6). A ground overlay with a kit connects to its
+   *  same-kit neighbours (PropRenderer swaps the GLB variant); omitted ⇒ static
+   *  single tile (today's behavior). See content/tileKits.ts. */
+  tileKit?: string;
 }
 
 const def = (d: ItemDef): ItemDef => d;
@@ -61,8 +65,8 @@ export const CATALOG: readonly ItemDef[] = [
   def({ id: 'nature.pebble', nameKey: 'item.nature.pebble', category: 'nature', tier: 1, footprint: { w: 1, d: 1 }, cost: 10, model: 'nature.pebble', scale: 1.6, renderTier: 'instanced' }),
   def({ id: 'nature.rock', nameKey: 'item.nature.rock', category: 'nature', tier: 1, footprint: { w: 1, d: 1 }, cost: 12, model: 'nature.rock-small', scale: 1.4, renderTier: 'instanced' }),
   def({ id: 'decor.fence', nameKey: 'item.decor.fence', category: 'decor', tier: 1, footprint: { w: 1, d: 1 }, cost: 10, model: 'deco.fence', scale: 1, renderTier: 'instanced' }),
-  def({ id: 'ground.path.dirt', nameKey: 'item.ground.path.dirt', category: 'ground', tier: 1, footprint: { w: 1, d: 1 }, cost: 5, model: 'ground.path-dirt', scale: 1, yOffset: 0.002, renderTier: 'instanced', groundOverlay: true, rotatable: false }),
-  def({ id: 'ground.path.stone', nameKey: 'item.ground.path.stone', category: 'ground', tier: 1, footprint: { w: 1, d: 1 }, cost: 8, model: 'ground.path-stone', scale: 1, yOffset: 0.002, renderTier: 'instanced', groundOverlay: true }),
+  def({ id: 'ground.path.dirt', nameKey: 'item.ground.path.dirt', category: 'ground', tier: 1, footprint: { w: 1, d: 1 }, cost: 5, model: 'ground.path-dirt', scale: 1, yOffset: 0.002, renderTier: 'instanced', groundOverlay: true, rotatable: false, tileKit: 'dirt-path' }),
+  def({ id: 'ground.path.stone', nameKey: 'item.ground.path.stone', category: 'ground', tier: 1, footprint: { w: 1, d: 1 }, cost: 8, model: 'ground.path-stone', scale: 1, yOffset: 0.002, renderTier: 'instanced', groundOverlay: true, rotatable: false, tileKit: 'stone-path' }),
   def({ id: 'decor.bench', nameKey: 'item.decor.bench', category: 'decor', tier: 1, footprint: { w: 2, d: 1 }, cost: 30, model: 'deco.bench', scale: 1.6, renderTier: 'unique' }),
   def({ id: 'decor.pot', nameKey: 'item.decor.pot', category: 'decor', tier: 1, footprint: { w: 1, d: 1 }, cost: 18, model: 'deco.pot', scale: 1.5, renderTier: 'instanced' }),
   def({ id: 'decor.stump', nameKey: 'item.decor.stump', category: 'decor', tier: 1, footprint: { w: 1, d: 1 }, cost: 14, model: 'deco.stump', scale: 1.8, renderTier: 'instanced' }),
@@ -109,7 +113,7 @@ export const CATALOG: readonly ItemDef[] = [
 
   // ——— Tier 7 · "Riverside" (unlocks at Level 7). Scales tuned against pipeline AABBs. ———
   def({ id: 'income.fish-market', nameKey: 'item.income.fish-market', category: 'income', tier: 7, footprint: { w: 3, d: 3 }, cost: 2600, income: { ratePerMin: 24, cap: 1100 }, model: 'building.fish-market', scale: 1.4, renderTier: 'unique' }),
-  def({ id: 'ground.river', nameKey: 'item.ground.river', category: 'ground', tier: 7, footprint: { w: 1, d: 1 }, cost: 20, model: 'ground.river', scale: 1, yOffset: 0.002, renderTier: 'instanced', groundOverlay: true }),
+  def({ id: 'ground.river', nameKey: 'item.ground.river', category: 'ground', tier: 7, footprint: { w: 1, d: 1 }, cost: 20, model: 'ground.river', scale: 1, yOffset: 0.002, renderTier: 'instanced', groundOverlay: true, tileKit: 'river' }),
   def({ id: 'decor.wooden-bridge', nameKey: 'item.decor.wooden-bridge', category: 'decor', tier: 7, footprint: { w: 1, d: 1 }, cost: 70, model: 'deco.bridge-wood', scale: 1.0, renderTier: 'instanced' }),
   def({ id: 'nature.lily-pad', nameKey: 'item.nature.lily-pad', category: 'nature', tier: 7, footprint: { w: 1, d: 1 }, cost: 35, model: 'nature.lily', scale: 2.4, renderTier: 'instanced', rotatable: false }),
   def({ id: 'nature.reeds', nameKey: 'item.nature.reeds', category: 'nature', tier: 7, footprint: { w: 1, d: 1 }, cost: 18, model: 'nature.reeds', scale: 2.2, renderTier: 'instanced' }),

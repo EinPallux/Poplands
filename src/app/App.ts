@@ -121,7 +121,7 @@ export class App {
       world.add(groundGroup, baseGroup);
     };
 
-    const props = new PropRenderer(assets);
+    const props = new PropRenderer(assets, island); // island → auto-tiling neighbour lookup
     scene.add(props.group);
     props.rebuildAll(island.allPlacements());
 
@@ -506,6 +506,11 @@ export class App {
         palRoster: () => state.pals.snapshot().pals.slice(),
         palMeshes: () => palAgents.count,
         clickPal: (id: string) => bus.emit('cmd:clickPal', { id }),
+        tileShapes: () =>
+          island
+            .allPlacements()
+            .filter((p) => itemDef(p.def)?.tileKit)
+            .map((p) => ({ wx: p.wx, wz: p.wz, shape: props.shapeOf(p.id) })),
         setTime: (mode: 'auto' | 'day' | 'dusk' | 'night') => timeOfDaySignal.set(mode),
         nightFactor: () => timeOfDay.nightFactor,
         glowCount: () => glow.count,

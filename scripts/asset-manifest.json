@@ -54,7 +54,7 @@
     "building.village-house": "assets/Fantasy RTS Assets/House-k6tP5nFUd2.glb",
     "building.watermill": "assets/Fantasy Town Assets/Models/GLB format/watermill.glb",
     "building.fish-market": "assets/Fantasy RTS Assets/Port.glb",
-    "ground.river": "assets/Nature Assets 2/Models/GLTF format/ground_riverStraight.glb",
+    "ground.river": "assets/Nature Assets 2/Models/GLTF format/ground_riverTile.glb",
     "deco.bridge-wood": "assets/Nature Assets 2/Models/GLTF format/bridge_wood.glb",
     "nature.lily": "assets/Nature Assets 2/Models/GLTF format/lily_large.glb",
     "nature.reeds": "assets/Nature Assets 2/Models/GLTF format/grass_large.glb",
@@ -149,6 +149,18 @@
     "deco.clock-tower": "assets/Fantasy RTS Assets/Stone Tower.glb",
     "deco.market-square": "assets/Fantasy RTS Assets/Market Stalls Compact.glb",
     "deco.town-gate": "assets/Castle Assets/Models/GLB format/gate.glb",
-    "deco.grand-banner": "assets/Castle Assets/Models/GLB format/flag-banner-long.glb"
+    "deco.grand-banner": "assets/Castle Assets/Models/GLB format/flag-banner-long.glb",
+    "ground.path-dirt-end": "assets/Nature Assets 2/Models/GLTF format/ground_pathEnd.glb",
+    "ground.path-dirt-straight": "assets/Nature Assets 2/Models/GLTF format/ground_pathStraight.glb",
+    "ground.path-dirt-corner": "assets/Nature Assets 2/Models/GLTF format/ground_pathCorner.glb",
+    "ground.path-dirt-tee": "assets/Nature Assets 2/Models/GLTF format/ground_pathSplit.glb",
+    "ground.path-dirt-cross": "assets/Nature Assets 2/Models/GLTF format/ground_pathCross.glb",
+    "ground.path-stone-end": "assets/Nature Assets 2/Models/GLTF format/path_stoneEnd.glb",
+    "ground.path-stone-corner": "assets/Nature Assets 2/Models/GLTF format/path_stoneCorner.glb",
+    "ground.river-end": "assets/Nature Assets 2/Models/GLTF format/ground_riverEnd.glb",
+    "ground.river-straight": "assets/Nature Assets 2/Models/GLTF format/ground_riverStraight.glb",
+    "ground.river-corner": "assets/Nature Assets 2/Models/GLTF format/ground_riverCorner.glb",
+    "ground.river-tee": "assets/Nature Assets 2/Models/GLTF format/ground_riverSplit.glb",
+    "ground.river-cross": "assets/Nature Assets 2/Models/GLTF format/ground_riverCross.glb"
   }
 }
