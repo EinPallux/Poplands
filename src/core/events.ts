@@ -199,6 +199,9 @@ export interface AppEvents extends Record<string, unknown> {
   };
   'museum:completed': void; // every fish is on display — a one-time celebration
 
+  // achievements / stamp book (post-1.0): a lifetime milestone stamp is earned
+  'achievement:earned': { id: string; nameKey: StringKey; descKey: StringKey; icon: string };
+
   // ambient events (S19, v0.5): night sky life
   'event:shootingStar': void; // a star streaks by — make a wish ✨
 

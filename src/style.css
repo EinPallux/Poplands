@@ -1537,6 +1537,98 @@ body {
   pointer-events: none;
 }
 
+/* Stamp Book — a wall of collectible achievement stamps */
+.stamps-root {
+  position: absolute;
+  top: 156px;
+  right: 12px;
+  pointer-events: auto;
+  z-index: 6;
+  transform: scale(var(--ui-scale, 1));
+  transform-origin: 100% 0%;
+}
+.stamps-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: var(--ui-cream);
+  color: var(--ui-ink);
+  font-size: 20px;
+  cursor: pointer;
+  box-shadow: 0 3px 10px rgba(74, 63, 94, 0.25);
+}
+.stamps-panel {
+  position: absolute;
+  top: 48px;
+  right: 0;
+  width: 336px;
+  max-height: 72vh;
+  overflow-y: auto;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: var(--ui-cream);
+  color: var(--ui-ink);
+  box-shadow: 0 8px 26px rgba(74, 63, 94, 0.3);
+}
+.stamps-panel h2 { margin: 0 0 4px; font-size: 18px; }
+.stamps-summary { font-size: 12px; font-weight: 700; color: var(--accent-gold); margin-bottom: 10px; }
+.stamps-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 7px;
+}
+.stamp {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 8px 4px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.5);
+  border: 2px solid var(--cat, #cbb);
+  text-align: center;
+}
+.stamp.cat-building { --cat: #d9a441; }
+.stamp.cat-social { --cat: #e07aa8; }
+.stamp.cat-economy { --cat: #f0b429; }
+.stamp.cat-explore { --cat: #4bb37a; }
+.stamp.cat-fishing { --cat: #4a90d9; }
+.stamp.cat-mastery { --cat: #9a6fd0; }
+.stamp.locked {
+  opacity: 0.55;
+  border-color: rgba(120, 110, 130, 0.3);
+  border-style: dashed;
+  filter: grayscale(0.8);
+}
+.stamp-icon { font-size: 24px; line-height: 1; }
+.stamp.earned .stamp-icon { filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2)); }
+.stamp-name { font-size: 10px; font-weight: 700; line-height: 1.1; }
+.stamps-hint { margin-top: 10px; font-size: 12px; font-style: italic; opacity: 0.7; }
+.stamp-toast {
+  position: fixed;
+  left: 50%;
+  top: 30%;
+  transform: translate(-50%, 0);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 14px 22px;
+  border-radius: 16px;
+  background: var(--ui-cream);
+  color: var(--ui-ink);
+  box-shadow: 0 10px 30px rgba(74, 63, 94, 0.35);
+  pointer-events: none;
+  z-index: 30;
+}
+.stamp-toast .st-icon { font-size: 40px; line-height: 1; }
+.stamp-toast .st-label { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--accent-gold); }
+.stamp-toast .st-name { font-size: 15px; font-weight: 800; }
+
 /* ——— Daily gift (post-1.0) ——— */
 .gift-root {
   position: absolute;

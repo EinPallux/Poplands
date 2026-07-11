@@ -23,6 +23,7 @@ export interface InputCallbacks {
   onToggleAlbum: () => void; // J — Island Album
   onTogglePhoto: () => void; // P — Photo mode
   onToggleJournal: () => void; // F — Fish Journal
+  onToggleStamps: () => void; // K — Stamp Book
   /** A clean left-click; return true to consume it (e.g. an Islander was tapped)
    *  so it never falls through to a cell click/placement. */
   onPrimaryClick?: (clientX: number, clientY: number) => boolean;
@@ -134,6 +135,9 @@ export class InputController {
         return;
       case 'KeyP':
         this.callbacks.onTogglePhoto();
+        return;
+      case 'KeyK':
+        this.callbacks.onToggleStamps();
         return;
       case 'KeyF':
         this.callbacks.onToggleJournal();

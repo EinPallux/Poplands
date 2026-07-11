@@ -77,6 +77,11 @@ export interface SaveMuseum {
   donated: string[];
 }
 
+/** Persisted Stamp Book (post-1.0): the ids of achievements already earned. */
+export interface SaveAchievements {
+  earned: string[];
+}
+
 /** Persisted quest state (S15). Cumulative predicates keep per-quest counters in `progress`. */
 export interface SaveQuests {
   tutorial: { activeId: string | null; done: string[] };
@@ -155,9 +160,15 @@ export interface SaveV7 extends Omit<SaveV6, 'v'> {
   museum: SaveMuseum;
 }
 
+/** v8 (post-1.0): the achievements (Stamp Book) slice. */
+export interface SaveV8 extends Omit<SaveV7, 'v'> {
+  v: 8;
+  achievements: SaveAchievements;
+}
+
 /** The current schema. Bump this alias (not scattered `SaveVn`s) each version. */
-export type Save = SaveV7;
-export const SAVE_VERSION = 7;
+export type Save = SaveV8;
+export const SAVE_VERSION = 8;
 
 export const DEFAULT_SETTINGS: SaveSettings = {
   volume: 0.8,
@@ -192,6 +203,10 @@ export function freshDailyGift(): SaveDailyGift {
 
 export function freshMuseum(): SaveMuseum {
   return { donated: [] };
+}
+
+export function freshAchievements(): SaveAchievements {
+  return { earned: [] };
 }
 
 /**
@@ -266,11 +281,17 @@ const migrations: Record<number, (s: AnySave) => AnySave> = {
     // The museum starts empty — nothing on display yet.
     return { ...v6, v: 7, museum: freshMuseum() } as unknown as AnySave;
   },
+  7: (s) => {
+    const v7 = s as unknown as SaveV7;
+    // The Stamp Book starts empty; AchievementSystem.announce() silently grants any
+    // stamps the returning player has already earned on first evaluation.
+    return { ...v7, v: 8, achievements: freshAchievements() } as unknown as AnySave;
+  },
 };
 
 export function freshSave(seed: number, now: number): Save {
   return {
-    v: 7,
+    v: 8,
     createdAt: now,
     lastSeenAt: now,
     seed,
@@ -291,6 +312,7 @@ export function freshSave(seed: number, now: number): Save {
     fishing: freshFishing(), // empty catch log; fills as the player fishes
     dailyGift: freshDailyGift(), // un-claimed; the first gift is ready on day one
     museum: freshMuseum(), // empty Collections Hall
+    achievements: freshAchievements(), // empty Stamp Book
     attic: [],
     settings: { ...DEFAULT_SETTINGS },
   };
@@ -355,6 +377,8 @@ function normalize(v2: Save): Save {
   v2.dailyGift.claims ??= 0;
   v2.museum ??= freshMuseum();
   v2.museum.donated ??= [];
+  v2.achievements ??= freshAchievements();
+  v2.achievements.earned ??= [];
   v2.settings = { ...DEFAULT_SETTINGS, ...v2.settings };
   v2.island.placements ??= [];
   v2.player.level ??= 1;
