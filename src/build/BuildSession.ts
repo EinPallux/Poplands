@@ -5,11 +5,12 @@
  * by occupancy lookup — on a grid, the hovered cell IS the picker (TECH §9).
  */
 import { Group, type Object3D } from 'three';
-import { bus } from '@/core/events';
+import { bus, type BlockReasonUi } from '@/core/events';
 import { footprintCenter, rotYaw, type Rot } from '@/core/grid';
 import { itemDef, type ItemDef } from '@/content/catalog';
 import type { IslandModel, Placement } from '@/world/IslandModel';
 import type { PropRenderer } from '@/world/PropRenderer';
+import type { EconomySystem } from '@/sim/EconomySystem';
 import { carryBob } from '@/vfx/presets';
 
 export type BuildTool = 'none' | 'place' | 'move' | 'remove';
@@ -35,6 +36,7 @@ export class BuildSession {
   constructor(
     private readonly island: IslandModel,
     private readonly props: PropRenderer,
+    private readonly economy: EconomySystem,
   ) {
     this.group.name = 'build-session';
     bus.on('cmd:selectItem', ({ defId }) => {
@@ -143,13 +145,21 @@ export class BuildSession {
     }
     g.object.visible = true;
     const check = this.island.canPlace(g.def, g.cell.wx, g.cell.wz, g.rot);
-    g.valid = check.ok;
-    g.setValid(check.ok);
+    // A carried item is already paid for — dropping it never costs (move is free).
+    const afford = this.carried !== null || this.economy.canAfford(g.def);
+    const valid = check.ok && afford;
+    g.valid = valid;
+    g.setValid(valid);
     const c = footprintCenter(g.cell.wx, g.cell.wz, g.def.footprint, g.rot);
     g.object.position.set(c.x, (g.def.yOffset ?? 0) + 0.02, c.z);
     g.object.rotation.y = rotYaw(g.rot);
     if (this.carried && !g.bob) g.bob = carryBob(g.object, g.def.yOffset ?? 0);
-    bus.emit('build:ghostChanged', check.ok ? { valid: true } : { valid: false, reason: check.reason });
+    if (valid) {
+      bus.emit('build:ghostChanged', { valid: true });
+    } else {
+      const reason: BlockReasonUi = !check.ok ? check.reason : 'unaffordable';
+      bus.emit('build:ghostChanged', { valid: false, reason });
+    }
   }
 
   private onClick(cell: { wx: number; wz: number }): void {
@@ -165,6 +175,7 @@ export class BuildSession {
         this.tryRemove(cell);
         return;
       case 'none':
+        this.tryCollect(cell);
         return;
     }
   }
@@ -177,9 +188,30 @@ export class BuildSession {
       bus.emit('build:rejected', { reason: check.reason });
       return;
     }
+    if (!this.economy.canAfford(g.def)) {
+      bus.emit('purchase:denied', { reason: this.denyReason(g.def) });
+      return;
+    }
     const placement = this.island.place(g.def.id, cell.wx, cell.wz, g.rot);
+    this.economy.onPlaced(placement); // seed accrual BEFORE charge (order irrelevant, but explicit)
+    this.economy.charge(g.def);
     bus.emit('item:placed', { ...placement });
+    this.refreshGhost(); // affordability may now have changed → update ghost tint
     // stay in place mode for joyful chaining (GDD §6.2)
+  }
+
+  private denyReason(def: ItemDef): 'pops' | 'stardust' {
+    // report whichever wallet is short (Stardust first — it's the rarer blocker)
+    return def.costStardust ? 'stardust' : 'pops';
+  }
+
+  /** Clicking a ripe income building with no tool active collects its Pops (F1). */
+  private tryCollect(cell: { wx: number; wz: number }): void {
+    const occupant = this.island.occupantAt(cell.wx, cell.wz);
+    if (!occupant) return;
+    if (this.economy.ripeAmount(occupant.id) >= 1) {
+      bus.emit('cmd:collect', { placementId: occupant.id });
+    }
   }
 
   private tryPickup(cell: { wx: number; wz: number }): void {
@@ -206,13 +238,20 @@ export class BuildSession {
     const placement = this.island.place(carried.def, cell.wx, cell.wz, g.rot, carried.id);
     this.carried = null;
     this.teardownGhost();
-    bus.emit('item:placed', { ...placement });
+    // item:moved (not item:placed): same id re-dropped — no charge, no XP, no
+    // quest progress. App still shows the visual; economy accrual is preserved.
+    bus.emit('item:moved', { ...placement });
     bus.emit('build:modeChanged', { tool: 'move', carrying: false });
   }
 
   private tryRemove(cell: { wx: number; wz: number }): void {
     const occupant = this.island.occupantAt(cell.wx, cell.wz);
     if (!occupant) return;
+    const def = itemDef(occupant.def);
+    if (def) {
+      this.economy.onRemoved(occupant); // banks ripe pops (still in island) then drops accrual
+      this.economy.refund(def); // 100% refund (GDD pillar 1)
+    }
     this.island.remove(occupant.id);
     bus.emit('item:removed', { ...occupant });
   }

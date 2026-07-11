@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { parseSave, freshSave, SaveManager, type SaveV1 } from '@/core/save';
+import { parseSave, freshSave, SaveManager, type Save } from '@/core/save';
 
 // minimal in-memory localStorage for node
 class MemoryStorage implements Storage {
@@ -28,7 +28,7 @@ beforeEach(() => {
   vi.stubGlobal('localStorage', new MemoryStorage());
 });
 
-const makeSave = (): SaveV1 => {
+const makeSave = (): Save => {
   const s = freshSave(42, 1000);
   s.island.placements.push({ id: 'p1', def: 'nature.tree', wx: 3, wz: 4, rot: 1 });
   s.player.pops = 275;
@@ -58,6 +58,39 @@ describe('parseSave', () => {
     const parsed = parseSave(JSON.stringify(save));
     expect(parsed!.attic).toEqual([]);
     expect(parsed!.settings.volume).toBeGreaterThan(0);
+  });
+
+  it('migrates a v1 save to v2, seeding economy + quests + xpGranted', () => {
+    // a hand-built v0.2-era v1 save
+    const v1 = {
+      v: 1,
+      createdAt: 1,
+      lastSeenAt: 1,
+      seed: 7,
+      player: { pops: 300, stardust: 4, xp: 20, level: 2 },
+      island: {
+        chunks: [{ cx: 0, cz: 0, theme: 'meadow' }],
+        placements: [
+          { id: 'p1', def: 'nature.tree', wx: 1, wz: 1, rot: 0 },
+          { id: 'p2', def: 'income.stall', wx: 3, wz: 3, rot: 0 },
+        ],
+      },
+      attic: [],
+      settings: { volume: 0.5, quality: 'high', reducedMotion: false },
+    };
+    const parsed = parseSave(JSON.stringify(v1));
+    expect(parsed).not.toBeNull();
+    expect(parsed!.v).toBe(2);
+    // wallets preserved, not reset
+    expect(parsed!.player.pops).toBe(300);
+    expect(parsed!.player.level).toBe(2);
+    // pre-economy placements marked already-XP-granted (no retroactive windfall)
+    expect(parsed!.player.xpGranted).toEqual(['p1', 'p2']);
+    // fresh economy + quest slices seeded
+    expect(parsed!.economy.accrual).toEqual([]);
+    expect(parsed!.quests.tutorial.activeId).toBeNull();
+    expect(parsed!.quests.milestones.itemsPlaced).toBe(2);
+    expect(parsed!.quests.freePlayUnlocked).toBe(false);
   });
 });
 

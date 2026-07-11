@@ -1,24 +1,27 @@
 /**
  * Game state assembly (S3 integration): loads-or-creates the save, hydrates the
- * IslandModel, seeds the starter island on fresh saves, snapshots state back
- * into the save shell, and owns autosave triggers + export/import.
+ * IslandModel, seeds the starter island on fresh saves, owns the sim systems
+ * (economy; progression + quests added by their tasks), snapshots state back,
+ * and drives autosave + export/import.
  */
 import { bus } from '@/core/events';
-import {
-  freshSave,
-  SaveManager,
-  type SaveV1,
-  type SavePlacement,
-} from '@/core/save';
+import { freshSave, SaveManager, type Save, type SavePlacement } from '@/core/save';
 import { loadSettings, snapshotSettings } from '@/core/settingsStore';
+import { loadWallet, snapshotWallet, loadPlayer } from '@/core/playerStore';
 import { IslandModel } from '@/world/IslandModel';
+import { EconomySystem } from '@/sim/EconomySystem';
+import { ProgressionSystem } from '@/sim/ProgressionSystem';
+import { QuestSystem } from '@/sim/QuestSystem';
 import { itemDef } from '@/content/catalog';
 import { STARTER_PLACEMENTS } from '@/content/starterIsland';
 
 export class GameState {
-  readonly save: SaveV1;
+  readonly save: Save;
   readonly island: IslandModel;
   readonly manager: SaveManager;
+  readonly economy: EconomySystem;
+  readonly progression: ProgressionSystem;
+  readonly quests: QuestSystem;
   readonly isFresh: boolean;
 
   constructor() {
@@ -27,11 +30,14 @@ export class GameState {
     this.isFresh = loaded === null;
     this.save = loaded ?? GameState.makeFreshSave();
     loadSettings(this.save.settings);
+    loadWallet(this.save.player);
+    loadPlayer(this.save.player);
 
     this.island = new IslandModel(this.save.island.chunks.map(({ cx, cz }) => ({ cx, cz })));
     const attic: SavePlacement[] = [...this.save.attic];
     for (const p of this.save.island.placements) {
-      if (itemDef(p.def) && this.island.canPlace(itemDef(p.def)!, p.wx, p.wz, p.rot).ok) {
+      const def = itemDef(p.def);
+      if (def && this.island.canPlace(def, p.wx, p.wz, p.rot).ok) {
         this.island.place(p.def, p.wx, p.wz, p.rot, p.id);
       } else {
         attic.push(p); // unknown def or corrupt overlap — parked, never dropped (S3)
@@ -42,13 +48,42 @@ export class GameState {
     }
     this.save.attic = attic;
 
+    // economy owns wallets + accrual; hydrate quietly (no ripe emits until start())
+    this.economy = new EconomySystem(this.island);
+    this.economy.hydrate(this.save.economy, this.island.allPlacements());
+    // progression owns level/xp (mutates save.player in place)
+    this.progression = new ProgressionSystem(this.save.player);
+    // quests own their state slice (mutates save.quests in place)
+    this.quests = new QuestSystem(this.island, this.save.quests, this.save.player.level);
+
     // autosave on every mutation (debounced inside the manager)
-    bus.on('item:placed', () => this.manager.requestSave());
-    bus.on('item:removed', () => this.manager.requestSave());
-    bus.on('settings:changed', () => this.manager.requestSave());
+    for (const ev of [
+      'item:placed',
+      'item:removed',
+      'item:moved',
+      'wallet:changed',
+      'xp:gained',
+      'quest:completed',
+      'settings:changed',
+    ] as const) {
+      bus.on(ev, () => this.manager.requestSave());
+    }
   }
 
-  private static makeFreshSave(): SaveV1 {
+  /** Called by App AFTER presentation has subscribed, so the load-time ripe
+   *  bubble cascade (F3 "the island greets you") reaches its listeners, and so
+   *  reward-credit subscriptions are live before any quest/level fires. Wire
+   *  order matters: economy/progression must be subscribed before quests can
+   *  fire a completion whose reward they credit. */
+  start(): void {
+    this.economy.wireRewards();
+    this.progression.wire();
+    this.quests.wire();
+    this.economy.resolveOffline();
+    this.quests.announce();
+  }
+
+  private static makeFreshSave(): Save {
     const save = freshSave(Math.floor(Math.random() * 2 ** 31), Date.now());
     let id = 1;
     save.island.placements = STARTER_PLACEMENTS.map((p) => ({
@@ -58,12 +93,17 @@ export class GameState {
       wz: p.wz,
       rot: p.rot ?? 0,
     }));
+    // milestone counter starts consistent with the seeded island
+    save.quests.milestones.itemsPlaced = save.island.placements.length;
     return save;
   }
 
-  /** Snapshot live state back into the save shell (called by the manager). */
-  collect(): SaveV1 {
+  /** Snapshot live state back into the save shell (called by the manager).
+   *  Object.assign preserves player.xp/level/xpGranted written in place by progression. */
+  collect(): Save {
     this.save.island.placements = this.island.snapshotPlacements();
+    Object.assign(this.save.player, snapshotWallet());
+    this.save.economy = this.economy.snapshot();
     this.save.settings = snapshotSettings();
     return this.save;
   }
@@ -82,8 +122,7 @@ export class GameState {
     const text = await file.text();
     const ok = this.manager.importString(text);
     if (ok) {
-      // placements-are-truth makes a clean reload the safest hydration path
-      window.location.reload();
+      window.location.reload(); // placements-are-truth → clean reload is safest hydration
       return true;
     }
     return false;

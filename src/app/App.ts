@@ -23,9 +23,13 @@ import { InputController } from '@/app/InputController';
 import { LoadingScreen } from '@/ui/LoadingScreen';
 import { BuildBar } from '@/ui/BuildBar';
 import { SettingsPanel } from '@/ui/SettingsPanel';
+import { Hud } from '@/ui/Hud';
+import { Mailbox } from '@/ui/Mailbox';
+import { WorldFx } from '@/ui/WorldFx';
+import '@/ui/questState'; // side-effect: registers quest signal subscriptions
 import { initToasts, showToast } from '@/ui/Toasts';
 import { renderThumbnails } from '@/ui/thumbnails';
-import { catalogOpenSignal } from '@/ui/uiState';
+import { catalogOpenSignal, catalogRevealSignal } from '@/ui/uiState';
 import { DebugHud } from '@/debug/DebugHud';
 import { Particles } from '@/vfx/Particles';
 import { popIn, popOut, shake } from '@/vfx/presets';
@@ -105,7 +109,7 @@ export class App {
     for (let i = 0; i < 3; i++) sky.addIslet(buildIslet(assets, i), i);
 
     // — build mode + audio
-    const session = new BuildSession(island, props);
+    const session = new BuildSession(island, props, state.economy);
     scene.add(session.group);
     const audio = new AudioSystem();
 
@@ -144,13 +148,66 @@ export class App {
       audio.poof();
     });
 
+    // move drop: gentle set-down (mini pop, soft plop — no dust/charge)
+    bus.on('item:moved', (e) => {
+      const def = itemDef(e.def);
+      if (!def) return;
+      const placement = { id: e.id, def: e.def, wx: e.wx, wz: e.wz, rot: e.rot };
+      const promoted = props.promote(placement);
+      if (promoted) popIn(promoted, def.scale, () => props.bake(placement, promoted));
+      audio.plop();
+    });
+
     bus.on('build:rejected', () => {
       if (session.ghostObject) shake(session.ghostObject);
       audio.thock();
     });
 
+    bus.on('purchase:denied', () => {
+      if (session.ghostObject) shake(session.ghostObject);
+      audio.thock();
+      showToast(t('build.blocked.afford'));
+    });
+
+    // — economy: collection commands → sim; sim's collected event → juice
+    bus.on('cmd:collect', ({ placementId }) => state.economy.collect(placementId));
+    bus.on('cmd:collectAll', () => state.economy.collectAll());
+    bus.on('income:collected', () => audio.chime()); // coin-arc handled by WorldFx
+    bus.on('income:ripe', (e) => {
+      const p = island.placement(e.placementId);
+      const def = p && itemDef(p.def);
+      if (p && def) {
+        const c = footprintCenter(p.wx, p.wz, def.footprint, p.rot);
+        particles.sparkle(c.x, 1.0, c.z);
+      }
+    });
+
+    // — progression: level-up celebration + catalog reveal (full ring/celebrate in #26)
+    bus.on('level:up', (e) => {
+      if (e.silent) return;
+      if (e.newItems.length) {
+        catalogRevealSignal.update((prev) => new Set([...prev, ...e.newItems]));
+      }
+      const c = island.center();
+      particles.coinBurst(c.x, 1.4, c.z);
+      audio.chime();
+      showToast(t('toast.levelUp').replace('{level}', String(e.level)));
+    });
+
+    // — quests: completion juice (mailbox card UI is #26). Milestones stay quiet.
+    bus.on('quest:completed', (e) => {
+      if (e.kind === 'milestone') return;
+      const c = island.center();
+      particles.coinBurst(c.x, 1.2, c.z);
+      audio.chime();
+      showToast(t('toast.questDone'));
+    });
+
     // — UI (thumbnails render post-boot; they'd otherwise delay first frame)
     initToasts(uiRoot);
+    const hud = new Hud(uiRoot);
+    new Mailbox(uiRoot);
+    const worldFx = new WorldFx(uiRoot, (x, y, z) => rig.projectToScreen(x, y, z), hud.popsAnchor);
     const buildBar = new BuildBar(uiRoot);
     setTimeout(() => buildBar.setThumbnails(renderThumbnails(assets)), 80);
     const settings = new SettingsPanel(
@@ -202,11 +259,13 @@ export class App {
 
     loop.add((dt) => input.update(dt));
     loop.add((dt) => session.update(dt));
+    loop.add((dt) => state.economy.tick(dt));
     loop.add((dt) => rig.update(dt));
     loop.add((dt) => tweens.update(dt));
     loop.add((dt) => sky.update(dt));
     loop.add((dt) => landmarks.update(dt));
     loop.add((dt) => particles.update(dt));
+    loop.add(() => worldFx.update());
     loop.add((dt) => hover.update(dt));
     loop.add((dt) => probe?.update(dt));
     loop.add((dt) => debugHud.update(dt));
@@ -220,6 +279,8 @@ export class App {
     loop.start();
     loading.dismiss();
     rig.introSwoop();
+    // presentation is subscribed now — fire the load-time ripe cascade & greet
+    state.start();
     bus.emit('app:ready', undefined);
 
     // Dev handle for the debug console & headless verification (?debug=1 only).
