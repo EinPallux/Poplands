@@ -23,6 +23,7 @@ export type Predicate =
   | { kind: 'reachLevel'; level: number }
   | { kind: 'adjacency'; a: ItemSelector; b: ItemSelector; dist: number; n?: number }
   | { kind: 'findSecret'; n?: number }
+  | { kind: 'chunks'; n: number } // own at least N chunks (expansion; live snapshot)
   | { kind: 'all'; of: readonly Predicate[] };
 
 export interface QuestDef {
@@ -67,7 +68,10 @@ export const TUTORIAL: readonly QuestDef[] = [
   { id: 'tut.level2', kind: 'tutorial', titleKey: 'quest.tut.level2.t', descKey: 'quest.tut.level2.d', predicate: { kind: 'reachLevel', level: 2 }, rewards: { stardust: 3, xp: 28 }, nextId: 'tut.pops150' },
   { id: 'tut.pops150', kind: 'tutorial', titleKey: 'quest.tut.pops150.t', descKey: 'quest.tut.pops150.d', predicate: { kind: 'collectPops', n: 150 }, rewards: { pops: 50, xp: 45 }, nextId: 'tut.level3' },
   { id: 'tut.level3', kind: 'tutorial', titleKey: 'quest.tut.level3.t', descKey: 'quest.tut.level3.d', predicate: { kind: 'reachLevel', level: 3 }, rewards: { pops: 60, xp: 30 }, nextId: 'tut.capstone' },
-  { id: 'tut.capstone', kind: 'tutorial', titleKey: 'quest.tut.capstone.t', descKey: 'quest.tut.capstone.d', predicate: { kind: 'own', sel: { any: true }, n: 30 }, rewards: { pops: 100, stardust: 2, xp: 50 } },
+  { id: 'tut.capstone', kind: 'tutorial', titleKey: 'quest.tut.capstone.t', descKey: 'quest.tut.capstone.d', predicate: { kind: 'own', sel: { any: true }, n: 30 }, rewards: { pops: 100, stardust: 2, xp: 50 }, nextId: 'tut.callchunk' },
+  // v0.4 finale — the first-10-minutes contract closes on the first chunk + first secret.
+  { id: 'tut.callchunk', kind: 'tutorial', titleKey: 'quest.tut.callchunk.t', descKey: 'quest.tut.callchunk.d', predicate: { kind: 'chunks', n: 5 }, rewards: { pops: 60, xp: 20 }, nextId: 'tut.secret' },
+  { id: 'tut.secret', kind: 'tutorial', titleKey: 'quest.tut.secret.t', descKey: 'quest.tut.secret.d', predicate: { kind: 'findSecret', n: 1 }, rewards: { pops: 100, stardust: 2, xp: 30 } },
 ];
 
 export const TUTORIAL_FIRST_ID = TUTORIAL[0]!.id;

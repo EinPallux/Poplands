@@ -71,6 +71,10 @@ const en = {
   'quest.tut.level3.d': 'Reach Level 3. The Drift will grow once you’re ready — for now, keep leveling.',
   'quest.tut.capstone.t': 'A little world of your own',
   'quest.tut.capstone.d': 'Fill your island — have 30 things placed. The Drift is waking up!',
+  'quest.tut.callchunk.t': 'Call more land',
+  'quest.tut.callchunk.d': 'Tap a floating Survey marker to call a new chunk up from the cloud sea.',
+  'quest.tut.secret.t': 'Investigate the sparkle',
+  'quest.tut.secret.d': 'Something glimmers on your island — click a ✨ and dig up its secret.',
 
   // — postcards
   'quest.pc.grove.t': 'Little grove',

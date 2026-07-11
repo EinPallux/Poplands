@@ -85,12 +85,27 @@ describe('QuestSystem tutorial chain', () => {
     expect(completed).toContain('tut.level2');
   });
 
-  it('capstone unlocks free play and draws postcards', () => {
+  it('capstone advances to the chunk-call finale (no free play yet)', () => {
     state.tutorial.activeId = 'tut.capstone';
-    // own 30 things
     for (let i = 0; i < 30; i++) place('nature.grass', i % 16, Math.floor(i / 16), `g${i}`);
     qs.announce(); // seeds capstone progress from countOwned → completes on offer
     expect(completed).toContain('tut.capstone');
+    expect(state.tutorial.activeId).toBe('tut.callchunk');
+    expect(state.freePlayUnlocked).toBe(false);
+  });
+
+  it('the v0.4 finale: call a chunk → dig a secret → free play unlocks', () => {
+    state.tutorial.activeId = 'tut.callchunk';
+    qs.announce();
+    // buying a chunk grows the lattice to 5; chunk:unlocked re-evals the `chunks` predicate
+    island.addChunk(2, 0);
+    bus.emit('chunk:unlocked', { cx: 2, cz: 0, index: 5 });
+    expect(completed).toContain('tut.callchunk');
+    expect(state.tutorial.activeId).toBe('tut.secret');
+    expect(state.freePlayUnlocked).toBe(false);
+    // digging a secret completes the last step → free play + postcards
+    bus.emit('secret:found', { cx: 2, cz: 0, kind: 'dig', rewards: { pops: 100 }, wx: 18, wz: 3 });
+    expect(completed).toContain('tut.secret');
     expect(state.freePlayUnlocked).toBe(true);
     expect(state.postcards.active.length).toBeGreaterThan(0);
   });

@@ -48,6 +48,7 @@ export class QuestSystem {
       bus.on('income:collected', (e) => this.onCollected(e.amount)),
       bus.on('level:up', (e) => this.onLevel(e.level)),
       bus.on('secret:found', () => this.onSecretFound()),
+      bus.on('chunk:unlocked', () => this.reevalActive()), // the `chunks` predicate is a live snapshot
       bus.on('cmd:skipPostcard', (e) => this.onSkip(e.id)),
     );
   }
