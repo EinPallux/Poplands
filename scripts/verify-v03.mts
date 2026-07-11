@@ -57,6 +57,7 @@ interface Poplands {
     hasBlock: (wx: number, wz: number) => boolean;
     occupantAt: (wx: number, wz: number) => unknown;
   };
+  state: { economy: { collectAll: (now?: number) => number } };
   projectCell: (wx: number, wz: number) => { x: number; y: number };
 }
 
@@ -157,9 +158,9 @@ async function main(): Promise<void> {
   await page.keyboard.press('Escape'); // leave build mode
   await page.waitForTimeout(400);
   const w1 = await wallet(page);
-  // 150 - 3*12 + 30 (tut.flowers reward) = 144 ; +3 xp
+  // 150 - 3*12 + 30 (tut.flowers reward) = 144 ; xp = 3 placement + 12 quest = 15
   check('flowers charged + tutorial reward credited', w1.pops === 144, `${w1.pops}● (expected 144)`);
-  check('placement XP gained', w1.xp === 3, `${w1.xp} xp`);
+  check('placement + quest XP gained', w1.xp === 15, `${w1.xp} xp (expected 15)`);
   check('tutorial advanced to tut.path', (await activeTutorial(page)) === 'tut.path', `${await activeTutorial(page)}`);
   await page.screenshot({ path: path.join(ROOT, 'shots/v03-1-tutorial.png') });
 
@@ -172,13 +173,23 @@ async function main(): Promise<void> {
   const w2 = await wallet(page);
   check('stall charged 100 Pops', w2.pops === 44, `${w2.pops}● (expected 44)`);
 
+  // 3.5 — collect the stall's income (deterministic: bank as of +5 min, no real wait).
+  //  Stall accrues 2 Pops/min → 10 whole Pops banked. Proves the collect path end-to-end.
+  const collected = await page.evaluate(
+    () => (window as never as { __poplands: Poplands }).__poplands.state.economy.collectAll(Date.now() + 300_000),
+  );
+  await page.waitForTimeout(400);
+  const w2c = await wallet(page);
+  check('collectAll banks the stall income', collected === 10, `${collected}● collected (expected 10)`);
+  check('collected Pops land in the wallet', w2c.pops === 54, `${w2c.pops}● (expected 54)`);
+
   // 4 — persistence across reload
   const countBefore = await page.evaluate(() => (window as never as { __poplands: Poplands }).__poplands.island.placementCount);
   await page.reload();
   await settle(page);
   const w3 = await wallet(page);
   const countAfter = await page.evaluate(() => (window as never as { __poplands: Poplands }).__poplands.island.placementCount);
-  check('wallet persists across reload', w3.pops === 44, `${w3.pops}●`);
+  check('wallet persists across reload', w3.pops === 54, `${w3.pops}● (expected 54)`);
   check('placements persist across reload', countAfter === countBefore, `${countAfter} vs ${countBefore}`);
   check('tutorial progress persists', (await activeTutorial(page)) !== 'tut.flowers');
 
