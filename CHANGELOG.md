@@ -5,6 +5,15 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 
 ## [Unreleased]
 
+### Added — v0.2 "Builder's Joy" (pending user milestone review)
+- **Placement system (S8/S9):** two-layer cell occupancy (ground overlays under props), footprint validation incl. cross-chunk & rotation, place / move (pick-up-and-carry with Esc-return) / remove tools, ghost preview with mint/coral validity, R-rotation, occupied/off-island rejection feedback. 11 new island tests.
+- **Prop renderer (S10):** InstancedMesh pools per item (merged sub-meshes, swap-remove, grow-by-doubling) + unique-clone tier, promote-animate-demote for juiced placement of instanced items, bulk rebuild on load. Verified: 238 props at ~65 draw calls.
+- **Juice v1 (S11/S12/S22):** pop-in (backOut overshoot), pop-out (squash & shrink), ghost shake on rejection, carried-item bob; pooled puff particles (dust ring on place, poof on remove); synthesized WebAudio SFX — pitch-laddering plop, thock, poof. Reduced-motion handled inside presets.
+- **Save/load v1 (S3):** versioned localStorage schema with migrations registry, debounced autosave + pagehide flush, rolling 2-slot backups with corrupt-slot recovery, unknown-content attic quarantine, export to file / import with validation. 7 new save tests.
+- **Catalog & content:** 25 Tier-1/2 items as data (`content/catalog.ts`) mapped to manifest models; starter island converted to real, editable placements seeded on fresh saves; the old windmill remains a cell-blocking landmark.
+- **Build UI (S21/S23):** bottom build bar (category tabs, item cards with post-boot 3D-rendered thumbnails, footprint/cost chips), Move/Remove tool buttons, contextual hint pill, B-collapse; settings panel (quality, volume, reduced motion, export/import); toasts. Keyboard: R rotate · Esc cancel · B catalog · M/X tools.
+- **Verification harness:** `scripts/verify-build.mts` drives the built game headlessly — place via UI click, rejection, reload persistence, remove, 190-item stress with draw-call budget assertion. All checks green.
+
 ### Changed — island base rework (user review feedback, 2026-07-11)
 - Replaced the crag-skirt underside with a **layered slab base** matching the user's reference: overhanging grass lip, sand band, terracotta rock band tapering to a rounded bottom; organic wobbly silhouette from a traced block outline (new `core/outline.ts` with 7 tests + `world/SlabBuilder.ts`), deterministic and growth-ready for chunk expansion.
 - Saturation pass: vivid lime lawn + saturated strata colors (`slabColors` in the palette; ART §3.1/§5 updated). Distant islets rebuilt as miniature slabs.

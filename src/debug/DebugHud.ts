@@ -6,6 +6,7 @@
 import type { WebGLRenderer } from 'three';
 import type { GameLoop } from '@/app/GameLoop';
 import type { CameraRig } from '@/render/CameraRig';
+import type { PropRenderer } from '@/world/PropRenderer';
 import { tweens } from '@/core/tween';
 import { t } from '@/core/strings';
 
@@ -19,6 +20,7 @@ export class DebugHud {
     private readonly renderer: WebGLRenderer,
     private readonly loop: GameLoop,
     private readonly rig: CameraRig,
+    private readonly props?: PropRenderer,
   ) {
     this.visible = new URLSearchParams(window.location.search).get('debug') === '1';
     this.root = document.createElement('div');
@@ -40,11 +42,17 @@ export class DebugHud {
     const info = this.renderer.info;
     const cam = this.rig.state;
     const deg = (r: number) => ((r * 180) / Math.PI).toFixed(0);
+    const propStats = this.props
+      ? `props ${this.props.stats.instanced}i+${this.props.stats.uniques}u in ${this.props.stats.pools} pools`
+      : '';
     this.root.textContent = [
       `${t('debug.title')} — ${this.loop.fps.toFixed(0)} fps (${(1000 / Math.max(this.loop.fps, 1)).toFixed(1)} ms)`,
       `draws ${info.render.calls}  tris ${(info.render.triangles / 1000).toFixed(0)}k`,
       `geo ${info.memory.geometries}  tex ${info.memory.textures}  tweens ${tweens.count}`,
+      propStats,
       `cam az ${deg(cam.azimuth)}°  pol ${deg(cam.polar)}°  dist ${cam.distance.toFixed(1)}`,
-    ].join('\n');
+    ]
+      .filter(Boolean)
+      .join('\n');
   }
 }

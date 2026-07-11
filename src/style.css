@@ -115,6 +115,318 @@ body {
   font-weight: 600;
 }
 
+/* — build bar (ART §8: cream panels, rounded, sticker-ish) — */
+.buildbar {
+  position: absolute;
+  left: 50%;
+  bottom: 14px;
+  transform: translateX(-50%);
+  width: min(860px, calc(100vw - 24px));
+  background: var(--ui-cream);
+  border: 1px solid rgba(74, 63, 94, 0.12);
+  border-radius: 18px;
+  box-shadow: 0 6px 24px rgba(58, 48, 80, 0.18);
+  padding: 10px 12px 12px;
+  pointer-events: auto;
+  transition: transform 0.35s cubic-bezier(0.34, 1.4, 0.5, 1);
+}
+
+.buildbar.collapsed {
+  transform: translateX(-50%) translateY(calc(100% - 46px));
+}
+
+.buildbar-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.build-tabs {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.build-tab {
+  border: none;
+  background: transparent;
+  color: var(--ui-ink);
+  opacity: 0.65;
+  font: 600 13px/1 inherit;
+  font-family: inherit;
+  padding: 7px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.build-tab:hover {
+  opacity: 1;
+  background: rgba(74, 63, 94, 0.07);
+}
+
+.build-tab.active {
+  opacity: 1;
+  background: var(--ui-ink);
+  color: var(--ui-cream);
+}
+
+.build-tools {
+  display: flex;
+  gap: 6px;
+}
+
+.build-tool {
+  border: 1.5px solid rgba(74, 63, 94, 0.2);
+  background: #fff;
+  color: var(--ui-ink);
+  font: 600 13px/1 inherit;
+  font-family: inherit;
+  padding: 7px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.build-tool kbd {
+  font: 600 10px/1 ui-monospace, monospace;
+  background: rgba(74, 63, 94, 0.1);
+  border-radius: 4px;
+  padding: 2px 4px;
+  margin-left: 2px;
+}
+
+.build-tool:hover {
+  transform: translateY(-1px);
+}
+
+.build-tool.tool-move.active {
+  background: var(--accent-mint);
+  border-color: transparent;
+}
+
+.build-tool.tool-remove.active {
+  background: var(--accent-coral);
+  border-color: transparent;
+  color: #fff;
+}
+
+.build-cards {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 2px;
+  scrollbar-width: thin;
+}
+
+.build-card {
+  flex: 0 0 auto;
+  width: 86px;
+  border: 2px solid transparent;
+  background: #fff;
+  border-radius: 14px;
+  padding: 6px 6px 7px;
+  cursor: pointer;
+  font-family: inherit;
+  color: var(--ui-ink);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  transition:
+    transform 0.12s ease,
+    border-color 0.12s ease,
+    box-shadow 0.12s ease;
+}
+
+.build-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 10px rgba(58, 48, 80, 0.15);
+}
+
+.build-card.active {
+  border-color: var(--accent-mint);
+  box-shadow: 0 0 0 3px rgba(127, 220, 164, 0.3);
+  transform: translateY(-3px);
+}
+
+.card-thumb {
+  width: 60px;
+  height: 60px;
+  border-radius: 10px;
+  background: linear-gradient(to bottom, #eaf7ff, #fdf3e3);
+  pointer-events: none;
+}
+
+.card-thumb-empty {
+  opacity: 0.4;
+}
+
+.card-name {
+  font-size: 10.5px;
+  font-weight: 700;
+  line-height: 1.15;
+  text-align: center;
+  min-height: 2.2em;
+  display: flex;
+  align-items: center;
+}
+
+.card-meta {
+  display: flex;
+  gap: 5px;
+  font-size: 9.5px;
+  font-weight: 600;
+  opacity: 0.7;
+}
+
+.card-cost {
+  color: #b8860b;
+}
+
+.build-hint {
+  position: absolute;
+  left: 50%;
+  bottom: 172px;
+  transform: translateX(-50%);
+  background: rgba(30, 26, 44, 0.78);
+  color: #fff6e8;
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 7px 14px;
+  border-radius: 999px;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* — settings — */
+.settings-root {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.settings-gear {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  border: 1px solid rgba(74, 63, 94, 0.12);
+  background: var(--ui-cream);
+  color: var(--ui-ink);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 3px 10px rgba(58, 48, 80, 0.15);
+  transition: transform 0.2s ease;
+}
+
+.settings-gear:hover {
+  transform: rotate(30deg);
+}
+
+.settings-panel {
+  width: 240px;
+  background: var(--ui-cream);
+  border: 1px solid rgba(74, 63, 94, 0.12);
+  border-radius: 16px;
+  box-shadow: 0 6px 24px rgba(58, 48, 80, 0.18);
+  padding: 14px;
+}
+
+.settings-panel h2 {
+  font-size: 15px;
+  margin-bottom: 10px;
+}
+
+.settings-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.settings-row select,
+.settings-row input[type='range'] {
+  font-family: inherit;
+  accent-color: var(--accent-mint);
+}
+
+.settings-check {
+  justify-content: flex-start;
+}
+
+.settings-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.settings-actions button {
+  flex: 1;
+  border: 1.5px solid rgba(74, 63, 94, 0.2);
+  background: #fff;
+  color: var(--ui-ink);
+  font: 600 12px/1 inherit;
+  font-family: inherit;
+  padding: 8px 6px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.settings-actions button:hover {
+  background: var(--accent-gold);
+  border-color: transparent;
+}
+
+.settings-version {
+  margin-top: 10px;
+  font-size: 10px;
+  opacity: 0.45;
+  text-align: right;
+}
+
+/* — toasts — */
+.toasts {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.toast {
+  background: var(--ui-cream);
+  color: var(--ui-ink);
+  border: 1px solid rgba(74, 63, 94, 0.12);
+  border-radius: 999px;
+  box-shadow: 0 4px 14px rgba(58, 48, 80, 0.18);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 9px 18px;
+  opacity: 0;
+  transform: translateY(-8px) scale(0.95);
+  transition: all 0.3s cubic-bezier(0.34, 1.4, 0.5, 1);
+}
+
+.toast-in {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
 /* — debug HUD — */
 .debug-hud {
   position: absolute;

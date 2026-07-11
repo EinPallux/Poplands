@@ -45,8 +45,8 @@ export class EventBus<M extends Record<string, unknown>> {
 }
 
 /**
- * The application event map grows as systems land. v0.1 only needs a handful;
- * commands (cmd:*) flow UI→sim, domain events flow sim→presentation.
+ * The application event map grows as systems land.
+ * Commands (cmd:*) flow UI→sim; domain events flow sim→presentation (TECH §3).
  */
 export interface AppEvents extends Record<string, unknown> {
   'app:ready': void;
@@ -56,7 +56,28 @@ export interface AppEvents extends Record<string, unknown> {
   'assets:phaseLoaded': { phase: string };
   'input:cellHover': { wx: number; wz: number } | null;
   'input:cellClick': { wx: number; wz: number };
+  'input:rotate': void;
+  'input:escape': void;
   'camera:moved': void;
+
+  // build commands (UI/input → session)
+  'cmd:selectItem': { defId: string | null };
+  'cmd:setTool': { tool: 'place' | 'move' | 'remove' | 'none' };
+
+  // domain events (sim → presentation)
+  'item:placed': { id: string; def: string; wx: number; wz: number; rot: 0 | 1 | 2 | 3; silent?: boolean };
+  'item:removed': { id: string; def: string; wx: number; wz: number; rot: 0 | 1 | 2 | 3; silent?: boolean };
+  'build:modeChanged': { tool: 'place' | 'move' | 'remove' | 'none'; carrying?: boolean };
+  'build:ghostChanged': { valid: boolean; reason?: 'off-island' | 'occupied' } | null;
+  'build:rejected': { reason: 'off-island' | 'occupied' };
+  'island:changed': void;
+
+  // persistence
+  'save:written': void;
+  'save:loaded': void;
+
+  // settings
+  'settings:changed': void;
 }
 
 export const bus = new EventBus<AppEvents>();

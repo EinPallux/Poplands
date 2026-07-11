@@ -8,10 +8,10 @@ Guidance for Claude Code (and humans) working in this repository.
 
 ## Current state
 
-**v0.1 "First Light" built — awaiting user milestone review before starting v0.2.**
-Implemented: Vite/TS scaffold, core modules (grid/tween/spring/events/signals/strings) with 26 passing tests, asset pipeline v1 (31 curated models → `public/assets`), renderer + lighting + sky/cloud-sea/clouds/islets, damped camera rig + input + hover picking, starter island (face-culled vertex-colored ground, crag skirt, prop layout, spinning composed windmill), loading screen, debug HUD (`?debug=1`), CI. Dev tools: `scripts/screenshot.mts` (headless beauty shots), `scripts/inspect-model.mts`.
-User review (2026-07-11) approved the scenery; island base reworked to the **layered slab** look per user reference (see ART §5) — traced outline + ring-profile extrusion in `world/SlabBuilder.ts`, colors in `render/palette.ts slabColors`.
-Known polish items: backlit foliage reads too dark from low north angles; windmill is a hardcoded composition (replace via prefab pipeline).
+**v0.2 "Builder's Joy" built — awaiting user milestone review before starting v0.3 "Pops & Purpose".**
+On top of v0.1 (renderer/sky/camera/slab-base island, user-approved): placement system with two-layer occupancy + ghost validity + move/remove tools (S8/S9), instanced prop renderer with promote-animate-demote (S10), juice presets + puff particles + synthesized plop/thock/poof SFX (S11/S12/S22), save/load v1 with backups & attic + export/import (S3), 25-item Tier-1/2 catalog as data, build-bar UI with live 3D thumbnails + settings panel (S21/S23). 52 tests green. Headless verification: `scripts/verify-build.mts` (place → persist → remove → 190-item stress at ~65 draws).
+User review (2026-07-11) approved the scenery; island base is the **layered slab** look per user reference (ART §5) — `world/SlabBuilder.ts`, colors in `render/palette.ts slabColors`.
+Known polish items: backlit foliage reads too dark from low north angles; windmill is a hardcoded landmark composition (becomes a real catalog building via the prefab pipeline in v0.5); costs shown in the catalog are display-only until the v0.3 economy.
 `/assets` contains 17 raw low-poly packs (~2,100 GLB models) — the content library (never loaded at runtime).
 
 ## Document map (read before working)

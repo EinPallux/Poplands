@@ -23,6 +23,15 @@
     "kit.wall-wood": "assets/Fantasy Town Assets/Models/GLB format/wall-wood.glb",
     "kit.wall-wood-door": "assets/Fantasy Town Assets/Models/GLB format/wall-wood-door.glb",
     "kit.wall-wood-window": "assets/Fantasy Town Assets/Models/GLB format/wall-wood-window-shutters.glb",
-    "building.house": "assets/Fantasy RTS Assets/House.glb"
+    "building.house": "assets/Fantasy RTS Assets/House.glb",
+    "nature.pebble": "assets/Nature Assets 2/Models/GLTF format/stone_smallFlatA.glb",
+    "nature.clover": "assets/Nature Assets 2/Models/GLTF format/grass_leafs.glb",
+    "nature.fern": "assets/Nature Assets 2/Models/GLTF format/grass_leafsLarge.glb",
+    "ground.path-dirt": "assets/Nature Assets 2/Models/GLTF format/ground_pathTile.glb",
+    "deco.pot": "assets/Nature Assets 2/Models/GLTF format/pot_large.glb",
+    "deco.stump": "assets/Nature Assets 2/Models/GLTF format/stump_round.glb",
+    "deco.sign": "assets/Nature Assets 2/Models/GLTF format/sign.glb",
+    "deco.hedge": "assets/Fantasy Town Assets/Models/GLB format/hedge.glb",
+    "building.hut": "assets/Fantasy RTS Assets/Hut.glb"
   }
 }
