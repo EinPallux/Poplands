@@ -61,7 +61,7 @@ import { itemDef, CATALOG } from '@/content/catalog';
 import type { AssetPhase } from '@/content/assetPhases';
 import { themeFor } from '@/content/themes';
 
-const VERSION = '0.2.0';
+const VERSION = '0.7.0';
 
 export class App {
   static async boot(canvas: HTMLCanvasElement, uiRoot: HTMLElement): Promise<void> {

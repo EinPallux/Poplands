@@ -1,9 +1,9 @@
 {
   "name": "poplands",
   "private": true,
-  "version": "0.2.0",
+  "version": "0.7.0",
   "type": "module",
-  "description": "Poplands \u2014 a cozy 3D low-poly sky-island builder for the browser.",
+  "description": "Poplands — a cozy 3D low-poly sky-island builder for the browser.",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
