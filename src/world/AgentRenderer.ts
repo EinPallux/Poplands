@@ -1,0 +1,102 @@
+/**
+ * Tier C agent rendering (S16, TECH §6.2): projects the IslanderSystem's `agents`
+ * snapshot into animated meshes. Sim owns kinematics (plain numbers); this owns the
+ * meshes, one AnimationMixer per agent, and the idle↔walk crossfade — the sim/render
+ * seam. Called each frame AFTER the sim integrates, so positions are frame-accurate
+ * and set directly (no re-interp needed); only the blend weight eases.
+ *
+ * Anti-sync (the "12 clones marching in lockstep" tell): each agent gets a ±10%
+ * mixer timescale and a random clip phase, so a crowd of the same model never
+ * moves as one. Clones share geometry & materials with the cache (SkeletonUtils
+ * rebinds only the skeleton) — cheap to spawn, never disposed here.
+ */
+import { Group, AnimationMixer, AnimationClip, type AnimationAction } from 'three';
+import type { AssetRegistry } from '@/assets/AssetRegistry';
+import type { AgentView } from '@/sim/IslanderSystem';
+
+const AGENT_SCALE = 1.3; // ~1.0 block tall (models are ~0.78u; cozy, childlike)
+const MODEL_YAW_OFFSET = Math.PI; // Pack-2 characters model-face -Z; sim heading is +Z
+const BLEND_RATE = 12; // idle↔walk weight easing (per second)
+
+interface AgentRec {
+  root: Group;
+  mixer: AnimationMixer;
+  idle: AnimationAction | null;
+  walk: AnimationAction | null;
+  walkW: number; // current walk blend weight (0 idle … 1 walk)
+  timescale: number;
+  footY: number; // y that seats the model's lowest point on the ground
+}
+
+export class AgentRenderer {
+  readonly group = new Group();
+  private recs = new Map<string, AgentRec>();
+  private seen = new Set<string>();
+
+  constructor(private readonly assets: AssetRegistry) {
+    this.group.name = 'agents';
+  }
+
+  /** Reconcile meshes to the snapshot, advance animation. Call after sim.update(). */
+  sync(agents: readonly AgentView[], dt: number): void {
+    this.seen.clear();
+    for (const a of agents) {
+      this.seen.add(a.id);
+      const rec = this.recs.get(a.id) ?? this.spawn(a);
+      rec.root.position.set(a.x, rec.footY, a.z);
+      rec.root.rotation.y = a.yaw + MODEL_YAW_OFFSET;
+
+      const target = a.moving ? 1 : 0;
+      rec.walkW += (target - rec.walkW) * Math.min(1, BLEND_RATE * dt);
+      rec.idle?.setEffectiveWeight(1 - rec.walkW);
+      rec.walk?.setEffectiveWeight(rec.walkW);
+      rec.mixer.update(dt * rec.timescale);
+    }
+    // drop anyone no longer in the roster (robustness; monotonic in v0.5 so rare)
+    for (const [id, rec] of this.recs) {
+      if (this.seen.has(id)) continue;
+      this.group.remove(rec.root);
+      this.recs.delete(id);
+    }
+  }
+
+  private spawn(a: AgentView): AgentRec {
+    const { root, clips } = this.assets.cloneAnimated(a.model, { castShadow: true, receiveShadow: false });
+    root.scale.setScalar(AGENT_SCALE);
+    const minY = this.assets.meta(a.model).aabb.min[1];
+    const footY = -minY * AGENT_SCALE; // seat the lowest vertex on y=0
+
+    const mixer = new AnimationMixer(root);
+    const idle = bindAction(mixer, clips, 'idle');
+    const walk = bindAction(mixer, clips, 'walk');
+    // both actions run; weights do the blending. Idle full, walk silent to start.
+    idle?.play();
+    walk?.play();
+    const timescale = 0.9 + Math.random() * 0.2; // ±10% anti-sync
+    if (idle) {
+      idle.setEffectiveWeight(1);
+      idle.time = Math.random() * (idle.getClip().duration || 1); // random phase
+    }
+    if (walk) {
+      walk.setEffectiveWeight(0);
+      walk.time = Math.random() * (walk.getClip().duration || 1);
+    }
+
+    const rec: AgentRec = { root, mixer, idle, walk, walkW: 0, timescale, footY };
+    this.recs.set(a.id, rec);
+    this.group.add(root);
+    return rec;
+  }
+
+  get count(): number {
+    return this.recs.size;
+  }
+}
+
+function bindAction(mixer: AnimationMixer, clips: AnimationClip[], name: string): AnimationAction | null {
+  const clip = AnimationClip.findByName(clips, name);
+  if (!clip) return null;
+  const action = mixer.clipAction(clip);
+  action.enabled = true;
+  return action;
+}

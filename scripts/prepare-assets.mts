@@ -19,6 +19,13 @@ import path from 'node:path';
 const ROOT = path.resolve(new URL('..', import.meta.url).pathname);
 const OUT_DIR = path.join(ROOT, 'public/assets/models');
 
+/** Animated agents (S16) must ship the clips the AgentRenderer drives, or the
+ *  swap is caught here rather than as a silent T-pose at runtime. */
+const REQUIRED_CLIPS: Array<{ prefix: string; clips: string[] }> = [
+  { prefix: 'npc.', clips: ['idle', 'walk'] },
+  { prefix: 'pal.', clips: ['idle', 'walk'] },
+];
+
 interface ManifestIn {
   models: Record<string, string>;
 }
@@ -61,6 +68,12 @@ async function main(): Promise<void> {
         .getRoot()
         .listAnimations()
         .map((a) => a.getName());
+
+      const required = REQUIRED_CLIPS.find((r) => id.startsWith(r.prefix));
+      if (required) {
+        const missing = required.clips.filter((c) => !clips.includes(c));
+        if (missing.length) throw new Error(`missing required clip(s): ${missing.join(', ')}`);
+      }
 
       const outFile = `${id}.glb`;
       const outPath = path.join(OUT_DIR, outFile);

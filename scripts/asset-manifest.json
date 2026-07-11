@@ -69,6 +69,19 @@
     "deco.barrel": "assets/Pirate Assets/Models/GLB format/barrel.glb",
     "building.lighthouse": "assets/Pirate Assets/Models/GLB format/tower-complete-small.glb",
     "deco.sloop": "assets/Pirate Assets/Models/GLB format/ship-small.glb",
-    "deco.pennant": "assets/Pirate Assets/Models/GLB format/flag-pennant.glb"
+    "deco.pennant": "assets/Pirate Assets/Models/GLB format/flag-pennant.glb",
+
+    "npc.a": "assets/NPCS/Cube NPC Models 2/GLB format/character-female-a.glb",
+    "npc.b": "assets/NPCS/Cube NPC Models 2/GLB format/character-female-b.glb",
+    "npc.c": "assets/NPCS/Cube NPC Models 2/GLB format/character-female-c.glb",
+    "npc.d": "assets/NPCS/Cube NPC Models 2/GLB format/character-female-d.glb",
+    "npc.e": "assets/NPCS/Cube NPC Models 2/GLB format/character-female-e.glb",
+    "npc.f": "assets/NPCS/Cube NPC Models 2/GLB format/character-female-f.glb",
+    "npc.g": "assets/NPCS/Cube NPC Models 2/GLB format/character-male-a.glb",
+    "npc.h": "assets/NPCS/Cube NPC Models 2/GLB format/character-male-b.glb",
+    "npc.i": "assets/NPCS/Cube NPC Models 2/GLB format/character-male-c.glb",
+    "npc.j": "assets/NPCS/Cube NPC Models 2/GLB format/character-male-d.glb",
+    "npc.k": "assets/NPCS/Cube NPC Models 2/GLB format/character-male-e.glb",
+    "npc.l": "assets/NPCS/Cube NPC Models 2/GLB format/character-male-f.glb"
   }
 }

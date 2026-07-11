@@ -39,6 +39,24 @@ const en = {
   'chunk.popup.title': 'New chunk!',
   'chunk.popup.sub': 'Chunk {n} floated up to join your island 🌱',
 
+  // islanders (S16) — proper names; localized tables may transliterate
+  'npc.mo.name': 'Mo',
+  'npc.pia.name': 'Pia',
+  'npc.bram.name': 'Bram',
+  'npc.lulu.name': 'Lulu',
+  'npc.fen.name': 'Fen',
+  'npc.nix.name': 'Nix',
+  'npc.oda.name': 'Oda',
+  'npc.juno.name': 'Juno',
+  'npc.taro.name': 'Taro',
+  'npc.wren.name': 'Wren',
+  'npc.sol.name': 'Sol',
+  'npc.mika.name': 'Mika',
+  'npc.posy.name': 'Posy',
+  'npc.gus.name': 'Gus',
+  'npc.ivy.name': 'Ivy',
+  'npc.remy.name': 'Remy',
+
   // mailbox
   'mailbox.title': 'Postcards',
   'mailbox.empty': 'No postcards right now — just enjoy your island.',

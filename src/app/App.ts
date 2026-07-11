@@ -16,6 +16,7 @@ import { buildLandmarks } from '@/world/StarterIsland';
 import { buildIslet } from '@/world/IsletBuilder';
 import { HoverHighlight } from '@/world/HoverHighlight';
 import { PropRenderer } from '@/world/PropRenderer';
+import { AgentRenderer } from '@/world/AgentRenderer';
 import { ChunkArrival } from '@/world/ChunkArrival';
 import { disposeObject } from '@/world/dispose';
 import { BuildSession } from '@/build/BuildSession';
@@ -112,6 +113,9 @@ export class App {
     const props = new PropRenderer(assets);
     scene.add(props.group);
     props.rebuildAll(island.allPlacements());
+
+    const agents = new AgentRenderer(assets); // Tier C: animated Islanders (S16)
+    scene.add(agents.group);
 
     const hover = new HoverHighlight();
     scene.add(hover.mesh);
@@ -246,6 +250,14 @@ export class App {
       showToast(t('toast.secretFound'));
     });
 
+    // — islanders (S16): a gentle welcome sparkle where a neighbour moves in (the
+    // full walk-in-from-the-edge move-in moment lands in a later v0.5 slice).
+    bus.on('npc:arrived', (e) => {
+      const a = state.islanders.agents.find((ag) => ag.id === e.id);
+      if (a) particles.sparkle(a.x, 0.9, a.z);
+      audio.chime();
+    });
+
     // — UI (thumbnails render post-boot; they'd otherwise delay first frame)
     initToasts(uiRoot);
     const hud = new Hud(uiRoot);
@@ -321,6 +333,10 @@ export class App {
     loop.add((dt) => session.update(dt));
     loop.add((dt) => state.economy.tick(dt));
     loop.add(() => state.quests.tick()); // refill postcard slots once a cooldown lapses
+    loop.add((dt) => {
+      state.islanders.update(dt); // sim integrates kinematics (three.js-free)…
+      agents.sync(state.islanders.agents, dt); // …then Tier C projects + animates
+    });
     loop.add((dt) => rig.update(dt));
     loop.add((dt) => tweens.update(dt));
     loop.add((dt) => sky.update(dt));
@@ -370,6 +386,10 @@ export class App {
         secrets: () => state.secrets.snapshot(),
         clickSecret: (cx: number, cz: number) => bus.emit('cmd:clickSecret', { cx, cz }),
         milestones: () => state.save.quests.milestones,
+        islanders: () =>
+          state.islanders.agents.map((a) => ({ id: a.id, x: a.x, z: a.z, moving: a.moving })),
+        residents: () => state.islanders.snapshot().residents.slice(),
+        agentMeshes: () => agents.count,
         /** Debug soak (non-persistent): grow the lattice to N chunks + rebuild once,
          *  skipping economy/arrival — for the draw/tri budget measurement only. */
         growTo: (n: number) => {
@@ -405,6 +425,14 @@ export class App {
           rig.frameIsland(b);
         },
         stats: () => ({ draws: rm.renderer.info.render.calls, tris: rm.renderer.info.render.triangles }),
+        /** Debug placement (bypasses payment) — for headless verification only. */
+        place: (def: string, wx: number, wz: number, rot: 0 | 1 | 2 | 3 = 0) => {
+          const d = itemDef(def);
+          if (!d || !island.canPlace(d, wx, wz, rot).ok) return false;
+          const p = island.place(def, wx, wz, rot);
+          bus.emit('item:placed', { id: p.id, def, wx, wz, rot });
+          return true;
+        },
         /** Screen pixel position of a block center (headless click targeting). */
         projectCell: (wx: number, wz: number) => {
           const v = new Vector3(wx + 0.5, 0, wz + 0.5).project(rig.camera);
