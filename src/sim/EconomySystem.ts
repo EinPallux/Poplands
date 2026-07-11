@@ -147,11 +147,17 @@ export class EconomySystem {
     if (!state || !p || !def?.income) return 0;
     const exact = computeStored(state, ratePerMsOf(def), def.income.cap, now);
     const whole = Math.floor(exact);
+    // A no-op collect must not touch the accrual anchor. Date.now() is not
+    // monotonic — if the wall clock has jumped backward (NTP / manual change),
+    // re-anchoring lastCollectAt to an earlier `now` would drag the anchor back
+    // and over-credit when the clock recovers. Bailing here keeps the anchor at
+    // the true last collection (backward-clock covenant); collectAll relies on
+    // this since, unlike click-collect, it doesn't pre-gate on ripeAmount≥1.
+    if (whole <= 0) return 0;
     state.storedPops = exact - whole; // carry the fraction
     state.lastCollectAt = now;
     state.wasFull = false;
     state.lastStep = 0;
-    if (whole <= 0) return 0;
     popsSignal.update((v) => v + whole);
     const c = footprintCenter(p.wx, p.wz, def.footprint, p.rot);
     bus.emit('income:collected', {

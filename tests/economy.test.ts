@@ -97,6 +97,21 @@ describe('EconomySystem', () => {
     expect(eco.collect('p1')).toBe(0);
   });
 
+  it('a no-op collect on a backward clock never regresses the anchor (no recovery over-credit)', () => {
+    placeStall(); // lastCollectAt = 1_000_000, storedPops 0
+    now += 60_000;
+    expect(eco.collect('p1')).toBe(2); // anchor advances to 1_060_000
+    expect(eco.snapshot().accrual[0]!.lastCollectAt).toBe(1_060_000);
+
+    // wall clock jumps backward 5 min: collect-all banks nothing during the window…
+    expect(eco.collectAll(760_000)).toBe(0);
+    // …and MUST NOT drag the accrual anchor earlier (the backward-clock covenant)
+    expect(eco.snapshot().accrual[0]!.lastCollectAt).toBe(1_060_000);
+
+    // when the clock recovers, only the TRUE elapsed accrues, not the backward gap
+    expect(eco.collect('p1', 1_120_000)).toBe(2); // 60_000 ms since the real anchor → 2, not 12
+  });
+
   it('preserves accrual across a move (accrual keyed by id, not re-seeded)', () => {
     const p = placeStall();
     now += 60000; // +2 ripe
