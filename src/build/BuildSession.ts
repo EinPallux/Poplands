@@ -234,6 +234,10 @@ export class BuildSession {
       bus.emit('cmd:castLine', { placementId: occupant.id }); // FishingSystem casts or reels
       return;
     }
+    if (itemDef(occupant.def)?.museum) {
+      bus.emit('cmd:openMuseum', undefined); // open the Collections Hall panel
+      return;
+    }
     if (this.economy.ripeAmount(occupant.id) >= 1) {
       bus.emit('cmd:collect', { placementId: occupant.id });
     }

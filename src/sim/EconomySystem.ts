@@ -123,12 +123,16 @@ export class EconomySystem {
     const offGift = bus.on('gift:claimed', (e) => {
       this.credit(e.rewards.pops ?? 0, e.rewards.stardust ?? 0);
     });
+    const offMuseum = bus.on('museum:donated', (e) => {
+      this.credit(e.rewards.pops ?? 0, e.rewards.stardust ?? 0);
+    });
     return () => {
       offLevel();
       offQuest();
       offSecret();
       offFish();
       offGift();
+      offMuseum();
     };
   }
 

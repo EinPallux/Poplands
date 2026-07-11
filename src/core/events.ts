@@ -186,6 +186,18 @@ export interface AppEvents extends Record<string, unknown> {
   'gift:available': void; // a gift is ready to claim (emitted on start if claimable)
   'gift:claimed': { day: number; rewards: QuestReward }; // claimed → Economy credits the reward
 
+  // museum / collections hall (post-1.0): donate caught fish onto display
+  'cmd:openMuseum': void; // player tapped a Collections Hall
+  'cmd:donate': { species: string }; // player donated a caught species from the hall panel
+  'museum:donated': {
+    species: string;
+    nameKey: StringKey;
+    icon: string;
+    rarity: 'common' | 'uncommon' | 'rare' | 'legendary';
+    rewards: QuestReward;
+  };
+  'museum:completed': void; // every fish is on display — a one-time celebration
+
   // ambient events (S19, v0.5): night sky life
   'event:shootingStar': void; // a star streaks by — make a wish ✨
 

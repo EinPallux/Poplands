@@ -79,7 +79,33 @@
 ---
 
 ## Post-1.0 Backlog (parked, in rough priority)
-Elevation/terraces (cliff kit is ready for it) · weather (rain sparkle, rainbows) · seasons & events (12 reserve Pals, Graveyard/Snow packs go seasonal) · fishing pond minigame · island-code sharing (URL-encoded save) · touch/mobile tuning · Suburbia/Tinker novelty tiers (City/Factory/Market/Space packs) · ambient hop-over-fence NPC moment (S16 note) · Steam wrapper · localization framework.
+Elevation/terraces (cliff kit is ready for it) · ~~weather~~ ✅ · ~~seasons~~ ✅ · ~~fishing pond~~ ✅ · ~~island-code sharing~~ ✅ · ~~daily gift~~ ✅ · touch/mobile tuning · Suburbia/Tinker novelty tiers (City/Factory/Market/Space packs) · ambient hop-over-fence NPC moment (S16 note) · Steam wrapper · localization framework.
+
+## Post-1.0 Content Menu (brainstorm, 2026-07-11)
+Shipped this expansion run: **weather · fishing pond · seasons · daily gift · island sharing**. Candidates next, by theme (S/M/L effort; ★ = compounds an already-shipped system):
+
+**Reason-to-return / meta**
+- ★ **Museum / Collections Hall** `M` — a placeable you donate fish (→ display + reward + completion goal). *Building now.*
+- ★ **Stamp Book / Achievements** `S–M` — a page of gentle milestones w/ small rewards; uses existing counters.
+- **Island "happiness" score** `S` — cosmetic-reward meter from variety/liveliness (non-punishing).
+
+**Seasonal & events (★ builds on Seasons)**
+- ★ **Limited-time festive props + a tiny seasonal quest** `M` — blossom/beach/harvest/lights, auto-rotating with the season.
+- ★ **Season-gated fishing** `S` — winter/night-only fish + a golden rare.
+
+**Life & personality**
+- **The 12 reserved Pals** `M` (butterflies/fox/deer/ducks) + feeding/naming.
+- **Islander personality** `M–L` — favourite spots, more dialogue, mailbox gifts, friendship warmth.
+
+**New gentle activities (the fishing pattern)**
+- **Garden patch** `M` — plant→water daily→harvest (pairs with the daily-gift loop).
+- **Bug net / star telescope** `M each` — more tap-to-collect minigames feeding the Museum.
+
+**Living-diorama depth**
+- **Furniture interactions** `M` — Islanders sit on benches / gather at the fountain.
+
+**Polish / QoL**
+- **Bulk build tools** `M` (area fill, copy/paste, undo/redo) · bespoke pond model + leaping-fish moment · seasonal foliage swap · "biggest catch" journal stat `S each`.
 
 ## Standing Rhythm (every milestone)
 Playtest with ≥ 3 outsiders → feel-gate honestly · perf check vs budgets on min-spec · docs & CHANGELOG updated · content added only via pipeline+manifest (never hand-copied files) · a 10-second "milestone beauty GIF" recorded for the log · **end of milestone: push + screenshots + status summary, then pause for user review before starting the next** (user-confirmed cadence, 2026-07-11).
