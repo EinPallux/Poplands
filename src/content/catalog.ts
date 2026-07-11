@@ -134,6 +134,9 @@ export const CATALOG: readonly ItemDef[] = [
   def({ id: 'income.cider-mill', nameKey: 'item.income.cider-mill', category: 'income', tier: 8, footprint: { w: 3, d: 3 }, cost: 3400, income: { ratePerMin: 28, cap: 1300 }, model: 'building.cider-mill', scale: 1.5, renderTier: 'unique' }),
   def({ id: 'home.fishing-hut', nameKey: 'item.home.fishing-hut', category: 'home', tier: 8, footprint: { w: 3, d: 3 }, cost: 1900, houses: 1, model: 'building.fishing-hut', scale: 2.3, renderTier: 'unique' }),
   def({ id: 'decor.canoe', nameKey: 'item.decor.canoe', category: 'decor', tier: 8, footprint: { w: 1, d: 2 }, cost: 90, model: 'deco.canoe', scale: 1.5, renderTier: 'unique' }),
+  def({ id: 'nature.cattails', nameKey: 'item.nature.cattails', category: 'nature', tier: 8, footprint: { w: 1, d: 1 }, cost: 40,  model: 'nature.cattails', scale: 1.4, renderTier: 'instanced' }),
+  def({ id: 'decor.message-bottle', nameKey: 'item.decor.message-bottle', category: 'decor', tier: 8, footprint: { w: 1, d: 1 }, cost: 30,  model: 'deco.message-bottle', scale: 1, renderTier: 'instanced' }),
+  def({ id: 'home.river-cottage', nameKey: 'item.home.river-cottage', category: 'home', tier: 8, footprint: { w: 3, d: 3 }, cost: 2400, houses: 2, model: 'building.river-cottage', scale: 2.2, renderTier: 'unique' }),
 
   // ——— Tier 9 · "Harbor" (unlocks at Level 9) ———
   def({ id: 'income.harbor-market', nameKey: 'item.income.harbor-market', category: 'income', tier: 9, footprint: { w: 3, d: 3 }, cost: 4200, income: { ratePerMin: 32, cap: 1500 }, model: 'building.harbor-market', scale: 0.95, renderTier: 'unique' }),
@@ -142,11 +145,15 @@ export const CATALOG: readonly ItemDef[] = [
   def({ id: 'nature.beach-rock', nameKey: 'item.nature.beach-rock', category: 'nature', tier: 9, footprint: { w: 1, d: 1 }, cost: 15, model: 'nature.beach-rock', scale: 0.22, renderTier: 'instanced' }),
   def({ id: 'decor.crate', nameKey: 'item.decor.crate', category: 'decor', tier: 9, footprint: { w: 1, d: 1 }, cost: 25, model: 'deco.crate', scale: 0.75, renderTier: 'instanced' }),
   def({ id: 'decor.barrel', nameKey: 'item.decor.barrel', category: 'decor', tier: 9, footprint: { w: 1, d: 1 }, cost: 20, model: 'deco.barrel', scale: 0.7, renderTier: 'instanced' }),
+  def({ id: 'home.harbor-house', nameKey: 'item.home.harbor-house', category: 'home', tier: 9, footprint: { w: 3, d: 3 }, cost: 2800, houses: 2, model: 'building.harbor-house', scale: 2.9, renderTier: 'unique' }),
 
   // ——— Tier 10 · "Harbor" (unlocks at Level 10) ———
   def({ id: 'income.lighthouse', nameKey: 'item.income.lighthouse', category: 'income', tier: 10, footprint: { w: 2, d: 2 }, cost: 5600, income: { ratePerMin: 38, cap: 1800 }, model: 'building.lighthouse', scale: 0.5, renderTier: 'unique' }),
   def({ id: 'decor.moored-sloop', nameKey: 'item.decor.moored-sloop', category: 'decor', tier: 10, footprint: { w: 3, d: 2 }, cost: 2400, costStardust: 2, model: 'deco.sloop', scale: 0.3, renderTier: 'unique', edgeAnchor: true }),
   def({ id: 'decor.pennant', nameKey: 'item.decor.pennant', category: 'decor', tier: 10, footprint: { w: 1, d: 1 }, cost: 60, model: 'deco.pennant', scale: 0.55, renderTier: 'instanced' }),
+  def({ id: 'home.harbor-villa', nameKey: 'item.home.harbor-villa', category: 'home', tier: 10, footprint: { w: 4, d: 4 }, cost: 4200, houses: 3, model: 'building.harbor-villa', scale: 1.79, renderTier: 'unique' }),
+  def({ id: 'nature.coastal-rocks', nameKey: 'item.nature.coastal-rocks', category: 'nature', tier: 10, footprint: { w: 1, d: 1 }, cost: 18,  model: 'nature.coastal-rocks', scale: 0.23, renderTier: 'instanced' }),
+  def({ id: 'decor.watchtower', nameKey: 'item.decor.watchtower', category: 'decor', tier: 10, footprint: { w: 2, d: 2 }, cost: 1200,  model: 'deco.watchtower', scale: 0.65, renderTier: 'unique' }),
   // ——— Tiers 11-14 (v0.6 Living Canvas: Harbor/Spooky/Winter/Grand) ———
   // ——— Tier 11 ———
   def({ id: 'nature.palm-leaning', nameKey: 'item.nature.palm-leaning', category: 'nature', tier: 11, theme: 'sandbar', footprint: { w: 1, d: 1 }, cost: 55, model: 'nature.palm-bend', scale: 0.42, renderTier: 'instanced' }),
@@ -164,6 +171,7 @@ export const CATALOG: readonly ItemDef[] = [
   def({ id: 'decor.oar', nameKey: 'item.decor.oar', category: 'decor', tier: 11, theme: 'sandbar', footprint: { w: 1, d: 1 }, cost: 18, model: 'deco.oar', scale: 0.68, renderTier: 'instanced' }),
   def({ id: 'decor.shipwreck', nameKey: 'item.decor.shipwreck', category: 'decor', tier: 11, theme: 'sandbar', footprint: { w: 3, d: 4 }, cost: 2600, costStardust: 3, model: 'deco.shipwreck', scale: 0.38, renderTier: 'unique' }),
   def({ id: 'income.boathouse', nameKey: 'item.income.boathouse', category: 'income', tier: 11, theme: 'sandbar', footprint: { w: 3, d: 3 }, cost: 6800, income: { ratePerMin: 44, cap: 2100 }, model: 'building.boathouse', scale: 0.93, renderTier: 'unique' }),
+  def({ id: 'home.beach-bungalow', nameKey: 'item.home.beach-bungalow', category: 'home', tier: 11, theme: 'sandbar', footprint: { w: 3, d: 3 }, cost: 3200, houses: 2, model: 'building.beach-bungalow', scale: 3.79, renderTier: 'unique' }),
   // ——— Tier 12 ———
   def({ id: 'nature.dead-pine', nameKey: 'item.nature.dead-pine', category: 'nature', tier: 12, theme: 'spooky', footprint: { w: 1, d: 1 }, cost: 130, model: 'nature.dead-pine', scale: 0.9, renderTier: 'instanced' }),
   def({ id: 'nature.dead-trunk', nameKey: 'item.nature.dead-trunk', category: 'nature', tier: 12, theme: 'spooky', footprint: { w: 1, d: 1 }, cost: 60, model: 'nature.dead-trunk', scale: 1.66, renderTier: 'instanced' }),
@@ -182,6 +190,7 @@ export const CATALOG: readonly ItemDef[] = [
   def({ id: 'decor.iron-gate', nameKey: 'item.decor.iron-gate', category: 'decor', tier: 12, theme: 'spooky', footprint: { w: 1, d: 1 }, cost: 130, model: 'deco.iron-gate', scale: 1, renderTier: 'instanced' }),
   def({ id: 'income.mausoleum', nameKey: 'item.income.mausoleum', category: 'income', tier: 12, theme: 'spooky', footprint: { w: 3, d: 3 }, cost: 3000, costStardust: 2, income: { ratePerMin: 46, cap: 2100 }, model: 'building.mausoleum', scale: 1.25, renderTier: 'unique' }),
   def({ id: 'home.keepers-crypt', nameKey: 'item.home.keepers-crypt', category: 'home', tier: 12, theme: 'spooky', footprint: { w: 2, d: 2 }, cost: 2600, costStardust: 2, houses: 1, model: 'building.keepers-crypt', scale: 1.43, renderTier: 'unique' }),
+  def({ id: 'income.haunted-galleon', nameKey: 'item.income.haunted-galleon', category: 'income', tier: 12, theme: 'spooky', footprint: { w: 3, d: 3 }, cost: 3800, costStardust: 1, income: { ratePerMin: 46, cap: 2100 }, model: 'building.haunted-galleon', scale: 0.26, renderTier: 'unique' }),
   // ——— Tier 13 ———
   def({ id: 'nature.snow-pine', nameKey: 'item.nature.snow-pine', category: 'nature', tier: 13, theme: 'snowcap', footprint: { w: 1, d: 1 }, cost: 42, model: 'nature.snow-pine', scale: 1.4, renderTier: 'instanced' }),
   def({ id: 'nature.blue-spruce', nameKey: 'item.nature.blue-spruce', category: 'nature', tier: 13, theme: 'snowcap', footprint: { w: 1, d: 1 }, cost: 48, model: 'nature.spruce', scale: 1.7, renderTier: 'instanced' }),

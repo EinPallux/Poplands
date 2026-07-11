@@ -337,6 +337,16 @@ const en = {
   'item.nature.golden-tree': 'Golden Tree',
   'item.decor.cog-sculpture': 'Cog Sculpture',
   'item.decor.the-wonder': 'The Wonder',
+  // Tier 8–12 variety fillers (v0.7 Slice 2)
+  'item.nature.cattails': 'Cattails',
+  'item.decor.message-bottle': 'Message in a Bottle',
+  'item.home.river-cottage': 'River Cottage',
+  'item.home.harbor-house': 'Harbor House',
+  'item.home.harbor-villa': 'Harbor Villa',
+  'item.nature.coastal-rocks': 'Coastal Rocks',
+  'item.decor.watchtower': 'Watchtower',
+  'item.home.beach-bungalow': 'Beach Bungalow',
+  'item.income.haunted-galleon': 'Haunted Galleon',
   // capstone
   'toast.wonderBuilt': 'The Wonder is complete! Your island is legendary. ✨',
   'quest.pc.wonder.t': 'The Grand Opening',

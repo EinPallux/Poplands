@@ -174,6 +174,15 @@
     "deco.trophy": "assets/Arena Assets/Models/GLB format/trophy.glb",
     "nature.golden-tree": "assets/Nature Assets 2/Models/GLTF format/tree_detailed_fall.glb",
     "deco.cog-sculpture": "assets/Factory Assets/Models/GLB format/cog-a.glb",
-    "building.the-wonder": "assets/Fantasy RTS Assets/Wonder First Age Leve.glb"
+    "building.the-wonder": "assets/Fantasy RTS Assets/Wonder First Age Leve.glb",
+    "nature.cattails": "assets/Pirate Assets/Models/GLB format/grass-plant.glb",
+    "deco.message-bottle": "assets/Pirate Assets/Models/GLB format/bottle-large.glb",
+    "building.river-cottage": "assets/Fantasy RTS Assets/House-RSwoYSLblu.glb",
+    "building.harbor-house": "assets/Fantasy RTS Assets/House-oJJIRwv6Bo.glb",
+    "building.harbor-villa": "assets/Fantasy RTS Assets/Houses-gEjAC1UvVU.glb",
+    "nature.coastal-rocks": "assets/Pirate Assets/Models/GLB format/rocks-c.glb",
+    "deco.watchtower": "assets/Pirate Assets/Models/GLB format/tower-watch.glb",
+    "building.beach-bungalow": "assets/Fantasy RTS Assets/House-YlADpCJU8U.glb",
+    "building.haunted-galleon": "assets/Pirate Assets/Models/GLB format/ship-ghost.glb"
   }
 }
