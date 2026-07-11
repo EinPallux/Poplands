@@ -21,6 +21,7 @@ import { AgentRenderer } from '@/world/AgentRenderer';
 import { GlowLayer } from '@/world/GlowLayer';
 import { AmbientLife } from '@/world/AmbientLife';
 import { ThemeAmbience } from '@/world/ThemeAmbience';
+import { WeatherSystem } from '@/world/WeatherSystem';
 import { AuroraLayer } from '@/world/AuroraLayer';
 import { ChunkArrival } from '@/world/ChunkArrival';
 import { LivelinessSystem } from '@/sim/LivelinessSystem';
@@ -49,6 +50,7 @@ import { DebugHud } from '@/debug/DebugHud';
 import { Particles } from '@/vfx/Particles';
 import { popIn, popOut, shake } from '@/vfx/presets';
 import { AudioSystem } from '@/audio/AudioSystem';
+import { MusicSystem } from '@/audio/MusicSystem';
 import { palette } from '@/render/palette';
 import { tweens } from '@/core/tween';
 import { t } from '@/core/strings';
@@ -149,6 +151,8 @@ export class App {
     scene.add(ambient.group);
     const themeAmbience = new ThemeAmbience(island); // per-biome mist/bats, snow, sand (S20)
     scene.add(themeAmbience.group);
+    const weather = new WeatherSystem(island); // passing showers + a rainbow (post-1.0)
+    scene.add(weather.group);
     const aurora = new AuroraLayer(island); // The Wonder's permanent aurora (S20 capstone)
     scene.add(aurora.group);
     // a lively island quietly pays a little extra (S13 liveliness dividend), lifted
@@ -185,6 +189,7 @@ export class App {
     scene.add(session.group);
     state.setCarriedProvider(() => session.carriedPlacement); // carried item survives a mid-move save
     const audio = new AudioSystem();
+    new MusicSystem(); // optional bgm.mp3 loop — self-manages its gesture unlock
     const chunkArrival = new ChunkArrival(world, particles, audio);
 
     // — presentation reactions to domain events (the F1 flow)
@@ -499,6 +504,7 @@ export class App {
       glow.update(timeOfDay.nightFactor); // lantern halos fade in with the dark
       ambient.update(dt, timeOfDay.nightFactor); // fireflies, shooting stars, balloons
       themeAmbience.update(dt, timeOfDay.nightFactor); // per-biome mist/bats/snow/sand
+      weather.update(dt, timeOfDay.nightFactor, rig.camera); // passing showers + rainbow
       aurora.update(dt, timeOfDay.nightFactor); // The Wonder's aurora shimmer (S20)
       liveliness.update(dt); // periodic Pops dividend from the island's residents
     });
@@ -588,6 +594,13 @@ export class App {
         glowCount: () => glow.count,
         auroraCount: () => aurora.count,
         themeAmbience: () => themeAmbience.counts,
+        weather: () => weather.counts,
+        weatherShower: () => weather.forceShower(),
+        weatherRainbow: () => weather.forceRainbow(),
+        ripen: (id: string, frac = 1) => state.economy.debugRipen(id, frac),
+        placementsOf: (def: string) =>
+          island.allPlacements().filter((p) => p.def === def).map((p) => p.id),
+        camPolar: () => rig.state.polar,
         // — S4 phased loading (headless verify): which models are cached now + on-demand phase loads
         loadPhase: (phase: AssetPhase) => assets.loadPhase(phase),
         phaseOf: (id: string) => assets.phaseOf(id),
