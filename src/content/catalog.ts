@@ -19,8 +19,8 @@ export interface ItemDef {
   id: string;
   nameKey: StringKey;
   category: Category;
-  /** Catalog tier — gated by level in v0.3 (Tier N unlocks at Level N). */
-  tier: 1 | 2 | 3 | 4 | 5 | 6;
+  /** Catalog tier — gated by level (Tier N unlocks at Level N; Tiers 1–2 at L1). */
+  tier: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
   footprint: Footprint;
   /** Pops charged on placement (100% refunded on remove). */
   cost: number;
@@ -101,6 +101,31 @@ export const CATALOG: readonly ItemDef[] = [
   def({ id: 'income.watermill', nameKey: 'item.income.watermill', category: 'income', tier: 6, footprint: { w: 3, d: 3 }, cost: 2000, income: { ratePerMin: 20, cap: 900 }, model: 'building.watermill', scale: 1.6, renderTier: 'unique' }),
   def({ id: 'decor.statue', nameKey: 'item.decor.statue', category: 'decor', tier: 6, footprint: { w: 1, d: 1 }, cost: 150, model: 'deco.statue', scale: 1.4, renderTier: 'instanced' }),
   def({ id: 'decor.stone-bridge', nameKey: 'item.decor.stone-bridge', category: 'decor', tier: 6, footprint: { w: 1, d: 1 }, cost: 60, model: 'deco.bridge', scale: 1.0, renderTier: 'instanced' }),
+
+  // ——— Tier 7 · "Riverside" (unlocks at Level 7). Scales tuned against pipeline AABBs. ———
+  def({ id: 'income.fish-market', nameKey: 'item.income.fish-market', category: 'income', tier: 7, footprint: { w: 3, d: 3 }, cost: 2600, income: { ratePerMin: 24, cap: 1100 }, model: 'building.fish-market', scale: 1.4, renderTier: 'unique' }),
+  def({ id: 'ground.river', nameKey: 'item.ground.river', category: 'ground', tier: 7, footprint: { w: 1, d: 1 }, cost: 20, model: 'ground.river', scale: 1, yOffset: 0.002, renderTier: 'instanced', groundOverlay: true }),
+  def({ id: 'decor.wooden-bridge', nameKey: 'item.decor.wooden-bridge', category: 'decor', tier: 7, footprint: { w: 1, d: 1 }, cost: 70, model: 'deco.bridge-wood', scale: 1.0, renderTier: 'instanced' }),
+  def({ id: 'nature.lily-pad', nameKey: 'item.nature.lily-pad', category: 'nature', tier: 7, footprint: { w: 1, d: 1 }, cost: 35, model: 'nature.lily', scale: 2.4, renderTier: 'instanced', rotatable: false }),
+  def({ id: 'nature.reeds', nameKey: 'item.nature.reeds', category: 'nature', tier: 7, footprint: { w: 1, d: 1 }, cost: 18, model: 'nature.reeds', scale: 2.2, renderTier: 'instanced' }),
+
+  // ——— Tier 8 · "Riverside" (unlocks at Level 8) ———
+  def({ id: 'income.cider-mill', nameKey: 'item.income.cider-mill', category: 'income', tier: 8, footprint: { w: 3, d: 3 }, cost: 3400, income: { ratePerMin: 28, cap: 1300 }, model: 'building.cider-mill', scale: 1.5, renderTier: 'unique' }),
+  def({ id: 'home.fishing-hut', nameKey: 'item.home.fishing-hut', category: 'home', tier: 8, footprint: { w: 3, d: 3 }, cost: 1900, houses: 1, model: 'building.fishing-hut', scale: 2.3, renderTier: 'unique' }),
+  def({ id: 'decor.canoe', nameKey: 'item.decor.canoe', category: 'decor', tier: 8, footprint: { w: 1, d: 2 }, cost: 90, model: 'deco.canoe', scale: 1.5, renderTier: 'unique' }),
+
+  // ——— Tier 9 · "Harbor" (unlocks at Level 9) ———
+  def({ id: 'income.harbor-market', nameKey: 'item.income.harbor-market', category: 'income', tier: 9, footprint: { w: 3, d: 3 }, cost: 4200, income: { ratePerMin: 32, cap: 1500 }, model: 'building.harbor-market', scale: 0.95, renderTier: 'unique' }),
+  def({ id: 'decor.dock', nameKey: 'item.decor.dock', category: 'decor', tier: 9, footprint: { w: 2, d: 2 }, cost: 80, model: 'deco.dock', scale: 0.85, renderTier: 'instanced' }),
+  def({ id: 'nature.palm', nameKey: 'item.nature.palm', category: 'nature', tier: 9, footprint: { w: 1, d: 1 }, cost: 50, model: 'nature.palm', scale: 0.42, renderTier: 'instanced' }),
+  def({ id: 'nature.beach-rock', nameKey: 'item.nature.beach-rock', category: 'nature', tier: 9, footprint: { w: 1, d: 1 }, cost: 15, model: 'nature.beach-rock', scale: 0.22, renderTier: 'instanced' }),
+  def({ id: 'decor.crate', nameKey: 'item.decor.crate', category: 'decor', tier: 9, footprint: { w: 1, d: 1 }, cost: 25, model: 'deco.crate', scale: 0.75, renderTier: 'instanced' }),
+  def({ id: 'decor.barrel', nameKey: 'item.decor.barrel', category: 'decor', tier: 9, footprint: { w: 1, d: 1 }, cost: 20, model: 'deco.barrel', scale: 0.7, renderTier: 'instanced' }),
+
+  // ——— Tier 10 · "Harbor" (unlocks at Level 10) ———
+  def({ id: 'income.lighthouse', nameKey: 'item.income.lighthouse', category: 'income', tier: 10, footprint: { w: 2, d: 2 }, cost: 5600, income: { ratePerMin: 38, cap: 1800 }, model: 'building.lighthouse', scale: 0.5, renderTier: 'unique' }),
+  def({ id: 'decor.moored-sloop', nameKey: 'item.decor.moored-sloop', category: 'decor', tier: 10, footprint: { w: 3, d: 2 }, cost: 2400, costStardust: 2, model: 'deco.sloop', scale: 0.3, renderTier: 'unique' }),
+  def({ id: 'decor.pennant', nameKey: 'item.decor.pennant', category: 'decor', tier: 10, footprint: { w: 1, d: 1 }, cost: 60, model: 'deco.pennant', scale: 0.55, renderTier: 'instanced' }),
 ] as const;
 
 const byId = new Map(CATALOG.map((d) => [d.id, d]));

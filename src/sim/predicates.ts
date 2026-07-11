@@ -111,6 +111,8 @@ export function evaluate(pred: Predicate, ctx: EvalContext): EvalResult {
       return done(ctx.level, pred.level);
     case 'adjacency':
       return done(countAdjacent(ctx.island, pred.a, pred.b, pred.dist), pred.n ?? 1);
+    case 'chunks':
+      return done(ctx.island.chunkCount, pred.n);
     case 'all': {
       const subs = pred.of.map((p) => evaluate(p, ctx));
       const doneCount = subs.filter((s) => s.done).length;

@@ -53,10 +53,11 @@ export class ChunkArrival {
     group.position.y = -RISE_DEPTH;
     this.world.add(group);
 
-    // cloud swirl beneath the slot
+    // cloud swirl beneath the slot; the whoosh-thunk-fanfare is scheduled up front
+    // on the audio clock so it lands on the rise/dock beats without frame coupling
     this.particles.poof(centerX, -1.2, centerZ, 2.4);
     this.particles.dustRing(centerX, centerZ, CHUNK * 0.5);
-    this.audio.plop();
+    this.audio.chunkArrival();
 
     const bounce = dampedStep(0.55, 15);
     let unlocked = false;
@@ -74,8 +75,8 @@ export class ChunkArrival {
       },
       onComplete: () => {
         group.position.y = 0;
-        // dock: fanfare + confetti + a grass-ripple of sparkles radiating outward
-        this.audio.chime();
+        // dock: confetti + a grass-ripple of sparkles radiating outward (the fanfare
+        // was scheduled by chunkArrival() and lands right about now)
         for (let i = 0; i < 4; i++) this.particles.coinBurst(centerX + (i - 1.5) * 2.2, 1.5, centerZ);
         for (const [dx, dz] of [
           [0, 0],

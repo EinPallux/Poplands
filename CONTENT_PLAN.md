@@ -40,11 +40,9 @@ Audited 2026-07-10. **~2,100 GLB models** across 17 packs; all packs provide GLB
 
 **Coverage verdict:** every v1.0 content tier is fully coverable from existing packs. Gaps are only VFX sprites, UI, audio, fonts (see §7–8).
 
-### ⚠️ 1.1 License audit — REQUIRED before public release
-The repo contains **no license files**. Most packs are Kenney (CC0), but several use poly.pizza-style export names (hash suffixes like `House-RSwoYSLblu.glb` — typically Quaternius CC0 or Google Poly CC-BY, **attribution may be required**). Action items (tracked in ROADMAP v0.2):
-1. Identify origin of each pack (Kenney page / poly.pizza entry / itch page).
-2. Record per-pack license + author in `ATTRIBUTIONS.md` (shipped in the game's credits panel).
-3. Any pack that can't be license-confirmed gets quarantined out of the build manifest.
+### ✅ 1.1 License audit — CLOSED (2026-07-11)
+Resolved: **every pack is CC0 and commercially usable** — **Fantasy RTS Assets → Quaternius**, all other packs → **Kenney.nl** (confirmed by the project owner). No attribution required. Full ledger in [`ATTRIBUTIONS.md`](ATTRIBUTIONS.md). Nothing is license-blocked — the Tier 7–10 Riverside/Harbor catalog is cleared.
+- Repo-hygiene note (non-gating): the packs were added without their bundled `License.txt` files; restoring them + a Credits panel (Kenney + Quaternius) is a nice-to-have before public release.
 
 ---
 

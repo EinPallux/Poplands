@@ -36,6 +36,8 @@ const en = {
 
   // expansion (S8) — survey markers on the island's free edges
   'survey.call': 'Call this chunk',
+  'chunk.popup.title': 'New chunk!',
+  'chunk.popup.sub': 'Chunk {n} floated up to join your island 🌱',
 
   // mailbox
   'mailbox.title': 'Postcards',
@@ -69,6 +71,10 @@ const en = {
   'quest.tut.level3.d': 'Reach Level 3. The Drift will grow once you’re ready — for now, keep leveling.',
   'quest.tut.capstone.t': 'A little world of your own',
   'quest.tut.capstone.d': 'Fill your island — have 30 things placed. The Drift is waking up!',
+  'quest.tut.callchunk.t': 'Call more land',
+  'quest.tut.callchunk.d': 'Tap a floating Survey marker to call a new chunk up from the cloud sea.',
+  'quest.tut.secret.t': 'Investigate the sparkle',
+  'quest.tut.secret.d': 'Something glimmers on your island — click a ✨ and dig up its secret.',
 
   // — postcards
   'quest.pc.grove.t': 'Little grove',
@@ -161,6 +167,25 @@ const en = {
   'item.income.watermill': 'Watermill',
   'item.decor.statue': 'Stone Statue',
   'item.decor.stone-bridge': 'Stone Bridge',
+  // Tier 7–8 "Riverside"
+  'item.income.fish-market': 'Fish Market',
+  'item.ground.river': 'River Tile',
+  'item.decor.wooden-bridge': 'Wooden Bridge',
+  'item.nature.lily-pad': 'Lily Pads',
+  'item.nature.reeds': 'Reed Cluster',
+  'item.income.cider-mill': 'Cider Mill',
+  'item.home.fishing-hut': 'Fishing Hut',
+  'item.decor.canoe': 'Canoe',
+  // Tier 9–10 "Harbor"
+  'item.income.harbor-market': 'Harbor Market',
+  'item.decor.dock': 'Dock',
+  'item.nature.palm': 'Palm Tree',
+  'item.nature.beach-rock': 'Beach Rocks',
+  'item.decor.crate': 'Crate Stack',
+  'item.decor.barrel': 'Barrel',
+  'item.income.lighthouse': 'Lighthouse',
+  'item.decor.moored-sloop': 'Moored Sloop',
+  'item.decor.pennant': 'Pennant Flag',
 } as const;
 
 export type StringKey = keyof typeof en;
