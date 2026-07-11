@@ -43,6 +43,8 @@ import { FishingLayer } from '@/ui/FishingLayer';
 import { DailyGiftUI } from '@/ui/DailyGiftUI';
 import { MuseumPanel } from '@/ui/MuseumPanel';
 import { AchievementsWall } from '@/ui/AchievementsWall';
+import { GardenLayer } from '@/ui/GardenLayer';
+import { SeedPicker } from '@/ui/SeedPicker';
 import { PhotoMode } from '@/ui/PhotoMode';
 import { WorldFx } from '@/ui/WorldFx';
 import { SurveyLayer } from '@/ui/SurveyLayer';
@@ -402,6 +404,24 @@ export class App {
     const secretLayer = new SecretLayer(uiRoot, (x, y, z) => rig.projectToScreen(x, y, z));
     const speechLayer = new SpeechLayer(uiRoot, (x, y, z) => rig.projectToScreen(x, y, z));
     const fishingLayer = new FishingLayer(uiRoot, (x, y, z) => rig.projectToScreen(x, y, z));
+    const gardenLayer = new GardenLayer(uiRoot, (x, y, z) => rig.projectToScreen(x, y, z), () => state.garden.view());
+    const seedPicker = new SeedPicker(uiRoot, () => state.save.player.level);
+    // tap a Garden Patch: harvest if ripe, else open the seed picker on an empty plot
+    bus.on('cmd:openGarden', ({ placementId }) => {
+      const stage = state.garden.stageOf(placementId);
+      if (stage === 'ripe') state.garden.harvest(placementId);
+      else if (stage === 'empty') seedPicker.openFor(placementId);
+      // 'sprout'/'growing' → the marker already shows progress; tapping is a gentle no-op
+    });
+    bus.on('cmd:plantCrop', ({ placementId, crop }) => state.garden.plant(placementId, crop));
+    bus.on('garden:planted', (e) => {
+      audio.plop();
+      particles.dustRing(e.wx, e.wz, 0.7);
+    });
+    bus.on('garden:harvested', (e) => {
+      audio.chime();
+      particles.sparkle(e.wx, 0.6, e.wz);
+    });
     new ChunkPopup(uiRoot); // self-wires to chunk:unlocked
     const album = new Album(uiRoot, () => ({
       milestones: state.save.quests.milestones,
@@ -495,6 +515,7 @@ export class App {
       },
       onEscape: () => {
         if (photo.active) photo.toggle(false);
+        else if (seedPicker.open) seedPicker.close();
         else if (museumPanel.open) museumPanel.close();
         else if (album.open) album.toggle(false);
         else if (journal.open) journal.toggle(false);
@@ -574,6 +595,7 @@ export class App {
     loop.add((dt) => particles.update(dt));
     loop.add(() => worldFx.update());
     loop.add((dt) => fishingLayer.update(dt)); // bobber + nibble prompt tracking
+    loop.add((dt) => gardenLayer.update(dt)); // crop growth markers (sim growth is time-based)
     loop.add(() => surveyLayer.update());
     loop.add(() => secretLayer.update());
     loop.add((dt) => hover.update(dt));
@@ -683,6 +705,12 @@ export class App {
         endUse: (id: string) => state.islanders.debugEndUse(id),
         agentMeshY: (id: string) => agents.debugMeshY(id),
         achievementsView: () => state.achievements.view(),
+        gardenView: () => state.garden.view(),
+        gardenStage: (id: string) => state.garden.stageOf(id),
+        plantCrop: (id: string, crop: string) => bus.emit('cmd:plantCrop', { placementId: id, crop }),
+        ripenGarden: (id: string) => state.garden.debugRipen(id),
+        openGarden: (id: string) => bus.emit('cmd:openGarden', { placementId: id }),
+        gardenHarvested: () => state.garden.harvested,
         ripen: (id: string, frac = 1) => state.economy.debugRipen(id, frac),
         placementsOf: (def: string) =>
           island.allPlacements().filter((p) => p.def === def).map((p) => p.id),

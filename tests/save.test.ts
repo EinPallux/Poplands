@@ -116,7 +116,7 @@ describe('parseSave', () => {
     };
     const parsed = parseSave(JSON.stringify(v1));
     expect(parsed).not.toBeNull();
-    expect(parsed!.v).toBe(8); // chains v1→v2→v3→v4→v5→v6→v7→v8
+    expect(parsed!.v).toBe(9); // chains v1→v2→…→v9
     // wallets preserved, not reset
     expect(parsed!.player.pops).toBe(300);
     expect(parsed!.player.level).toBe(2);
@@ -143,6 +143,9 @@ describe('parseSave', () => {
     expect(parsed!.museum.donated).toEqual([]);
     // v8: empty Stamp Book (AchievementSystem grants earned stamps on start)
     expect(parsed!.achievements.earned).toEqual([]);
+    // v9: bare garden (no plots planted, nothing harvested)
+    expect(parsed!.garden.plots).toEqual({});
+    expect(parsed!.garden.harvested).toBe(0);
   });
 
   it('a v4 save missing the islanders slice normalizes to an empty roster', () => {
@@ -185,6 +188,15 @@ describe('parseSave', () => {
     const parsed = parseSave(JSON.stringify(save));
     expect(parsed).not.toBeNull();
     expect(parsed!.achievements.earned).toEqual([]);
+  });
+
+  it('a save predating the garden slice normalizes to a bare garden', () => {
+    const save = makeSave() as unknown as Record<string, unknown>;
+    delete save['garden'];
+    const parsed = parseSave(JSON.stringify(save));
+    expect(parsed).not.toBeNull();
+    expect(parsed!.garden.plots).toEqual({});
+    expect(parsed!.garden.harvested).toBe(0);
   });
 
   it('back-fills a new settings field (uiScale) on a save that predates it', () => {

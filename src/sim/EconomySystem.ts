@@ -126,6 +126,9 @@ export class EconomySystem {
     const offMuseum = bus.on('museum:donated', (e) => {
       this.credit(e.rewards.pops ?? 0, e.rewards.stardust ?? 0);
     });
+    const offHarvest = bus.on('garden:harvested', (e) => {
+      this.credit(e.rewards.pops ?? 0, e.rewards.stardust ?? 0);
+    });
     return () => {
       offLevel();
       offQuest();
@@ -133,6 +136,7 @@ export class EconomySystem {
       offFish();
       offGift();
       offMuseum();
+      offHarvest();
     };
   }
 

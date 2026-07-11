@@ -68,6 +68,9 @@ export interface ItemDef {
   /** The Collections Hall (post-1.0): tapping this placeable opens the Museum,
    *  where caught fish are donated onto display for a reward (MuseumSystem). */
   museum?: true;
+  /** The Garden Patch (post-1.0): tapping this placeable plants a seed (picker),
+   *  grows a crop over real time, and harvests it for a reward (GardenSystem). */
+  garden?: true;
   /** Furniture interactions (post-1.0): Islanders occasionally seek out this
    *  placeable and use it — `sit` = they perch on it (plays the `sit` clip, lifted
    *  onto the seat), `gather` = they stand near it and observe (idle + the odd
@@ -125,6 +128,7 @@ export const CATALOG: readonly ItemDef[] = [
   def({ id: 'decor.cart', nameKey: 'item.decor.cart', category: 'decor', tier: 4, footprint: { w: 1, d: 2 }, cost: 38, model: 'deco.cart', scale: 1.1, renderTier: 'unique' }),
   def({ id: 'decor.log-pile', nameKey: 'item.decor.log-pile', category: 'decor', tier: 4, footprint: { w: 1, d: 2 }, cost: 26, model: 'deco.log-pile', scale: 1.4, renderTier: 'instanced' }),
   def({ id: 'nature.carrot', nameKey: 'item.nature.carrot', category: 'nature', tier: 4, footprint: { w: 1, d: 1 }, cost: 18, model: 'crop.carrot', scale: 1.5, renderTier: 'instanced' }),
+  def({ id: 'nature.garden', nameKey: 'item.nature.garden', category: 'nature', tier: 4, footprint: { w: 2, d: 2 }, cost: 180, model: 'ground.path-dirt', scale: 2.0, yOffset: 0.02, renderTier: 'unique', rotatable: false, garden: true }),
 
   // ——— Tier 5 · "Village" (unlocks at Level 5) ———
   def({ id: 'income.market-stall', nameKey: 'item.income.market-stall', category: 'income', tier: 5, footprint: { w: 2, d: 2 }, cost: 500, income: { ratePerMin: 8, cap: 350 }, model: 'building.market-stall', scale: 1.9, renderTier: 'unique' }),

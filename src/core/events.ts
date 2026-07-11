@@ -202,6 +202,20 @@ export interface AppEvents extends Record<string, unknown> {
   // achievements / stamp book (post-1.0): a lifetime milestone stamp is earned
   'achievement:earned': { id: string; nameKey: StringKey; descKey: StringKey; icon: string };
 
+  // garden / crop patch (post-1.0): plant a seed, grow it, harvest for a reward
+  'cmd:openGarden': { placementId: string }; // tapped a Garden Patch (App routes by stage)
+  'cmd:plantCrop': { placementId: string; crop: string }; // picked a seed to plant
+  'garden:planted': { placementId: string; crop: string; icon: string; wx: number; wz: number };
+  'garden:harvested': {
+    placementId: string;
+    crop: string;
+    nameKey: StringKey;
+    icon: string;
+    rewards: QuestReward;
+    wx: number;
+    wz: number;
+  };
+
   // ambient events (S19, v0.5): night sky life
   'event:shootingStar': void; // a star streaks by — make a wish ✨
 
