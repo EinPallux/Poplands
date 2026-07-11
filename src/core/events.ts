@@ -164,6 +164,9 @@ export interface AppEvents extends Record<string, unknown> {
   'cmd:clickPal': { id: string }; // player tapped a Pal → pet it
   'pal:petted': { id: string }; // a Pal was petted → hearts + happy sound
 
+  // ambient events (S19, v0.5): night sky life
+  'event:shootingStar': void; // a star streaks by — make a wish ✨
+
   // juice set-piece framing (S11): the chunk-arrival soft input-lock window
   'juice:setPieceStarted': { kind: 'chunk-arrival' };
   'juice:setPieceEnded': { kind: 'chunk-arrival' };

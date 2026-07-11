@@ -19,7 +19,9 @@ import { HoverHighlight } from '@/world/HoverHighlight';
 import { PropRenderer } from '@/world/PropRenderer';
 import { AgentRenderer } from '@/world/AgentRenderer';
 import { GlowLayer } from '@/world/GlowLayer';
+import { AmbientLife } from '@/world/AmbientLife';
 import { ChunkArrival } from '@/world/ChunkArrival';
+import { LivelinessSystem } from '@/sim/LivelinessSystem';
 import { disposeObject } from '@/world/dispose';
 import { BuildSession } from '@/build/BuildSession';
 import { GameState } from '@/app/GameState';
@@ -125,6 +127,17 @@ export class App {
     scene.add(palAgents.group);
     const glow = new GlowLayer(island); // lantern/lamp halos at night (S7/S20)
     scene.add(glow.group);
+    const ambient = new AmbientLife(); // fireflies, shooting stars, balloons (S19)
+    scene.add(ambient.group);
+    // a lively island quietly pays a little extra (S13 liveliness dividend)
+    const liveliness = new LivelinessSystem(
+      state.economy,
+      () => state.islanders.snapshot().residents.length + state.pals.snapshot().pals.length,
+    );
+    {
+      const c = island.center();
+      ambient.setCenter(c.x, c.z);
+    }
 
     const hover = new HoverHighlight();
     scene.add(hover.mesh);
@@ -245,6 +258,14 @@ export class App {
       rig.frameIsland(b);
       const c = island.center();
       sky.setCenter(c.x, c.z);
+      ambient.setCenter(c.x, c.z);
+    });
+
+    // — a shooting star: a soft wish chime + a sparkle high in the sky
+    bus.on('event:shootingStar', () => {
+      audio.chime();
+      const c = island.center();
+      particles.sparkle(c.x, 6, c.z);
     });
 
     // — secrets (S19): escalating dig poofs, then the discovery payoff
@@ -392,6 +413,17 @@ export class App {
     loop.add((dt) => {
       timeOfDay.update(dt); // advance dawn→day→dusk→night, tint lights/sky/fog
       glow.update(timeOfDay.nightFactor); // lantern halos fade in with the dark
+      ambient.update(dt, timeOfDay.nightFactor); // fireflies, shooting stars, balloons
+      liveliness.update(dt); // periodic Pops dividend from the island's residents
+    });
+    // ambient audio bed (S22): a single spaced chirp/cricket — never a machine-gun
+    let ambientSoundIn = 3 + Math.random() * 4;
+    loop.add((dt) => {
+      ambientSoundIn -= dt;
+      if (ambientSoundIn > 0) return;
+      ambientSoundIn = 4 + Math.random() * 6;
+      if (timeOfDay.nightFactor > 0.5) audio.cricket();
+      else audio.chirp();
     });
     loop.add((dt) => sky.update(dt));
     loop.add((dt) => landmarks.update(dt));

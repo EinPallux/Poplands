@@ -201,6 +201,47 @@ export class AudioSystem {
     osc.stop(now + 0.26);
   }
 
+  /** A soft two-note birdsong — the daytime ambient (rate-limited by the caller). */
+  chirp(): void {
+    const ctx = this.ensure();
+    if (!ctx || !this.master) return;
+    const now = ctx.currentTime;
+    const notes = [2100, 2600, 2300];
+    notes.forEach((f, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      const at = now + i * 0.07;
+      osc.frequency.setValueAtTime(f, at);
+      gain.gain.setValueAtTime(0.0001, at);
+      gain.gain.exponentialRampToValueAtTime(0.06, at + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, at + 0.09);
+      osc.connect(gain).connect(this.master!);
+      osc.start(at);
+      osc.stop(at + 0.1);
+    });
+  }
+
+  /** A gentle cricket trill — the night ambient (rate-limited by the caller). */
+  cricket(): void {
+    const ctx = this.ensure();
+    if (!ctx || !this.master) return;
+    const now = ctx.currentTime;
+    for (let i = 0; i < 4; i++) {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'triangle';
+      const at = now + i * 0.06;
+      osc.frequency.setValueAtTime(3400, at);
+      gain.gain.setValueAtTime(0.0001, at);
+      gain.gain.exponentialRampToValueAtTime(0.04, at + 0.005);
+      gain.gain.exponentialRampToValueAtTime(0.0001, at + 0.03);
+      osc.connect(gain).connect(this.master!);
+      osc.start(at);
+      osc.stop(at + 0.04);
+    }
+  }
+
   /** Airy poof for removals — filtered noise burst. */
   poof(): void {
     const ctx = this.ensure();
