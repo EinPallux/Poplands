@@ -4,6 +4,7 @@
  */
 
 import type { StringKey } from './strings';
+import type { ChunkTheme } from './grid';
 
 export type Handler<P> = (payload: P) => void;
 
@@ -137,8 +138,8 @@ export interface AppEvents extends Record<string, unknown> {
   'quest:dismissed': { id: string }; // a postcard was skipped — HUD removes its card
 
   // expansion (S7/S8, v0.4): the F2 flow — survey → buy → land rises → new surveys
-  'chunk:offered': { slots: Array<{ cx: number; cz: number; pops: number; stardust: number }> };
-  'chunk:unlocked': { cx: number; cz: number; index: number }; // index = chunk count AFTER add
+  'chunk:offered': { slots: Array<{ cx: number; cz: number; pops: number; stardust: number; theme: ChunkTheme }> };
+  'chunk:unlocked': { cx: number; cz: number; index: number; theme: ChunkTheme }; // index = chunk count AFTER add
   'island:grew': void; // world visuals must rebuild for the new chunk shape (base/ground/outline)
 
   // secrets & discoveries (S19, v0.4): seeded per-chunk hidden things

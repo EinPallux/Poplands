@@ -6,6 +6,7 @@
  * core-layer purity: no three.js, no world imports; schema types are structural.
  */
 import type { SecretKind } from './events';
+import type { ChunkTheme } from './grid';
 
 export interface SavePlacement {
   id: string;
@@ -73,7 +74,7 @@ export interface SaveV1 {
   seed: number;
   player: { pops: number; stardust: number; xp: number; level: number };
   island: {
-    chunks: Array<{ cx: number; cz: number; theme: 'meadow' | 'sandbar' | 'spooky' | 'snowcap' }>;
+    chunks: Array<{ cx: number; cz: number; theme: ChunkTheme }>;
     placements: SavePlacement[];
   };
   attic: SavePlacement[];
@@ -88,7 +89,7 @@ export interface SaveV2 {
   seed: number;
   player: { pops: number; stardust: number; xp: number; level: number; xpGranted: string[] };
   island: {
-    chunks: Array<{ cx: number; cz: number; theme: 'meadow' | 'sandbar' | 'spooky' | 'snowcap' }>;
+    chunks: Array<{ cx: number; cz: number; theme: ChunkTheme }>;
     placements: SavePlacement[];
   };
   economy: SaveEconomy;

@@ -7,6 +7,8 @@
 import { bus } from '@/core/events';
 import { popsSignal, stardustSignal } from '@/core/playerStore';
 import { t } from '@/core/strings';
+import { THEME_EMOJI } from '@/content/themes';
+import type { ChunkTheme } from '@/core/grid';
 
 type Project = (x: number, y: number, z: number) => { x: number; y: number; behind: boolean };
 
@@ -15,6 +17,7 @@ interface Slot {
   cz: number;
   pops: number;
   stardust: number;
+  theme: ChunkTheme;
 }
 interface Chip {
   el: HTMLButtonElement;
@@ -61,7 +64,7 @@ export class SurveyLayer {
       }
       c.slot = s;
       c.el.innerHTML =
-        `<span class="survey-balloon">🎈</span>` +
+        `<span class="survey-balloon">${THEME_EMOJI[s.theme]}</span>` +
         `<span class="survey-label">${t('survey.call')}</span>` +
         `<span class="survey-price">● ${s.pops}${s.stardust ? ` <span class="sd">✦ ${s.stardust}</span>` : ''}</span>`;
     }

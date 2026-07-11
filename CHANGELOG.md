@@ -5,6 +5,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 
 ## [Unreleased]
 
+### Added — v0.6 "Living Canvas" (in progress)
+- **Themed chunks (S7):** grown districts now come in four biomes — **Meadow · Sandbar · Spooky · Snowcap** — each with its own lawn + grass-lip palette. A deterministic `themeFor(seed, chunk)` rolls the biome (≈58% meadow, the rest sprinkled) so the world is reproducible and a **Survey chip previews the biome** (🌱🏖️🌙❄️) before you buy. Theme threads cleanly: stored per-chunk in `IslandModel` + the save, `GroundBuilder` tints each chunk's lawn, and `SlabBuilder` re-tints the grass lip **per outline point** so biome boundaries read crisply. `chunk:offered`/`chunk:unlocked` carry the theme. (Theme-specific secrets & ambient emitters, and themed slab *rock*, are follow-ups.)
+
 ### Added — v0.5 "Little Neighbours" (feature-complete — awaiting milestone review)
 - **Ambient life (S19/S20):** the diorama breathes on its own now — **fireflies** twinkle low over the island at night, the odd **shooting star** streaks the dark sky (a soft wish chime + sky sparkle, `event:shootingStar`), and a stray **hot-air balloon** drifts past by day. All driven by the day-night `nightFactor` on long random timers (never busy), reduced-motion-safe.
 - **Ambient audio (S22):** a single, well-spaced **birdsong chirp** by day / **cricket trill** by night — the "zero machine-gun artifacts" DoD by construction (one rate-limited voice, 4–10 s apart). Plus a happy **pet chirp** and the tap-to-greet **babble**.

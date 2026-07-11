@@ -54,6 +54,7 @@ import { popsSignal, stardustSignal, levelSignal, xpSignal } from '@/core/player
 import { effect } from '@/core/signals';
 import { footprintCenter } from '@/core/grid';
 import { itemDef } from '@/content/catalog';
+import { themeFor } from '@/content/themes';
 
 const VERSION = '0.2.0';
 
@@ -511,7 +512,7 @@ export class App {
                 best = s;
               }
             }
-            island.addChunk(best.cx, best.cz);
+            island.addChunk(best.cx, best.cz, themeFor(state.save.seed, best.cx, best.cz));
           }
           rebuildIsland();
           const b = island.bounds();

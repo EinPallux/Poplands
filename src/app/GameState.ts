@@ -43,7 +43,9 @@ export class GameState {
     loadWallet(this.save.player);
     loadPlayer(this.save.player);
 
-    this.island = new IslandModel(this.save.island.chunks.map(({ cx, cz }) => ({ cx, cz })));
+    this.island = new IslandModel(
+      this.save.island.chunks.map(({ cx, cz, theme }) => ({ cx, cz, theme })),
+    );
     const attic: SavePlacement[] = [...this.save.attic];
     for (const p of this.save.island.placements) {
       const def = itemDef(p.def);
@@ -77,7 +79,7 @@ export class GameState {
     // grows the model, so save.chunks and the model stay in lock-step — themes stay
     // 'meadow' in v0.4). Kept out of collect() so existing chunk themes survive.
     bus.on('chunk:unlocked', (e) => {
-      this.save.island.chunks.push({ cx: e.cx, cz: e.cz, theme: 'meadow' });
+      this.save.island.chunks.push({ cx: e.cx, cz: e.cz, theme: e.theme });
     });
 
     // autosave on every mutation (debounced inside the manager)

@@ -9,7 +9,8 @@
 import { bus } from '@/core/events';
 import { mulberry32 } from '@/core/math';
 import { chunkPrice, canExpand, REROLL_POPS, type ChunkPrice } from '@/content/expansion';
-import type { ChunkCoord } from '@/core/grid';
+import { themeFor } from '@/content/themes';
+import type { ChunkCoord, ChunkTheme } from '@/core/grid';
 import type { IslandModel } from '@/world/IslandModel';
 import type { EconomySystem } from './EconomySystem';
 
@@ -18,6 +19,7 @@ export interface SurveySlot {
   cz: number;
   pops: number;
   stardust: number;
+  theme: ChunkTheme;
 }
 
 const MAX_SURVEYS = 3;
@@ -60,6 +62,7 @@ export class ExpansionSystem {
       cz: c.cz,
       pops: price.pops,
       stardust: price.stardust,
+      theme: themeFor(this.seed, c.cx, c.cz),
     }));
   }
 
@@ -87,9 +90,10 @@ export class ExpansionSystem {
       bus.emit('purchase:denied', { reason: this.economy.shortOf(price.pops) });
       return;
     }
-    this.island.addChunk(cx, cz);
+    const theme = themeFor(this.seed, cx, cz);
+    this.island.addChunk(cx, cz, theme);
     this.rerollNonce++; // offers refresh after a purchase (F2)
-    bus.emit('chunk:unlocked', { cx, cz, index: this.island.chunkCount });
+    bus.emit('chunk:unlocked', { cx, cz, index: this.island.chunkCount, theme });
     bus.emit('island:grew', undefined);
     bus.emit('chunk:offered', { slots: this.surveys() });
   }

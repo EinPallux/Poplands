@@ -23,6 +23,8 @@ import {
 import { traceOutlines, refineLoop } from '@/core/outline';
 import { valueNoise2 } from '@/core/math';
 import { slabColors } from '@/render/palette';
+import { THEMES } from '@/content/themes';
+import type { ChunkTheme } from '@/core/grid';
 import type { IslandModel } from './IslandModel';
 
 interface ProfileRing {
@@ -38,6 +40,8 @@ interface BandDef {
   bottom: ProfileRing;
   colorTop: Color;
   colorBottom: Color;
+  /** Grass bands re-tint per-point to the chunk biome under each outline point. */
+  grass?: 'top' | 'side';
 }
 
 const GRASS_TOP = new Color(slabColors.grassTop);
@@ -58,8 +62,8 @@ function defaultBands(depthScale = 1): BandDef[] {
   const rockLow = r(-0.08, -2.65, 0.16);
   const bottomRim = r(-0.8, -3.25, 0.08);
   return [
-    { top: r(0, 0, 0), bottom: lipOut, colorTop: GRASS_TOP, colorBottom: GRASS_TOP }, // horizontal lip
-    { top: lipOut, bottom: grassBottom, colorTop: GRASS_SIDE, colorBottom: GRASS_SIDE },
+    { top: r(0, 0, 0), bottom: lipOut, colorTop: GRASS_TOP, colorBottom: GRASS_TOP, grass: 'top' }, // horizontal lip
+    { top: lipOut, bottom: grassBottom, colorTop: GRASS_SIDE, colorBottom: GRASS_SIDE, grass: 'side' },
     { top: grassBottom, bottom: sandTop, colorTop: SAND, colorBottom: SAND }, // tuck under lip
     { top: sandTop, bottom: sandBottom, colorTop: SAND, colorBottom: SAND },
     { top: sandBottom, bottom: rockTop, colorTop: ROCK, colorBottom: ROCK }, // rock shoulder
@@ -83,12 +87,14 @@ export function buildSlabFromBlocks(
   blocks: Array<{ wx: number; wz: number }>,
   hasBlock: (wx: number, wz: number) => boolean,
   depthScale = 1,
-  opts?: { topQuads?: boolean },
+  opts?: { topQuads?: boolean; themeAt?: (wx: number, wz: number) => ChunkTheme },
 ): Group {
   const group = new Group();
   group.name = 'island-base';
   const bands = defaultBands(depthScale);
   const material = new MeshStandardMaterial({ vertexColors: true, roughness: 0.95, metalness: 0 });
+  const themeAt = opts?.themeAt;
+  const grassColor = new Color(); // scratch for per-point biome grass
 
   const positions: number[] = [];
   const normals: number[] = [];
@@ -136,14 +142,21 @@ export function buildSlabFromBlocks(
         // provisional outward normals; smoothed by computeVertexNormals later
         const p = ring[i]!;
         normals.push(p.nx, 0, p.nz, p.nx, 0, p.nz);
-        colors.push(
-          band.colorTop.r,
-          band.colorTop.g,
-          band.colorTop.b,
-          band.colorBottom.r,
-          band.colorBottom.g,
-          band.colorBottom.b,
-        );
+        if (band.grass && themeAt) {
+          // sample the biome of the block just inside this outline point
+          const pal = THEMES[themeAt(Math.floor(p.x - p.nx * 0.5), Math.floor(p.z - p.nz * 0.5))];
+          grassColor.setHex(band.grass === 'top' ? pal.grassTop : pal.grassSide);
+          colors.push(grassColor.r, grassColor.g, grassColor.b, grassColor.r, grassColor.g, grassColor.b);
+        } else {
+          colors.push(
+            band.colorTop.r,
+            band.colorTop.g,
+            band.colorTop.b,
+            band.colorBottom.r,
+            band.colorBottom.g,
+            band.colorBottom.b,
+          );
+        }
       }
       for (let i = 0; i < n; i++) {
         const i2 = (i + 1) % n;
@@ -200,5 +213,7 @@ export function buildIslandBase(island: IslandModel): Group {
       }
     }
   }
-  return buildSlabFromBlocks(blocks, (wx, wz) => island.hasBlock(wx, wz));
+  return buildSlabFromBlocks(blocks, (wx, wz) => island.hasBlock(wx, wz), 1, {
+    themeAt: (wx, wz) => island.themeAtBlock(wx, wz),
+  });
 }
