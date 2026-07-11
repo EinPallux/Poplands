@@ -6,7 +6,7 @@
  */
 import { Group, type Object3D } from 'three';
 import { bus, type BlockReasonUi } from '@/core/events';
-import { footprintCenter, rotYaw, type Rot } from '@/core/grid';
+import { footprintCenter, rotYaw, edgeAnchorOrigin, type Rot } from '@/core/grid';
 import { itemDef, type ItemDef } from '@/content/catalog';
 import type { IslandModel, Placement } from '@/world/IslandModel';
 import type { PropRenderer } from '@/world/PropRenderer';
@@ -19,6 +19,7 @@ interface GhostState {
   def: ItemDef;
   object: Object3D;
   setValid: (valid: boolean) => void;
+  dispose: () => void;
   rot: Rot;
   cell: { wx: number; wz: number } | null;
   valid: boolean;
@@ -94,6 +95,14 @@ export class BuildSession {
 
   // ——— internals ———
 
+  /** Effective footprint origin for a clicked/hovered cell. Identity for normal
+   *  items; for edge-anchor items the origin shifts so the on-island anchor sits
+   *  on the land side and the footprint extends toward the void in the facing
+   *  direction — so a dock reaches south/west edges, not just north/east (S8). */
+  private footprintOrigin(def: ItemDef, cell: { wx: number; wz: number }, rot: Rot): { wx: number; wz: number } {
+    return def.edgeAnchor ? edgeAnchorOrigin(cell, def.footprint, rot) : cell;
+  }
+
   private startPlacing(defId: string): void {
     const def = itemDef(defId);
     if (!def) return;
@@ -118,6 +127,7 @@ export class BuildSession {
       def,
       object: ghost.object,
       setValid: ghost.setValid,
+      dispose: ghost.dispose,
       rot,
       cell: this.hoverCell,
       valid: false,
@@ -130,6 +140,7 @@ export class BuildSession {
   private teardownGhost(): void {
     if (this.ghost) {
       this.group.remove(this.ghost.object);
+      this.ghost.dispose(); // free the ghost-owned badge material + placeholder geometry
       this.ghost = null;
     }
   }
@@ -151,13 +162,14 @@ export class BuildSession {
       return;
     }
     g.object.visible = true;
-    const check = this.island.canPlace(g.def, g.cell.wx, g.cell.wz, g.rot);
+    const origin = this.footprintOrigin(g.def, g.cell, g.rot);
+    const check = this.island.canPlace(g.def, origin.wx, origin.wz, g.rot);
     // A carried item is already paid for — dropping it never costs (move is free).
     const afford = this.carried !== null || this.economy.canAfford(g.def);
     const valid = check.ok && afford;
     g.valid = valid;
     g.setValid(valid);
-    const c = footprintCenter(g.cell.wx, g.cell.wz, g.def.footprint, g.rot);
+    const c = footprintCenter(origin.wx, origin.wz, g.def.footprint, g.rot);
     g.object.position.set(c.x, (g.def.yOffset ?? 0) + 0.02, c.z);
     g.object.rotation.y = rotYaw(g.rot);
     if (this.carried && !g.bob) g.bob = carryBob(g.object, g.def.yOffset ?? 0);
@@ -190,7 +202,8 @@ export class BuildSession {
   private tryPlace(cell: { wx: number; wz: number }): void {
     const g = this.ghost;
     if (!g) return;
-    const check = this.island.canPlace(g.def, cell.wx, cell.wz, g.rot);
+    const origin = this.footprintOrigin(g.def, cell, g.rot);
+    const check = this.island.canPlace(g.def, origin.wx, origin.wz, g.rot);
     if (!check.ok) {
       bus.emit('build:rejected', { reason: check.reason });
       return;
@@ -199,7 +212,7 @@ export class BuildSession {
       bus.emit('purchase:denied', { reason: this.denyReason(g.def) });
       return;
     }
-    const placement = this.island.place(g.def.id, cell.wx, cell.wz, g.rot);
+    const placement = this.island.place(g.def.id, origin.wx, origin.wz, g.rot);
     this.economy.onPlaced(placement); // seed accrual BEFORE charge (order irrelevant, but explicit)
     this.economy.charge(g.def);
     bus.emit('item:placed', { ...placement });
@@ -237,12 +250,13 @@ export class BuildSession {
     const g = this.ghost;
     const carried = this.carried;
     if (!g || !carried) return;
-    const check = this.island.canPlace(g.def, cell.wx, cell.wz, g.rot);
+    const origin = this.footprintOrigin(g.def, cell, g.rot);
+    const check = this.island.canPlace(g.def, origin.wx, origin.wz, g.rot);
     if (!check.ok) {
       bus.emit('build:rejected', { reason: check.reason });
       return;
     }
-    const placement = this.island.place(carried.def, cell.wx, cell.wz, g.rot, carried.id);
+    const placement = this.island.place(carried.def, origin.wx, origin.wz, g.rot, carried.id);
     this.carried = null;
     this.teardownGhost();
     // item:moved (not item:placed): same id re-dropped — no charge, no XP, no

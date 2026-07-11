@@ -1,17 +1,23 @@
 /**
  * Runtime asset access (S4, TECH §7): loads the pipeline's manifest.json, fetches
- * every GLB in the requested phase, caches parsed scenes + clips, hands out clones.
- * v0.1 has a single "boot" phase; phased/lazy loading arrives in v0.3.
+ * GLBs in phased waves (boot → early → themed:<biome>), caches parsed scenes +
+ * clips, hands out clones. First paint waits only on `boot`; `early` and the
+ * per-biome themed waves stream in later (idle-after-boot, level-up, chunk arrival).
  *
- * v0.5: animated agents (S16). The cache now keeps each model's `AnimationClip[]`
- * (previously dropped), and `cloneAnimated` clones via `SkeletonUtils.clone` so a
- * SkinnedMesh's bones rebind to the clone — a plain `scene.clone()` shares the
- * source skeleton and every instance would deform in lockstep.
+ * v0.5: animated agents (S16). The cache keeps each model's `AnimationClip[]`, and
+ * `cloneAnimated` clones via `SkeletonUtils.clone` so a SkinnedMesh's bones rebind
+ * to the clone — a plain `scene.clone()` shares the source skeleton and every
+ * instance would deform in lockstep.
+ *
+ * v0.6: phased/lazy loading. `loadBoot` fetches only `phase:'boot'`; `loadPhase`
+ * streams a later wave (idempotent), `ensure` force-loads one id on demand, and a
+ * `pending` promise map de-dupes concurrent loads of the same id (no double-fetch).
  */
 import { Mesh, type AnimationClip, type Group, type Object3D } from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { clone as cloneSkinned } from 'three/addons/utils/SkeletonUtils.js';
 import { bus } from '@/core/events';
+import type { AssetPhase } from '@/content/assetPhases';
 
 export interface ModelMeta {
   file: string;
@@ -19,6 +25,7 @@ export interface ModelMeta {
   aabb: { min: [number, number, number]; max: [number, number, number] };
   size: [number, number, number];
   clips: string[];
+  phase: AssetPhase;
 }
 
 interface ManifestJson {
@@ -42,26 +49,85 @@ function applyShadowFlags(obj: Object3D, cast: boolean, receive: boolean): void 
 
 export class AssetRegistry {
   private cache = new Map<string, CachedModel>();
+  private pending = new Map<string, Promise<CachedModel>>();
   private loader = new GLTFLoader();
+  private manifest: ManifestJson | null = null;
+  private loadedPhases = new Set<AssetPhase>();
+  private baseUrl = '';
 
+  /** Fetch the manifest + the boot wave. First paint waits on this alone. */
   async loadBoot(baseUrl: string): Promise<void> {
+    this.baseUrl = baseUrl;
     const res = await fetch(`${baseUrl}assets/models/manifest.json`);
     if (!res.ok) throw new Error(`manifest fetch failed: ${res.status}`);
-    const manifest = (await res.json()) as ManifestJson;
+    this.manifest = (await res.json()) as ManifestJson;
+    await this.loadPhase('boot');
+  }
 
-    const entries = Object.entries(manifest.models);
+  /** Load every model in a phase. Idempotent — an already-loaded phase resolves at once.
+   *  Per-model failures are logged and swallowed (never reject the whole wave, so a
+   *  fire-and-forget `void loadPhase()` can't raise an unhandled rejection); the phase
+   *  is only marked loaded when all its models actually landed, so a transient miss
+   *  can still be retried by a later trigger. */
+  async loadPhase(phase: AssetPhase): Promise<void> {
+    if (this.loadedPhases.has(phase)) return;
+    if (!this.manifest) throw new Error('[assets] loadPhase before loadBoot');
+    const entries = Object.entries(this.manifest.models).filter(([, m]) => m.phase === phase);
     let loaded = 0;
-    bus.emit('assets:progress', { phase: 'boot', progress: 0 });
-
+    let failed = 0;
+    bus.emit('assets:progress', { phase, progress: entries.length ? 0 : 1 });
     await Promise.all(
       entries.map(async ([id, meta]) => {
-        const gltf = await this.loader.loadAsync(`${baseUrl}${meta.file}`);
-        this.cache.set(id, { scene: gltf.scene, meta, clips: gltf.animations });
+        try {
+          await this.loadOne(id, meta);
+        } catch (err) {
+          failed++;
+          console.error(`[assets] failed to load ${id} (phase ${phase})`, err);
+        }
         loaded++;
-        bus.emit('assets:progress', { phase: 'boot', progress: loaded / entries.length });
+        bus.emit('assets:progress', { phase, progress: loaded / entries.length });
       }),
     );
-    bus.emit('assets:phaseLoaded', { phase: 'boot' });
+    if (failed === 0) this.loadedPhases.add(phase);
+    bus.emit('assets:phaseLoaded', { phase });
+  }
+
+  /** Force one id to load regardless of phase — the interactive-placement escape hatch. */
+  async ensure(id: string): Promise<void> {
+    if (this.cache.has(id)) return;
+    const meta = this.manifest?.models[id];
+    if (!meta) throw new Error(`[assets] unknown model id: ${id}`);
+    await this.loadOne(id, meta);
+  }
+
+  /** The phase a model belongs to, or null if the id is unknown / manifest not loaded. */
+  phaseOf(id: string): AssetPhase | null {
+    return this.manifest?.models[id]?.phase ?? null;
+  }
+
+  /** Load + cache one model, de-duping concurrent requests via the pending map. On
+   *  failure the pending promise is evicted (not cached forever) so a later `ensure`
+   *  can retry, and the rejection still propagates to this caller. */
+  private loadOne(id: string, meta: ModelMeta): Promise<CachedModel> {
+    const cached = this.cache.get(id);
+    if (cached) return Promise.resolve(cached);
+    let p = this.pending.get(id);
+    if (!p) {
+      p = this.loader
+        .loadAsync(`${this.baseUrl}${meta.file}`)
+        .then((gltf) => {
+          const entry: CachedModel = { scene: gltf.scene, meta, clips: gltf.animations };
+          this.cache.set(id, entry);
+          this.pending.delete(id);
+          return entry;
+        })
+        .catch((err: unknown) => {
+          this.pending.delete(id); // don't cache the dead promise — allow a retry
+          throw err;
+        });
+      this.pending.set(id, p);
+    }
+    return p;
   }
 
   has(id: string): boolean {

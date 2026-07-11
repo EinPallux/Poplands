@@ -112,6 +112,32 @@ describe('EconomySystem', () => {
     expect(eco.collect('p1', 1_120_000)).toBe(2); // 60_000 ms since the real anchor → 2, not 12
   });
 
+  it('Pop Post auto-collects ripe income within its radius, not beyond it', () => {
+    // a Pop Post at (5,5) with radius 5; a near stall at (2,2) (Chebyshev 2, in range)
+    // and a far stall at (13,13) (Chebyshev 9, out of range).
+    const near = island.place(STALL, 2, 2, 0, 'near');
+    eco.onPlaced(near);
+    const far = island.place(STALL, 13, 13, 0, 'far');
+    eco.onPlaced(far);
+    const post = island.place('income.pop-post', 5, 5, 0, 'post');
+    eco.onPlaced(post); // no income, so no accrual entry — harmless
+    now += 60_000; // +1 min → each stall has 2 ripe
+
+    const before = popsSignal.get();
+    const banked = eco.autoCollect();
+    expect(banked).toBe(2); // only the near stall
+    expect(popsSignal.get()).toBe(before + 2);
+    // the near stall was reset; the far one is still ripe (untouched)
+    expect(eco.ripeAmount('near')).toBeLessThan(1);
+    expect(eco.ripeAmount('far')).toBeCloseTo(2, 5);
+  });
+
+  it('with no Pop Post placed, autoCollect banks nothing', () => {
+    placeStall();
+    now += 60_000;
+    expect(eco.autoCollect()).toBe(0);
+  });
+
   it('preserves accrual across a move (accrual keyed by id, not re-seeded)', () => {
     const p = placeStall();
     now += 60000; // +2 ripe

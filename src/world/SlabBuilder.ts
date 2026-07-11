@@ -42,6 +42,9 @@ interface BandDef {
   colorBottom: Color;
   /** Grass bands re-tint per-point to the chunk biome under each outline point. */
   grass?: 'top' | 'side';
+  /** Rock bands re-tint per-point too (v0.6): 'shoulder'/'deep' use a flat tone,
+   *  'gradient' blends shoulder→deep down the band (preserving the vertical falloff). */
+  rock?: 'shoulder' | 'deep' | 'gradient';
 }
 
 const GRASS_TOP = new Color(slabColors.grassTop);
@@ -66,9 +69,9 @@ function defaultBands(depthScale = 1): BandDef[] {
     { top: lipOut, bottom: grassBottom, colorTop: GRASS_SIDE, colorBottom: GRASS_SIDE, grass: 'side' },
     { top: grassBottom, bottom: sandTop, colorTop: SAND, colorBottom: SAND }, // tuck under lip
     { top: sandTop, bottom: sandBottom, colorTop: SAND, colorBottom: SAND },
-    { top: sandBottom, bottom: rockTop, colorTop: ROCK, colorBottom: ROCK }, // rock shoulder
-    { top: rockTop, bottom: rockLow, colorTop: ROCK, colorBottom: ROCK_DEEP },
-    { top: rockLow, bottom: bottomRim, colorTop: ROCK_DEEP, colorBottom: ROCK_DEEP },
+    { top: sandBottom, bottom: rockTop, colorTop: ROCK, colorBottom: ROCK, rock: 'shoulder' }, // rock shoulder
+    { top: rockTop, bottom: rockLow, colorTop: ROCK, colorBottom: ROCK_DEEP, rock: 'gradient' },
+    { top: rockLow, bottom: bottomRim, colorTop: ROCK_DEEP, colorBottom: ROCK_DEEP, rock: 'deep' },
   ];
 }
 
@@ -95,6 +98,7 @@ export function buildSlabFromBlocks(
   const material = new MeshStandardMaterial({ vertexColors: true, roughness: 0.95, metalness: 0 });
   const themeAt = opts?.themeAt;
   const grassColor = new Color(); // scratch for per-point biome grass
+  const rockColor = new Color(); // scratch for per-point biome rock
 
   const positions: number[] = [];
   const normals: number[] = [];
@@ -147,6 +151,12 @@ export function buildSlabFromBlocks(
           const pal = THEMES[themeAt(Math.floor(p.x - p.nx * 0.5), Math.floor(p.z - p.nz * 0.5))];
           grassColor.setHex(band.grass === 'top' ? pal.grassTop : pal.grassSide);
           colors.push(grassColor.r, grassColor.g, grassColor.b, grassColor.r, grassColor.g, grassColor.b);
+        } else if (band.rock && themeAt) {
+          const pal = THEMES[themeAt(Math.floor(p.x - p.nx * 0.5), Math.floor(p.z - p.nz * 0.5))];
+          rockColor.setHex(band.rock === 'deep' ? pal.rockDeep : pal.rockShoulder);
+          colors.push(rockColor.r, rockColor.g, rockColor.b);
+          rockColor.setHex(band.rock === 'shoulder' ? pal.rockShoulder : pal.rockDeep);
+          colors.push(rockColor.r, rockColor.g, rockColor.b);
         } else {
           colors.push(
             band.colorTop.r,

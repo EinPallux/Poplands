@@ -45,7 +45,10 @@ must reach ✅ before 1.0.**
 | **Fantasy Town Assets** | ~14 (lantern, stalls, windmill, wall kit, fountain, watermill) | Kenney *Fantasy Town Kit* | CC0 | ✅ VERIFIED |
 | **Graveyard Assets** | 3 (bench, hay-bale, lightpost) | Kenney *Graveyard Kit* | CC0 | ✅ VERIFIED |
 | **Platformer Assets** | 1 (grass block) | Kenney *Platformer Kit* | CC0 | ✅ VERIFIED |
-| **Fantasy RTS Assets** | 5 (House, Hut, Small Farm, Business Building→Bakery, village-house) | **Quaternius** | CC0 | ✅ VERIFIED |
+| **Fantasy RTS Assets** | Homes, Bakery, Tiers 11–20 buildings (Town Center→Grand Assembly, Castle→Keep, Barracks→Tavern, **Wonder First Age→The Wonder**) | **Quaternius** | CC0 | ✅ VERIFIED |
+| **Castle Assets** | Tiers 14–15 (gate, banner, wall, tower, drawbridge) | Kenney *Castle Kit* | CC0 | ✅ VERIFIED |
+| **Arena Assets** | Tiers 17–18 (marble column, hero statue, trophy) | Kenney *Arena Kit* | CC0 | ✅ VERIFIED |
+| **Factory Assets** | Tier 19 (cog sculpture) | Kenney *Factory Kit* | CC0 | ✅ VERIFIED |
 
 ### Cleared for Tier 7+ (v0.4 content)
 Both **Pirate Assets** (Kenney *Pirate Kit*, CC0) and the Tier 7–8 Riverside packs

@@ -22,6 +22,7 @@ export interface SaveSettings {
   reducedMotion: boolean;
   timeOfDay: 'auto' | 'day' | 'dusk' | 'night'; // 'auto' = cycle; others freeze the sky
   fpsCap: 'off' | '30' | '60'; // frame-rate cap (S23)
+  uiScale: number; // 0.85 | 1 | 1.15 | 1.3 — UI zoom (S23 accessibility)
 }
 
 /** Per-income-building banked Pops + collection timestamp (S13). */
@@ -122,6 +123,7 @@ export const DEFAULT_SETTINGS: SaveSettings = {
   reducedMotion: false,
   timeOfDay: 'auto',
   fpsCap: 'off',
+  uiScale: 1,
 };
 
 const KEY = 'poplands.save';
@@ -338,19 +340,40 @@ export class SaveManager {
       clearTimeout(this.timer);
       this.timer = null;
     }
+    let payload: string;
+    try {
+      const save = this.collect();
+      save.lastSeenAt = Date.now();
+      payload = JSON.stringify(save);
+    } catch (err) {
+      console.error('[save] collect/serialize failed', err);
+      return;
+    }
+    // Rotate backups best-effort — a full backup SLOT must never block the real
+    // save (the main slot is load-bearing; backups are a luxury).
     try {
       const current = this.storage.getItem(KEY);
       if (current) {
-        // rotate backups: main → bak1 → bak2
         const bak1 = this.storage.getItem(BACKUP_KEYS[0]!);
         if (bak1) this.storage.setItem(BACKUP_KEYS[1]!, bak1);
         this.storage.setItem(BACKUP_KEYS[0]!, current);
       }
-      const save = this.collect();
-      save.lastSeenAt = Date.now();
-      this.storage.setItem(KEY, JSON.stringify(save));
-    } catch (err) {
-      console.error('[save] write failed', err);
+    } catch {
+      /* backup rotation failed (likely quota) — proceed to the main save anyway */
+    }
+    // The main save matters most. On quota, free the backups and retry once, so a
+    // nearly-full localStorage sacrifices recovery history rather than the save.
+    try {
+      this.storage.setItem(KEY, payload);
+    } catch {
+      try {
+        this.storage.removeItem(BACKUP_KEYS[1]!);
+        this.storage.removeItem(BACKUP_KEYS[0]!);
+        this.storage.setItem(KEY, payload);
+        console.warn('[save] storage full — dropped backups to keep the main save');
+      } catch (err) {
+        console.error('[save] write failed (storage full even after clearing backups)', err);
+      }
     }
   }
 

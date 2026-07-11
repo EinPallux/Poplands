@@ -72,8 +72,8 @@ describe('rewards & tiers', () => {
     expect(tierUnlockedAt(1)).toBeNull();
     expect(tierUnlockedAt(2)).toBeNull();
     expect(tierUnlockedAt(3)).toBe(3);
-    expect(tierUnlockedAt(10)).toBe(10); // MAX_TIER is now 10 (Tier 7–10 Riverside/Harbor)
-    expect(tierUnlockedAt(11)).toBeNull(); // beyond the top tier
+    expect(tierUnlockedAt(20)).toBe(20); // MAX_TIER is now 20 (Tiers 15–20 v0.7 "Grand Opening")
+    expect(tierUnlockedAt(21)).toBeNull(); // beyond the top tier
     expect(itemsUnlockedAt(3).length).toBeGreaterThan(0);
     expect(itemsUnlockedAt(1)).toEqual([]);
   });

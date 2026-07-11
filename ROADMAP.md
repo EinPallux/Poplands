@@ -5,9 +5,9 @@
 | | |
 |---|---|
 | **Document** | Roadmap — sequencing & milestone exit criteria |
-| **Status** | Planning — awaiting confirmation to start v0.1 |
-| **Version** | 0.1.0-plan |
-| **Last updated** | 2026-07-10 |
+| **Status** | v0.6 "Living Canvas" feature-complete — awaiting milestone review |
+| **Version** | 0.6.0 |
+| **Last updated** | 2026-07-11 |
 | **Related docs** | [GAME_DESIGN_DOCUMENT](GAME_DESIGN_DOCUMENT.md) · [TECHNICAL_ARCHITECTURE](TECHNICAL_ARCHITECTURE.md) · [SYSTEMS_BREAKDOWN](SYSTEMS_BREAKDOWN.md) (S-numbers below) · [CONTENT_PLAN](CONTENT_PLAN.md) |
 
 **Principles:** ship playable slices, never horizontal layers · juice lands *with* its feature, not in a "polish phase" · every milestone has hard exit criteria (perf + feel) · content tiers arrive with the systems that make them shine. Versions are sequenced, not dated — each milestone is roughly a focused development sprint; quality gates decide when it's done.
@@ -59,8 +59,10 @@
 **Playable result:** windows glow at dusk while Mo waters your flowers and a cat naps by the fountain — the screenshot that markets the game takes itself.
 **Exit criteria:** 12 wanderers + 6 Pals at 60 fps, 1-hour no-stuck soak (S16 DoD); move-in moment lands (external playtest "aww" rate — target: audible); night beauty shot passes ART §3.2; audio has zero machine-gun artifacts (S22 DoD).
 
-## v0.6 — "Living Canvas" (Breadth: themes, album, photo mode)
+## v0.6 — "Living Canvas" (Breadth: themes, album, photo mode) — ✅ FEATURE-COMPLETE (awaiting milestone review)
 *The mid/late game gets its content and the tools to love it.*
+
+**Status:** all scoped work landed — themed biomes (+ theme secrets, ambient emitters, themed slab rock), river/path auto-tiling, edge-anchor placement, Island Album, Photo mode, S23 settings/accessibility (reduced-motion, colour-blind cues, UI scale, fps cap), S4 themed/phased lazy-loading, and Tiers 11–14 content (62 items). Exit criteria: lazy tiers stream in background waves (boot 8.6→2.4 MB, verified error-free) ✓ · accessibility pass done (UI-scale + colour-blind icon/text cues, reduced-motion audit holds) ✓ · album/collection state is read-only over the save so it survives export/import ✓ · theme beauty shots — pending the user's ART review on real hardware. Content shipped ~62 of the ~105 planned Tier 9–14 items (the Grand-Opening capstone set is v0.7); postcards/Pals counts unchanged this milestone.
 
 **Build:** themed chunks (Sandbar/Spooky/Snowcap: ground, skirts, border blending, theme secrets & ambient emitters) · river/path auto-tiling upgrade · edge-anchor placement rule (docks, moored boats) · Island Album (collections, milestones surfacing, Pal/Islander bios) · Photo mode (free cam, UI hide, DoF "Diorama" toggle, PNG export) · S23 complete settings/accessibility (reduced motion, colorblind cues, UI scale, fps cap) · S4 `themed` lazy loading.
 **Content:** Tiers 9–14 (~105 items; Harbor/Spooky/Snowcap sets incl. Lighthouse, ghost Pal chain) · +15 postcards · +6 Pals (12 total).

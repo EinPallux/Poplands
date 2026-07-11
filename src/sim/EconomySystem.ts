@@ -15,6 +15,10 @@ import { popsSignal, stardustSignal } from '@/core/playerStore';
 import type { SaveEconomy } from '@/core/save';
 import { itemDef, type ItemDef } from '@/content/catalog';
 import type { IslandModel, Placement } from '@/world/IslandModel';
+import { minChebyshev } from '@/sim/predicates';
+
+/** How often a Pop Post sweeps its neighbourhood for ripe income (S13 convenience). */
+const AUTO_COLLECT_INTERVAL_S = 4;
 
 interface AccrualState {
   storedPops: number;
@@ -46,6 +50,7 @@ const ratePerMsOf = (def: ItemDef): number => (def.income ? def.income.ratePerMi
 export class EconomySystem {
   private accrual = new Map<string, AccrualState>();
   private tickAccum = 0;
+  private autoCollectAccum = 0;
 
   constructor(
     private readonly island: IslandModel,
@@ -199,9 +204,44 @@ export class EconomySystem {
     return total;
   }
 
+  /**
+   * Pop Post sweep (GDD §7.2): for each placed auto-collector, bank the ripe income
+   * of every income building whose footprint is within its `autoCollectRadius`
+   * (Chebyshev blocks). Same `collect()` path as a manual tap — coin arcs, wallet
+   * update, and backward-clock guard all apply. Returns total Pops banked.
+   */
+  autoCollect(now = this.now()): number {
+    const all = this.island.allPlacements();
+    const posts = all.filter((p) => (itemDef(p.def)?.autoCollectRadius ?? 0) > 0);
+    if (posts.length === 0) return 0;
+    const income = all.filter((p) => itemDef(p.def)?.income);
+    let total = 0;
+    const done = new Set<string>();
+    for (const post of posts) {
+      const radius = itemDef(post.def)!.autoCollectRadius!;
+      for (const b of income) {
+        if (done.has(b.id)) continue; // two overlapping posts never double-collect the same building
+        if (minChebyshev(post, b) <= radius) {
+          const got = this.collect(b.id, now);
+          if (got > 0) total += got;
+          done.add(b.id);
+        }
+      }
+    }
+    return total;
+  }
+
   // ——— tick: ripe edge + progress steps (read-only, ~2 Hz) ———
 
   tick(dt: number): void {
+    // Pop Post sweep (S13 convenience): banks ripe income near each auto-collector
+    // every few seconds. Runs on the shared economy tick, independent of the 2 Hz gate.
+    this.autoCollectAccum += dt;
+    if (this.autoCollectAccum >= AUTO_COLLECT_INTERVAL_S) {
+      this.autoCollectAccum = 0;
+      this.autoCollect();
+    }
+
     this.tickAccum += dt;
     if (this.tickAccum < 0.5) return;
     this.tickAccum = 0;

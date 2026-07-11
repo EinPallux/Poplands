@@ -20,6 +20,8 @@ import { PropRenderer } from '@/world/PropRenderer';
 import { AgentRenderer } from '@/world/AgentRenderer';
 import { GlowLayer } from '@/world/GlowLayer';
 import { AmbientLife } from '@/world/AmbientLife';
+import { ThemeAmbience } from '@/world/ThemeAmbience';
+import { AuroraLayer } from '@/world/AuroraLayer';
 import { ChunkArrival } from '@/world/ChunkArrival';
 import { LivelinessSystem } from '@/sim/LivelinessSystem';
 import { disposeObject } from '@/world/dispose';
@@ -51,14 +53,15 @@ import { palette } from '@/render/palette';
 import { tweens } from '@/core/tween';
 import { t } from '@/core/strings';
 import { bus } from '@/core/events';
-import { qualitySignal, timeOfDaySignal, fpsCapSignal } from '@/core/settingsStore';
+import { qualitySignal, timeOfDaySignal, fpsCapSignal, uiScaleSignal } from '@/core/settingsStore';
 import { popsSignal, stardustSignal, levelSignal, xpSignal } from '@/core/playerStore';
 import { effect } from '@/core/signals';
-import { footprintCenter } from '@/core/grid';
-import { itemDef } from '@/content/catalog';
+import { footprintCenter, type ChunkTheme } from '@/core/grid';
+import { itemDef, CATALOG } from '@/content/catalog';
+import type { AssetPhase } from '@/content/assetPhases';
 import { themeFor } from '@/content/themes';
 
-const VERSION = '0.2.0';
+const VERSION = '0.7.0';
 
 export class App {
   static async boot(canvas: HTMLCanvasElement, uiRoot: HTMLElement): Promise<void> {
@@ -96,9 +99,21 @@ export class App {
 
     // — assets, then state
     const assets = new AssetRegistry();
-    await assets.loadBoot(import.meta.env.BASE_URL);
+    await assets.loadBoot(import.meta.env.BASE_URL); // boot wave only: Tiers 1–4 + agents
     const state = new GameState();
     const island = state.island;
+
+    // Returning-save guard (S4 §6.1): boot carries only Tiers 1–4 + agents, so a
+    // veteran's Tier-5+/themed buildings would miss the cache. Await exactly the
+    // phases this save actually places, before projecting any of it — every
+    // downstream synchronous show()/rebuildAll keeps its throw-free contract.
+    const neededPhases = new Set<AssetPhase>();
+    for (const p of island.allPlacements()) {
+      const def = itemDef(p.def);
+      if (def) neededPhases.add(assets.phaseOf(def.model) ?? 'boot');
+    }
+    neededPhases.delete('boot');
+    if (neededPhases.size) await Promise.all([...neededPhases].map((ph) => assets.loadPhase(ph)));
 
     // — world visuals. Ground + base are held by ref so a chunk purchase can
     // rebuild them for the new island shape (the outline/slab re-trace organically).
@@ -120,7 +135,7 @@ export class App {
       world.add(groundGroup, baseGroup);
     };
 
-    const props = new PropRenderer(assets);
+    const props = new PropRenderer(assets, island); // island → auto-tiling neighbour lookup
     scene.add(props.group);
     props.rebuildAll(island.allPlacements());
 
@@ -132,10 +147,21 @@ export class App {
     scene.add(glow.group);
     const ambient = new AmbientLife(); // fireflies, shooting stars, balloons (S19)
     scene.add(ambient.group);
-    // a lively island quietly pays a little extra (S13 liveliness dividend)
+    const themeAmbience = new ThemeAmbience(island); // per-biome mist/bats, snow, sand (S20)
+    scene.add(themeAmbience.group);
+    const aurora = new AuroraLayer(island); // The Wonder's permanent aurora (S20 capstone)
+    scene.add(aurora.group);
+    // a lively island quietly pays a little extra (S13 liveliness dividend), lifted
+    // island-wide by each Grand Assembly Hall (+5% each, capped at +20%).
+    const livelinessBonus = (): number => {
+      let sum = 0;
+      for (const p of island.allPlacements()) sum += itemDef(p.def)?.livelinessBonus ?? 0;
+      return Math.min(sum, 0.2);
+    };
     const liveliness = new LivelinessSystem(
       state.economy,
       () => state.islanders.snapshot().residents.length + state.pals.snapshot().pals.length,
+      livelinessBonus,
     );
     {
       const c = island.center();
@@ -177,6 +203,22 @@ export class App {
       const c = footprintCenter(e.wx, e.wz, def.footprint, e.rot);
       particles.dustRing(c.x, c.z, Math.max(def.footprint.w, def.footprint.d) * 0.45);
       audio.plop();
+    });
+
+    // — The Wonder capstone (S20): a big one-time "you built it" moment. Only a real
+    // build fires it (`!silent`); load/rebuild re-shows the aurora quietly.
+    bus.on('item:placed', (e) => {
+      if (e.silent || e.def !== 'decor.the-wonder') return;
+      const def = itemDef(e.def)!;
+      const c = footprintCenter(e.wx, e.wz, def.footprint, e.rot);
+      for (let i = 0; i < 4; i++) particles.coinBurst(c.x, 1.6 + i * 0.4, c.z);
+      for (let i = 0; i < 8; i++) {
+        const a = (i / 8) * Math.PI * 2;
+        particles.sparkle(c.x + Math.cos(a) * 2.4, 1.4, c.z + Math.sin(a) * 2.4);
+      }
+      audio.chunkArrival(); // the whoosh→thunk→fanfare cue
+      rig.frameIsland(island.bounds()); // ease out to take in the whole island
+      showToast(t('toast.wonderBuilt'));
     });
 
     bus.on('item:removed', (e) => {
@@ -340,6 +382,20 @@ export class App {
     });
     const buildBar = new BuildBar(uiRoot);
     setTimeout(() => buildBar.setThumbnails(renderThumbnails(assets)), 80);
+    // — phased asset streaming (S4 §5): later waves fetch in the background so first
+    // paint waits only on boot. Each trigger is idempotent (loadPhase no-ops if done);
+    // thumbnails re-render in place as each wave lands (BuildBar.setThumbnails is additive).
+    const themeForTier = (tier: number): ChunkTheme | undefined =>
+      CATALOG.find((d) => d.tier === tier)?.theme;
+    bus.on('level:up', (e) => {
+      if (e.level >= 5) void assets.loadPhase('early'); // net if requestIdleCallback never fired (backgrounded tab)
+      const theme = e.unlockedTier != null ? themeForTier(e.unlockedTier) : undefined;
+      if (theme) void assets.loadPhase(`themed:${theme}`); // a biome tier just unlocked → fetch its set
+    });
+    bus.on('chunk:unlocked', (e) => {
+      if (e.theme !== 'meadow') void assets.loadPhase(`themed:${e.theme}`); // biome arriving → prefetch its props
+    });
+    bus.on('assets:phaseLoaded', () => buildBar.setThumbnails(renderThumbnails(assets)));
     const settings = new SettingsPanel(
       uiRoot,
       () => state.exportToFile(),
@@ -367,6 +423,13 @@ export class App {
         probe = null;
         applyQuality(QUALITY_PRESETS[pref]);
       }
+    });
+
+    // — UI scale (S23): drive one CSS custom property; chrome widgets opt in via
+    // scale(var(--ui-scale)) around their own anchor edge (never uiRoot itself, so
+    // world-anchored layers stay pixel-locked to their 3D anchors).
+    effect(() => {
+      document.documentElement.style.setProperty('--ui-scale', String(uiScaleSignal.get()));
     });
 
     // — loop
@@ -435,6 +498,8 @@ export class App {
       timeOfDay.update(dt); // advance dawn→day→dusk→night, tint lights/sky/fog
       glow.update(timeOfDay.nightFactor); // lantern halos fade in with the dark
       ambient.update(dt, timeOfDay.nightFactor); // fireflies, shooting stars, balloons
+      themeAmbience.update(dt, timeOfDay.nightFactor); // per-biome mist/bats/snow/sand
+      aurora.update(dt, timeOfDay.nightFactor); // The Wonder's aurora shimmer (S20)
       liveliness.update(dt); // periodic Pops dividend from the island's residents
     });
     // ambient audio bed (S22): a single spaced chirp/cricket — never a machine-gun
@@ -469,6 +534,17 @@ export class App {
     state.start();
     bus.emit('app:ready', undefined);
 
+    // — background-load the `early` wave (Tiers 5–14, no biome) once the boot frame
+    // is settled. A cozy player takes many minutes to reach Tier 5, so this ~5 MB
+    // wave has ample cover; `level:up` above is the safety net if idle never fires.
+    const whenIdle = (fn: () => void): void => {
+      const ric = (window as unknown as { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => void })
+        .requestIdleCallback;
+      if (ric) ric(fn, { timeout: 4000 });
+      else setTimeout(fn, 1500);
+    };
+    whenIdle(() => void assets.loadPhase('early'));
+
     // Dev handle for the debug console & headless verification (?debug=1 only).
     if (new URLSearchParams(window.location.search).get('debug') === '1') {
       (window as unknown as Record<string, unknown>)['__poplands'] = {
@@ -502,9 +578,21 @@ export class App {
         palRoster: () => state.pals.snapshot().pals.slice(),
         palMeshes: () => palAgents.count,
         clickPal: (id: string) => bus.emit('cmd:clickPal', { id }),
+        tileShapes: () =>
+          island
+            .allPlacements()
+            .filter((p) => itemDef(p.def)?.tileKit)
+            .map((p) => ({ wx: p.wx, wz: p.wz, shape: props.shapeOf(p.id) })),
         setTime: (mode: 'auto' | 'day' | 'dusk' | 'night') => timeOfDaySignal.set(mode),
         nightFactor: () => timeOfDay.nightFactor,
         glowCount: () => glow.count,
+        auroraCount: () => aurora.count,
+        themeAmbience: () => themeAmbience.counts,
+        // — S4 phased loading (headless verify): which models are cached now + on-demand phase loads
+        loadPhase: (phase: AssetPhase) => assets.loadPhase(phase),
+        phaseOf: (id: string) => assets.phaseOf(id),
+        loadedModels: () => CATALOG.filter((d) => assets.has(d.model)).length,
+        modelLoaded: (id: string) => assets.has(itemDef(id)?.model ?? id),
         /** Debug soak (non-persistent): grow the lattice to N chunks + rebuild once,
          *  skipping economy/arrival — for the draw/tri budget measurement only. */
         growTo: (n: number) => {
@@ -535,6 +623,7 @@ export class App {
             island.addChunk(best.cx, best.cz, themeFor(state.save.seed, best.cx, best.cz));
           }
           rebuildIsland();
+          themeAmbience.rescan(); // debug growth bypasses chunk:unlocked
           const b = island.bounds();
           lights.fitShadowsTo(b);
           rig.frameIsland(b);
@@ -546,6 +635,14 @@ export class App {
           if (!d || !island.canPlace(d, wx, wz, rot).ok) return false;
           const p = island.place(def, wx, wz, rot);
           bus.emit('item:placed', { id: p.id, def, wx, wz, rot });
+          return true;
+        },
+        /** Silent place via the LOAD path (props.show → pooled instantly, no pop-in
+         *  tween or events) — for the perf soak's steady-state draw measurement. */
+        placeSilent: (def: string, wx: number, wz: number, rot: 0 | 1 | 2 | 3 = 0) => {
+          const d = itemDef(def);
+          if (!d || !island.canPlace(d, wx, wz, rot).ok) return false;
+          props.show(island.place(def, wx, wz, rot));
           return true;
         },
         /** Screen pixel position of a block center (headless click targeting). */

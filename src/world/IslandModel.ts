@@ -25,7 +25,7 @@ export interface Placement {
   rot: Rot;
 }
 
-export type BlockReason = 'off-island' | 'occupied';
+export type BlockReason = 'off-island' | 'occupied' | 'needs-edge';
 
 interface CellOccupancy {
   prop?: PlacementId;
@@ -176,6 +176,7 @@ export class IslandModel {
   }
 
   canPlace(def: ItemDef, wx: number, wz: number, rot: Rot): { ok: true } | { ok: false; reason: BlockReason } {
+    if (def.edgeAnchor) return this.canPlaceEdgeAnchor(def, wx, wz, rot);
     for (const cell of footprintCells(wx, wz, def.footprint, rot)) {
       if (!this.hasBlock(cell.wx, cell.wz)) return { ok: false, reason: 'off-island' };
       const k = cellKey(cell.wx, cell.wz);
@@ -185,6 +186,35 @@ export class IslandModel {
         return { ok: false, reason: 'occupied' };
       }
     }
+    return { ok: true };
+  }
+
+  /** Edge-anchor items (S8) straddle the boundary on purpose: the footprint must
+   *  include ≥1 on-island cell (the anchor — solid ground, validated like a normal
+   *  placement) AND ≥1 off-island cell (the overhang). Off-island cells skip the
+   *  hasBlock requirement but still can't overlap an existing prop, so two docks
+   *  can't share an overhang (occupancy is checked for every cell, on or off). */
+  private canPlaceEdgeAnchor(
+    def: ItemDef,
+    wx: number,
+    wz: number,
+    rot: Rot,
+  ): { ok: true } | { ok: false; reason: BlockReason } {
+    const cells = footprintCells(wx, wz, def.footprint, rot);
+    let onIsland = 0;
+    for (const cell of cells) {
+      const k = cellKey(cell.wx, cell.wz);
+      if (this.hasBlock(cell.wx, cell.wz)) {
+        onIsland++;
+        if (!def.groundOverlay && this.blocked.has(k)) return { ok: false, reason: 'occupied' };
+      }
+      const occ = this.cells.get(k);
+      if (occ && (def.groundOverlay ? occ.ground !== undefined : occ.prop !== undefined)) {
+        return { ok: false, reason: 'occupied' };
+      }
+    }
+    if (onIsland === 0) return { ok: false, reason: 'off-island' };
+    if (onIsland === cells.length) return { ok: false, reason: 'needs-edge' };
     return { ok: true };
   }
 

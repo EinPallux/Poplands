@@ -15,9 +15,13 @@ import { getBounds } from '@gltf-transform/core';
 import { dedup, prune, weld } from '@gltf-transform/functions';
 import { mkdir, readFile, writeFile, stat, readdir, unlink } from 'node:fs/promises';
 import path from 'node:path';
+import { phaseFor, isUnclassified, type AssetPhase } from '@/content/assetPhases';
 
 const ROOT = path.resolve(new URL('..', import.meta.url).pathname);
 const OUT_DIR = path.join(ROOT, 'public/assets/models');
+
+/** Hard boot-payload ceiling (TECH §7 DoD: first paint waits on < 3 MB). */
+const BOOT_BUDGET_BYTES = 3 * 1024 * 1024;
 
 /** Animated agents (S16) must ship the clips the AgentRenderer drives, or the
  *  swap is caught here rather than as a silent T-pose at runtime. */
@@ -38,6 +42,7 @@ interface ModelMeta {
   clips: string[];
   materials: number;
   meshes: number;
+  phase: AssetPhase;
 }
 
 async function main(): Promise<void> {
@@ -89,7 +94,11 @@ async function main(): Promise<void> {
         clips,
         materials: doc.getRoot().listMaterials().length,
         meshes: doc.getRoot().listMeshes().length,
+        phase: phaseFor(id),
       };
+      if (isUnclassified(id)) {
+        console.warn(`⚠ ${id} — no catalog/override match; defaulted to 'boot'. Classify it in content/assetPhases.ts.`);
+      }
 
       console.log(
         `✓ ${id.padEnd(26)} ${(bytes / 1024).toFixed(0).padStart(5)} kB  size ${size
@@ -120,9 +129,37 @@ async function main(): Promise<void> {
     path.join(OUT_DIR, 'manifest.json'),
     JSON.stringify({ generatedAt: new Date().toISOString(), models: out }, null, 2),
   );
+
+  // Per-phase payload summary + boot budget gate (S4 / TECH §7).
+  const phaseBytes = new Map<AssetPhase, number>();
+  const phaseCount = new Map<AssetPhase, number>();
+  for (const m of Object.values(out)) {
+    phaseBytes.set(m.phase, (phaseBytes.get(m.phase) ?? 0) + m.bytes);
+    phaseCount.set(m.phase, (phaseCount.get(m.phase) ?? 0) + 1);
+  }
   console.log(
     `\n${Object.keys(out).length} models → public/assets/models (${(totalBytes / 1024 / 1024).toFixed(2)} MB total)`,
   );
+  for (const phase of [...phaseBytes.keys()].sort()) {
+    console.log(
+      `  ${phase.padEnd(16)} ${String(phaseCount.get(phase)).padStart(3)} models  ${(
+        (phaseBytes.get(phase) ?? 0) /
+        1024 /
+        1024
+      ).toFixed(2)} MB`,
+    );
+  }
+  const bootBytes = phaseBytes.get('boot') ?? 0;
+  if (bootBytes > BOOT_BUDGET_BYTES) {
+    console.error(
+      `\n✗ boot payload ${(bootBytes / 1024 / 1024).toFixed(2)} MB exceeds the ${(
+        BOOT_BUDGET_BYTES /
+        1024 /
+        1024
+      ).toFixed(0)} MB budget — move items to 'early'/'themed' in content/assetPhases.ts.`,
+    );
+    process.exit(1);
+  }
 }
 
 main().catch((err) => {

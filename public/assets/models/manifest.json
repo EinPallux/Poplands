@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-11T10:51:45.209Z",
+  "generatedAt": "2026-07-11T15:57:40.617Z",
   "models": {
     "ground.grass-block": {
       "file": "assets/models/ground.grass-block.glb",
@@ -23,7 +23,8 @@
       ],
       "clips": [],
       "materials": 1,
-      "meshes": 1
+      "meshes": 1,
+      "phase": "boot"
     },
     "ground.path-stone": {
       "file": "assets/models/ground.path-stone.glb",
@@ -47,7 +48,8 @@
       ],
       "clips": [],
       "materials": 3,
-      "meshes": 1
+      "meshes": 1,
+      "phase": "boot"
     },
     "nature.tree": {
       "file": "assets/models/nature.tree.glb",
@@ -71,7 +73,8 @@
       ],
       "clips": [],
       "materials": 2,
-      "meshes": 1
+      "meshes": 1,
+      "phase": "boot"
     },
     "nature.pine": {
       "file": "assets/models/nature.pine.glb",
@@ -95,7 +98,8 @@
       ],
       "clips": [],
       "materials": 2,
-      "meshes": 1
+      "meshes": 1,
+      "phase": "boot"
     },
     "nature.bush": {
       "file": "assets/models/nature.bush.glb",
@@ -119,7 +123,8 @@
       ],
       "clips": [],
       "materials": 1,
-      "meshes": 1
+      "meshes": 1,
+      "phase": "boot"
     },
     "nature.flower-purple": {
       "file": "assets/models/nature.flower-purple.glb",
@@ -143,7 +148,8 @@
       ],
       "clips": [],
       "materials": 2,
-      "meshes": 1
+      "meshes": 1,
+      "phase": "boot"
     },
     "nature.flower-red": {
       "file": "assets/models/nature.flower-red.glb",
@@ -167,7 +173,8 @@
       ],
       "clips": [],
       "materials": 2,
-      "meshes": 1
+      "meshes": 1,
+      "phase": "boot"
     },
     "nature.flower-yellow": {
       "file": "assets/models/nature.flower-yellow.glb",
@@ -191,7 +198,8 @@
       ],
       "clips": [],
       "materials": 2,
-      "meshes": 1
+      "meshes": 1,
+      "phase": "boot"
     },
     "nature.grass": {
       "file": "assets/models/nature.grass.glb",
@@ -215,7 +223,8 @@
       ],
       "clips": [],
       "materials": 1,
-      "meshes": 1
+      "meshes": 1,
+      "phase": "boot"
     },
     "nature.mushroom": {
       "file": "assets/models/nature.mushroom.glb",
@@ -239,7 +248,8 @@
       ],
       "clips": [],
       "materials": 2,
-      "meshes": 1
+      "meshes": 1,
+      "phase": "boot"
     },
     "nature.rock-small": {
       "file": "assets/models/nature.rock-small.glb",
@@ -263,7 +273,8 @@
       ],
       "clips": [],
       "materials": 2,
-      "meshes": 1
+      "meshes": 1,
+      "phase": "boot"
     },
     "deco.fence": {
       "file": "assets/models/deco.fence.glb",
@@ -287,7 +298,8 @@
       ],
       "clips": [],
       "materials": 2,
-      "meshes": 1
+      "meshes": 1,
+      "phase": "boot"
     },
     "deco.fence-gate": {
       "file": "assets/models/deco.fence-gate.glb",
@@ -311,7 +323,8 @@
       ],
       "clips": [],
       "materials": 3,
-      "meshes": 2
+      "meshes": 2,
+      "phase": "boot"
     },
     "deco.bench": {
       "file": "assets/models/deco.bench.glb",
@@ -335,7 +348,8 @@
       ],
       "clips": [],
       "materials": 1,
-      "meshes": 1
+      "meshes": 1,
+      "phase": "boot"
     },
     "deco.lantern": {
       "file": "assets/models/deco.lantern.glb",
@@ -359,7 +373,8 @@
       ],
       "clips": [],
       "materials": 1,
-      "meshes": 1
+      "meshes": 1,
+      "phase": "boot"
     },
     "building.stall": {
       "file": "assets/models/building.stall.glb",
@@ -383,7 +398,8 @@
       ],
       "clips": [],
       "materials": 1,
-      "meshes": 1
+      "meshes": 1,
+      "phase": "boot"
     },
     "building.windmill": {
       "file": "assets/models/building.windmill.glb",
@@ -407,7 +423,8 @@
       ],
       "clips": [],
       "materials": 1,
-      "meshes": 1
+      "meshes": 1,
+      "phase": "boot"
     },
     "building.windmill-blade": {
       "file": "assets/models/building.windmill-blade.glb",
@@ -431,7 +448,8 @@
       ],
       "clips": [],
       "materials": 1,
-      "meshes": 1
+      "meshes": 1,
+      "phase": "boot"
     },
     "kit.roof-point": {
       "file": "assets/models/kit.roof-point.glb",
@@ -455,7 +473,8 @@
       ],
       "clips": [],
       "materials": 1,
-      "meshes": 1
+      "meshes": 1,
+      "phase": "boot"
     },
     "kit.wall-wood": {
       "file": "assets/models/kit.wall-wood.glb",
@@ -479,7 +498,8 @@
       ],
       "clips": [],
       "materials": 1,
-      "meshes": 1
+      "meshes": 1,
+      "phase": "boot"
     },
     "kit.wall-wood-door": {
       "file": "assets/models/kit.wall-wood-door.glb",
@@ -503,7 +523,8 @@
       ],
       "clips": [],
       "materials": 1,
-      "meshes": 2
+      "meshes": 2,
+      "phase": "boot"
     },
     "kit.wall-wood-window": {
       "file": "assets/models/kit.wall-wood-window.glb",
@@ -527,7 +548,8 @@
       ],
       "clips": [],
       "materials": 1,
-      "meshes": 1
+      "meshes": 1,
+      "phase": "boot"
     },
     "building.house": {
       "file": "assets/models/building.house.glb",
@@ -551,7 +573,8 @@
       ],
       "clips": [],
       "materials": 2,
-      "meshes": 1
+      "meshes": 1,
+      "phase": "boot"
     },
     "nature.pebble": {
       "file": "assets/models/nature.pebble.glb",
@@ -575,7 +598,8 @@
       ],
       "clips": [],
       "materials": 1,
-      "meshes": 1
+      "meshes": 1,
+      "phase": "boot"
     },
     "nature.clover": {
       "file": "assets/models/nature.clover.glb",
@@ -599,7 +623,8 @@
       ],
       "clips": [],
       "materials": 1,
-      "meshes": 1
+      "meshes": 1,
+      "phase": "boot"
     },
     "nature.fern": {
       "file": "assets/models/nature.fern.glb",
@@ -623,7 +648,8 @@
       ],
       "clips": [],
       "materials": 1,
-      "meshes": 1
+      "meshes": 1,
+      "phase": "boot"
     },
     "ground.path-dirt": {
       "file": "assets/models/ground.path-dirt.glb",
@@ -647,7 +673,8 @@
       ],
       "clips": [],
       "materials": 3,
-      "meshes": 1
+      "meshes": 1,
+      "phase": "boot"
     },
     "deco.pot": {
       "file": "assets/models/deco.pot.glb",
@@ -671,7 +698,8 @@
       ],
       "clips": [],
       "materials": 2,
-      "meshes": 1
+      "meshes": 1,
+      "phase": "boot"
     },
     "deco.stump": {
       "file": "assets/models/deco.stump.glb",
@@ -695,7 +723,8 @@
       ],
       "clips": [],
       "materials": 2,
-      "meshes": 1
+      "meshes": 1,
+      "phase": "boot"
     },
     "deco.sign": {
       "file": "assets/models/deco.sign.glb",
@@ -719,7 +748,8 @@
       ],
       "clips": [],
       "materials": 3,
-      "meshes": 1
+      "meshes": 1,
+      "phase": "boot"
     },
     "deco.hedge": {
       "file": "assets/models/deco.hedge.glb",
@@ -743,7 +773,8 @@
       ],
       "clips": [],
       "materials": 1,
-      "meshes": 1
+      "meshes": 1,
+      "phase": "boot"
     },
     "building.hut": {
       "file": "assets/models/building.hut.glb",
@@ -767,7 +798,8 @@
       ],
       "clips": [],
       "materials": 2,
-      "meshes": 1
+      "meshes": 1,
+      "phase": "boot"
     },
     "crop.pumpkin": {
       "file": "assets/models/crop.pumpkin.glb",
@@ -791,7 +823,8 @@
       ],
       "clips": [],
       "materials": 2,
-      "meshes": 1
+      "meshes": 1,
+      "phase": "boot"
     },
     "crop.wheat": {
       "file": "assets/models/crop.wheat.glb",
@@ -815,7 +848,8 @@
       ],
       "clips": [],
       "materials": 2,
-      "meshes": 1
+      "meshes": 1,
+      "phase": "boot"
     },
     "crop.corn": {
       "file": "assets/models/crop.corn.glb",
@@ -839,7 +873,8 @@
       ],
       "clips": [],
       "materials": 2,
-      "meshes": 2
+      "meshes": 2,
+      "phase": "boot"
     },
     "crop.carrot": {
       "file": "assets/models/crop.carrot.glb",
@@ -863,7 +898,8 @@
       ],
       "clips": [],
       "materials": 2,
-      "meshes": 1
+      "meshes": 1,
+      "phase": "boot"
     },
     "nature.oak": {
       "file": "assets/models/nature.oak.glb",
@@ -887,7 +923,8 @@
       ],
       "clips": [],
       "materials": 2,
-      "meshes": 1
+      "meshes": 1,
+      "phase": "boot"
     },
     "nature.berry-bush": {
       "file": "assets/models/nature.berry-bush.glb",
@@ -911,7 +948,8 @@
       ],
       "clips": [],
       "materials": 1,
-      "meshes": 1
+      "meshes": 1,
+      "phase": "boot"
     },
     "deco.hay-bale": {
       "file": "assets/models/deco.hay-bale.glb",
@@ -935,7 +973,8 @@
       ],
       "clips": [],
       "materials": 1,
-      "meshes": 1
+      "meshes": 1,
+      "phase": "boot"
     },
     "deco.campfire": {
       "file": "assets/models/deco.campfire.glb",
@@ -959,7 +998,8 @@
       ],
       "clips": [],
       "materials": 2,
-      "meshes": 1
+      "meshes": 1,
+      "phase": "boot"
     },
     "deco.cart": {
       "file": "assets/models/deco.cart.glb",
@@ -983,7 +1023,8 @@
       ],
       "clips": [],
       "materials": 1,
-      "meshes": 2
+      "meshes": 2,
+      "phase": "boot"
     },
     "deco.log-pile": {
       "file": "assets/models/deco.log-pile.glb",
@@ -1007,7 +1048,8 @@
       ],
       "clips": [],
       "materials": 2,
-      "meshes": 1
+      "meshes": 1,
+      "phase": "boot"
     },
     "deco.fountain": {
       "file": "assets/models/deco.fountain.glb",
@@ -1031,7 +1073,8 @@
       ],
       "clips": [],
       "materials": 2,
-      "meshes": 2
+      "meshes": 2,
+      "phase": "early"
     },
     "deco.lightpost": {
       "file": "assets/models/deco.lightpost.glb",
@@ -1055,7 +1098,8 @@
       ],
       "clips": [],
       "materials": 1,
-      "meshes": 1
+      "meshes": 1,
+      "phase": "early"
     },
     "deco.banner": {
       "file": "assets/models/deco.banner.glb",
@@ -1079,7 +1123,8 @@
       ],
       "clips": [],
       "materials": 1,
-      "meshes": 1
+      "meshes": 1,
+      "phase": "early"
     },
     "deco.statue": {
       "file": "assets/models/deco.statue.glb",
@@ -1103,7 +1148,8 @@
       ],
       "clips": [],
       "materials": 2,
-      "meshes": 1
+      "meshes": 1,
+      "phase": "early"
     },
     "deco.bridge": {
       "file": "assets/models/deco.bridge.glb",
@@ -1127,7 +1173,8 @@
       ],
       "clips": [],
       "materials": 2,
-      "meshes": 1
+      "meshes": 1,
+      "phase": "early"
     },
     "building.farm": {
       "file": "assets/models/building.farm.glb",
@@ -1151,7 +1198,8 @@
       ],
       "clips": [],
       "materials": 7,
-      "meshes": 1
+      "meshes": 1,
+      "phase": "boot"
     },
     "building.market-stall": {
       "file": "assets/models/building.market-stall.glb",
@@ -1175,7 +1223,8 @@
       ],
       "clips": [],
       "materials": 1,
-      "meshes": 1
+      "meshes": 1,
+      "phase": "early"
     },
     "building.bakery": {
       "file": "assets/models/building.bakery.glb",
@@ -1199,7 +1248,8 @@
       ],
       "clips": [],
       "materials": 7,
-      "meshes": 1
+      "meshes": 1,
+      "phase": "early"
     },
     "building.village-house": {
       "file": "assets/models/building.village-house.glb",
@@ -1223,7 +1273,8 @@
       ],
       "clips": [],
       "materials": 5,
-      "meshes": 1
+      "meshes": 1,
+      "phase": "early"
     },
     "building.watermill": {
       "file": "assets/models/building.watermill.glb",
@@ -1247,7 +1298,8 @@
       ],
       "clips": [],
       "materials": 1,
-      "meshes": 1
+      "meshes": 1,
+      "phase": "early"
     },
     "building.fish-market": {
       "file": "assets/models/building.fish-market.glb",
@@ -1271,11 +1323,12 @@
       ],
       "clips": [],
       "materials": 4,
-      "meshes": 1
+      "meshes": 1,
+      "phase": "early"
     },
     "ground.river": {
       "file": "assets/models/ground.river.glb",
-      "bytes": 5240,
+      "bytes": 7756,
       "aabb": {
         "min": [
           -0.5,
@@ -1284,18 +1337,19 @@
         ],
         "max": [
           0.5,
-          -0.05,
+          -0.04999999999999999,
           0.5
         ]
       },
       "size": [
         1,
-        0.05000000074505806,
+        0.050000000745058074,
         1
       ],
       "clips": [],
       "materials": 4,
-      "meshes": 1
+      "meshes": 1,
+      "phase": "early"
     },
     "deco.bridge-wood": {
       "file": "assets/models/deco.bridge-wood.glb",
@@ -1319,7 +1373,8 @@
       ],
       "clips": [],
       "materials": 3,
-      "meshes": 1
+      "meshes": 1,
+      "phase": "early"
     },
     "nature.lily": {
       "file": "assets/models/nature.lily.glb",
@@ -1343,7 +1398,8 @@
       ],
       "clips": [],
       "materials": 3,
-      "meshes": 1
+      "meshes": 1,
+      "phase": "early"
     },
     "nature.reeds": {
       "file": "assets/models/nature.reeds.glb",
@@ -1367,7 +1423,8 @@
       ],
       "clips": [],
       "materials": 1,
-      "meshes": 1
+      "meshes": 1,
+      "phase": "early"
     },
     "building.cider-mill": {
       "file": "assets/models/building.cider-mill.glb",
@@ -1391,7 +1448,8 @@
       ],
       "clips": [],
       "materials": 1,
-      "meshes": 1
+      "meshes": 1,
+      "phase": "early"
     },
     "building.fishing-hut": {
       "file": "assets/models/building.fishing-hut.glb",
@@ -1415,7 +1473,8 @@
       ],
       "clips": [],
       "materials": 2,
-      "meshes": 1
+      "meshes": 1,
+      "phase": "early"
     },
     "deco.canoe": {
       "file": "assets/models/deco.canoe.glb",
@@ -1439,7 +1498,8 @@
       ],
       "clips": [],
       "materials": 2,
-      "meshes": 1
+      "meshes": 1,
+      "phase": "early"
     },
     "building.harbor-market": {
       "file": "assets/models/building.harbor-market.glb",
@@ -1463,7 +1523,8 @@
       ],
       "clips": [],
       "materials": 9,
-      "meshes": 1
+      "meshes": 1,
+      "phase": "early"
     },
     "deco.dock": {
       "file": "assets/models/deco.dock.glb",
@@ -1487,7 +1548,8 @@
       ],
       "clips": [],
       "materials": 1,
-      "meshes": 1
+      "meshes": 1,
+      "phase": "early"
     },
     "nature.palm": {
       "file": "assets/models/nature.palm.glb",
@@ -1511,7 +1573,8 @@
       ],
       "clips": [],
       "materials": 1,
-      "meshes": 1
+      "meshes": 1,
+      "phase": "early"
     },
     "nature.beach-rock": {
       "file": "assets/models/nature.beach-rock.glb",
@@ -1535,7 +1598,8 @@
       ],
       "clips": [],
       "materials": 1,
-      "meshes": 1
+      "meshes": 1,
+      "phase": "early"
     },
     "deco.crate": {
       "file": "assets/models/deco.crate.glb",
@@ -1559,7 +1623,8 @@
       ],
       "clips": [],
       "materials": 1,
-      "meshes": 1
+      "meshes": 1,
+      "phase": "early"
     },
     "deco.barrel": {
       "file": "assets/models/deco.barrel.glb",
@@ -1583,7 +1648,8 @@
       ],
       "clips": [],
       "materials": 1,
-      "meshes": 1
+      "meshes": 1,
+      "phase": "early"
     },
     "building.lighthouse": {
       "file": "assets/models/building.lighthouse.glb",
@@ -1607,7 +1673,8 @@
       ],
       "clips": [],
       "materials": 1,
-      "meshes": 1
+      "meshes": 1,
+      "phase": "early"
     },
     "deco.sloop": {
       "file": "assets/models/deco.sloop.glb",
@@ -1631,7 +1698,8 @@
       ],
       "clips": [],
       "materials": 1,
-      "meshes": 3
+      "meshes": 3,
+      "phase": "early"
     },
     "deco.pennant": {
       "file": "assets/models/deco.pennant.glb",
@@ -1655,7 +1723,8 @@
       ],
       "clips": [],
       "materials": 1,
-      "meshes": 1
+      "meshes": 1,
+      "phase": "early"
     },
     "npc.a": {
       "file": "assets/models/npc.a.glb",
@@ -1712,7 +1781,8 @@
         "wheelchair-move-right"
       ],
       "materials": 1,
-      "meshes": 2
+      "meshes": 2,
+      "phase": "boot"
     },
     "npc.b": {
       "file": "assets/models/npc.b.glb",
@@ -1769,7 +1839,8 @@
         "wheelchair-move-right"
       ],
       "materials": 1,
-      "meshes": 2
+      "meshes": 2,
+      "phase": "boot"
     },
     "npc.c": {
       "file": "assets/models/npc.c.glb",
@@ -1826,7 +1897,8 @@
         "wheelchair-move-right"
       ],
       "materials": 1,
-      "meshes": 2
+      "meshes": 2,
+      "phase": "boot"
     },
     "npc.d": {
       "file": "assets/models/npc.d.glb",
@@ -1883,7 +1955,8 @@
         "wheelchair-move-right"
       ],
       "materials": 1,
-      "meshes": 2
+      "meshes": 2,
+      "phase": "boot"
     },
     "npc.e": {
       "file": "assets/models/npc.e.glb",
@@ -1940,7 +2013,8 @@
         "wheelchair-move-right"
       ],
       "materials": 1,
-      "meshes": 2
+      "meshes": 2,
+      "phase": "boot"
     },
     "npc.f": {
       "file": "assets/models/npc.f.glb",
@@ -1997,7 +2071,8 @@
         "wheelchair-move-right"
       ],
       "materials": 1,
-      "meshes": 2
+      "meshes": 2,
+      "phase": "boot"
     },
     "npc.g": {
       "file": "assets/models/npc.g.glb",
@@ -2054,7 +2129,8 @@
         "wheelchair-move-right"
       ],
       "materials": 1,
-      "meshes": 2
+      "meshes": 2,
+      "phase": "boot"
     },
     "npc.h": {
       "file": "assets/models/npc.h.glb",
@@ -2111,7 +2187,8 @@
         "wheelchair-move-right"
       ],
       "materials": 1,
-      "meshes": 2
+      "meshes": 2,
+      "phase": "boot"
     },
     "npc.i": {
       "file": "assets/models/npc.i.glb",
@@ -2168,7 +2245,8 @@
         "wheelchair-move-right"
       ],
       "materials": 1,
-      "meshes": 2
+      "meshes": 2,
+      "phase": "boot"
     },
     "npc.j": {
       "file": "assets/models/npc.j.glb",
@@ -2225,7 +2303,8 @@
         "wheelchair-move-right"
       ],
       "materials": 1,
-      "meshes": 2
+      "meshes": 2,
+      "phase": "boot"
     },
     "npc.k": {
       "file": "assets/models/npc.k.glb",
@@ -2282,7 +2361,8 @@
         "wheelchair-move-right"
       ],
       "materials": 1,
-      "meshes": 2
+      "meshes": 2,
+      "phase": "boot"
     },
     "npc.l": {
       "file": "assets/models/npc.l.glb",
@@ -2339,7 +2419,8 @@
         "wheelchair-move-right"
       ],
       "materials": 1,
-      "meshes": 2
+      "meshes": 2,
+      "phase": "boot"
     },
     "pal.cat": {
       "file": "assets/models/pal.cat.glb",
@@ -2372,7 +2453,8 @@
         "gesture-negative"
       ],
       "materials": 1,
-      "meshes": 7
+      "meshes": 7,
+      "phase": "boot"
     },
     "pal.dog": {
       "file": "assets/models/pal.dog.glb",
@@ -2405,7 +2487,8 @@
         "gesture-negative"
       ],
       "materials": 1,
-      "meshes": 5
+      "meshes": 5,
+      "phase": "boot"
     },
     "pal.bunny": {
       "file": "assets/models/pal.bunny.glb",
@@ -2438,7 +2521,8 @@
         "gesture-negative"
       ],
       "materials": 1,
-      "meshes": 5
+      "meshes": 5,
+      "phase": "boot"
     },
     "pal.chick": {
       "file": "assets/models/pal.chick.glb",
@@ -2471,7 +2555,8 @@
         "gesture-negative"
       ],
       "materials": 1,
-      "meshes": 5
+      "meshes": 5,
+      "phase": "boot"
     },
     "pal.pig": {
       "file": "assets/models/pal.pig.glb",
@@ -2504,7 +2589,8 @@
         "gesture-negative"
       ],
       "materials": 1,
-      "meshes": 6
+      "meshes": 6,
+      "phase": "boot"
     },
     "pal.cow": {
       "file": "assets/models/pal.cow.glb",
@@ -2537,7 +2623,2187 @@
         "gesture-negative"
       ],
       "materials": 1,
-      "meshes": 6
+      "meshes": 6,
+      "phase": "boot"
+    },
+    "nature.palm-bend": {
+      "file": "assets/models/nature.palm-bend.glb",
+      "bytes": 24156,
+      "aabb": {
+        "min": [
+          -2.173631191253662,
+          0,
+          -1.6080231666564941
+        ],
+        "max": [
+          0.7067366242408752,
+          4.251302719116211,
+          1.608022928237915
+        ]
+      },
+      "size": [
+        2.8803678154945374,
+        4.251302719116211,
+        3.216046094894409
+      ],
+      "clips": [],
+      "materials": 1,
+      "meshes": 1,
+      "phase": "themed:sandbar"
+    },
+    "nature.palm-coconut": {
+      "file": "assets/models/nature.palm-coconut.glb",
+      "bytes": 31204,
+      "aabb": {
+        "min": [
+          -1.6080230474472046,
+          0,
+          -1.608022928237915
+        ],
+        "max": [
+          1.6080230474472046,
+          4.212889671325684,
+          1.608022928237915
+        ]
+      },
+      "size": [
+        3.216046094894409,
+        4.212889671325684,
+        3.21604585647583
+      ],
+      "clips": [],
+      "materials": 1,
+      "meshes": 1,
+      "phase": "themed:sandbar"
+    },
+    "nature.beach-grass": {
+      "file": "assets/models/nature.beach-grass.glb",
+      "bytes": 26340,
+      "aabb": {
+        "min": [
+          -0.6494304537773132,
+          0,
+          -0.6417300701141357
+        ],
+        "max": [
+          0.6633569002151489,
+          0.4709194302558899,
+          0.6291176080703735
+        ]
+      },
+      "size": [
+        1.3127873539924622,
+        0.4709194302558899,
+        1.2708476781845093
+      ],
+      "clips": [],
+      "materials": 1,
+      "meshes": 1,
+      "phase": "themed:sandbar"
+    },
+    "nature.sea-boulder": {
+      "file": "assets/models/nature.sea-boulder.glb",
+      "bytes": 34916,
+      "aabb": {
+        "min": [
+          -2.6955723762512207,
+          0,
+          -2.2530555725097656
+        ],
+        "max": [
+          2.417023181915283,
+          3.2119462490081787,
+          2.133376121520996
+        ]
+      },
+      "size": [
+        5.112595558166504,
+        3.2119462490081787,
+        4.386431694030762
+      ],
+      "clips": [],
+      "materials": 1,
+      "meshes": 1,
+      "phase": "themed:sandbar"
+    },
+    "nature.tropical-brush": {
+      "file": "assets/models/nature.tropical-brush.glb",
+      "bytes": 23696,
+      "aabb": {
+        "min": [
+          -2.636533260345459,
+          0,
+          -2.056110382080078
+        ],
+        "max": [
+          2.636533260345459,
+          0.5639462471008301,
+          2.056110382080078
+        ]
+      },
+      "size": [
+        5.273066520690918,
+        0.5639462471008301,
+        4.112220764160156
+      ],
+      "clips": [],
+      "materials": 1,
+      "meshes": 1,
+      "phase": "themed:sandbar"
+    },
+    "deco.rowboat": {
+      "file": "assets/models/deco.rowboat.glb",
+      "bytes": 20128,
+      "aabb": {
+        "min": [
+          -1.3742690086364342,
+          -6.767919641759458e-17,
+          -1.1860731840133667
+        ],
+        "max": [
+          1.374269008636515,
+          0.8476955137593079,
+          1.1860731840133667
+        ]
+      },
+      "size": [
+        2.748538017272949,
+        0.847695513759308,
+        2.3721463680267334
+      ],
+      "clips": [],
+      "materials": 1,
+      "meshes": 2,
+      "phase": "themed:sandbar"
+    },
+    "deco.jetty": {
+      "file": "assets/models/deco.jetty.glb",
+      "bytes": 29176,
+      "aabb": {
+        "min": [
+          -0.949999988079071,
+          0,
+          -1.2559173107147217
+        ],
+        "max": [
+          0.949999988079071,
+          1.3123000860214233,
+          1.2559173107147217
+        ]
+      },
+      "size": [
+        1.899999976158142,
+        1.3123000860214233,
+        2.5118346214294434
+      ],
+      "clips": [],
+      "materials": 1,
+      "meshes": 1,
+      "phase": "themed:sandbar"
+    },
+    "deco.raft": {
+      "file": "assets/models/deco.raft.glb",
+      "bytes": 14744,
+      "aabb": {
+        "min": [
+          -0.9469393491744995,
+          0,
+          -1.3511857986450195
+        ],
+        "max": [
+          0.9469393491744995,
+          0.42799997329711914,
+          1.35118567943573
+        ]
+      },
+      "size": [
+        1.893878698348999,
+        0.42799997329711914,
+        2.7023714780807495
+      ],
+      "clips": [],
+      "materials": 1,
+      "meshes": 1,
+      "phase": "themed:sandbar"
+    },
+    "deco.treasure-chest": {
+      "file": "assets/models/deco.treasure-chest.glb",
+      "bytes": 27020,
+      "aabb": {
+        "min": [
+          -0.6374999975780491,
+          0,
+          -0.6374999976158142
+        ],
+        "max": [
+          0.637499988079071,
+          1.147499988079071,
+          0.637499988079071
+        ]
+      },
+      "size": [
+        1.2749999856571201,
+        1.147499988079071,
+        1.2749999856948853
+      ],
+      "clips": [
+        "open",
+        "close",
+        "open-close"
+      ],
+      "materials": 1,
+      "meshes": 2,
+      "phase": "themed:sandbar"
+    },
+    "deco.bottle-crate": {
+      "file": "assets/models/deco.bottle-crate.glb",
+      "bytes": 36068,
+      "aabb": {
+        "min": [
+          -0.5389999747276306,
+          0,
+          -0.6545000076293945
+        ],
+        "max": [
+          0.5389999747276306,
+          1.0568609237670898,
+          0.6545000076293945
+        ]
+      },
+      "size": [
+        1.0779999494552612,
+        1.0568609237670898,
+        1.309000015258789
+      ],
+      "clips": [],
+      "materials": 1,
+      "meshes": 1,
+      "phase": "themed:sandbar"
+    },
+    "deco.cannon": {
+      "file": "assets/models/deco.cannon.glb",
+      "bytes": 22228,
+      "aabb": {
+        "min": [
+          -0.7011874914169312,
+          0,
+          -0.9343428611755371
+        ],
+        "max": [
+          0.7011874914169312,
+          1.0546623468399048,
+          0.9906570911407471
+        ]
+      },
+      "size": [
+        1.4023749828338623,
+        1.0546623468399048,
+        1.9249999523162842
+      ],
+      "clips": [],
+      "materials": 1,
+      "meshes": 3,
+      "phase": "themed:sandbar"
+    },
+    "deco.harbor-flag": {
+      "file": "assets/models/deco.harbor-flag.glb",
+      "bytes": 17980,
+      "aabb": {
+        "min": [
+          -0.19945412874221802,
+          0,
+          -0.19945409893989563
+        ],
+        "max": [
+          1.1373001337051392,
+          2.0968432426452637,
+          0.19945411384105682
+        ]
+      },
+      "size": [
+        1.3367542624473572,
+        2.0968432426452637,
+        0.39890821278095245
+      ],
+      "clips": [],
+      "materials": 1,
+      "meshes": 1,
+      "phase": "themed:sandbar"
+    },
+    "deco.oar": {
+      "file": "assets/models/deco.oar.glb",
+      "bytes": 13912,
+      "aabb": {
+        "min": [
+          -0.32891544699668884,
+          0,
+          -0.1037655919790268
+        ],
+        "max": [
+          0.32891544699668884,
+          2.3491265773773193,
+          0.1037655919790268
+        ]
+      },
+      "size": [
+        0.6578308939933777,
+        2.3491265773773193,
+        0.2075311839580536
+      ],
+      "clips": [],
+      "materials": 1,
+      "meshes": 1,
+      "phase": "themed:sandbar"
+    },
+    "deco.shipwreck": {
+      "file": "assets/models/deco.shipwreck.glb",
+      "bytes": 91840,
+      "aabb": {
+        "min": [
+          -2.4000000953674316,
+          0,
+          -5.300000190734863
+        ],
+        "max": [
+          2.4000000953674316,
+          9.963520050048828,
+          5.299999713897705
+        ]
+      },
+      "size": [
+        4.800000190734863,
+        9.963520050048828,
+        10.599999904632568
+      ],
+      "clips": [],
+      "materials": 1,
+      "meshes": 7,
+      "phase": "themed:sandbar"
+    },
+    "building.boathouse": {
+      "file": "assets/models/building.boathouse.glb",
+      "bytes": 28964,
+      "aabb": {
+        "min": [
+          -1.544030785560608,
+          0,
+          -1.6172595024108887
+        ],
+        "max": [
+          1.5414282083511353,
+          3.4000000953674316,
+          1.6165567636489868
+        ]
+      },
+      "size": [
+        3.085458993911743,
+        3.4000000953674316,
+        3.2338162660598755
+      ],
+      "clips": [],
+      "materials": 1,
+      "meshes": 1,
+      "phase": "themed:sandbar"
+    },
+    "nature.dead-pine": {
+      "file": "assets/models/nature.dead-pine.glb",
+      "bytes": 28352,
+      "aabb": {
+        "min": [
+          -0.5710874795913696,
+          -0.10000000149011612,
+          -0.6672786474227905
+        ],
+        "max": [
+          0.6069124937057495,
+          2.0081405639648438,
+          0.6672786474227905
+        ]
+      },
+      "size": [
+        1.1779999732971191,
+        2.10814056545496,
+        1.334557294845581
+      ],
+      "clips": [],
+      "materials": 1,
+      "meshes": 1,
+      "phase": "themed:spooky"
+    },
+    "nature.dead-trunk": {
+      "file": "assets/models/nature.dead-trunk.glb",
+      "bytes": 23224,
+      "aabb": {
+        "min": [
+          -0.2696467339992523,
+          0,
+          -0.2696467339992523
+        ],
+        "max": [
+          0.2696467339992523,
+          1,
+          0.27122628688812256
+        ]
+      },
+      "size": [
+        0.5392934679985046,
+        1,
+        0.5408730208873749
+      ],
+      "clips": [],
+      "materials": 1,
+      "meshes": 1,
+      "phase": "themed:spooky"
+    },
+    "deco.gravestone-round": {
+      "file": "assets/models/deco.gravestone-round.glb",
+      "bytes": 20256,
+      "aabb": {
+        "min": [
+          -0.22499999403953552,
+          0,
+          -0.125
+        ],
+        "max": [
+          0.22499999403953552,
+          0.574999988079071,
+          0.125
+        ]
+      },
+      "size": [
+        0.44999998807907104,
+        0.574999988079071,
+        0.25
+      ],
+      "clips": [],
+      "materials": 1,
+      "meshes": 1,
+      "phase": "themed:spooky"
+    },
+    "deco.gravestone-cross": {
+      "file": "assets/models/deco.gravestone-cross.glb",
+      "bytes": 21444,
+      "aabb": {
+        "min": [
+          -0.22499999403953552,
+          0,
+          -0.16499999165534973
+        ],
+        "max": [
+          0.22499999403953552,
+          0.9149956107139587,
+          0.16499999165534973
+        ]
+      },
+      "size": [
+        0.44999998807907104,
+        0.9149956107139587,
+        0.32999998331069946
+      ],
+      "clips": [],
+      "materials": 1,
+      "meshes": 1,
+      "phase": "themed:spooky"
+    },
+    "deco.gravestone-decorative": {
+      "file": "assets/models/deco.gravestone-decorative.glb",
+      "bytes": 17444,
+      "aabb": {
+        "min": [
+          -0.25503969192504883,
+          0,
+          -0.125
+        ],
+        "max": [
+          0.25503969192504883,
+          0.5942412614822388,
+          0.125
+        ]
+      },
+      "size": [
+        0.5100793838500977,
+        0.5942412614822388,
+        0.25
+      ],
+      "clips": [],
+      "materials": 1,
+      "meshes": 1,
+      "phase": "themed:spooky"
+    },
+    "deco.gravestone-broken": {
+      "file": "assets/models/deco.gravestone-broken.glb",
+      "bytes": 18408,
+      "aabb": {
+        "min": [
+          -0.22499999403953552,
+          0,
+          -0.125
+        ],
+        "max": [
+          0.2840254008769989,
+          0.34108099341392517,
+          0.2665451765060425
+        ]
+      },
+      "size": [
+        0.5090253949165344,
+        0.34108099341392517,
+        0.3915451765060425
+      ],
+      "clips": [],
+      "materials": 1,
+      "meshes": 1,
+      "phase": "themed:spooky"
+    },
+    "deco.obelisk": {
+      "file": "assets/models/deco.obelisk.glb",
+      "bytes": 15816,
+      "aabb": {
+        "min": [
+          -0.17499999701976776,
+          0,
+          -0.17499999701976776
+        ],
+        "max": [
+          0.17499999701976776,
+          1.0120000839233398,
+          0.17499999701976776
+        ]
+      },
+      "size": [
+        0.3499999940395355,
+        1.0120000839233398,
+        0.3499999940395355
+      ],
+      "clips": [],
+      "materials": 1,
+      "meshes": 1,
+      "phase": "themed:spooky"
+    },
+    "deco.wooden-cross": {
+      "file": "assets/models/deco.wooden-cross.glb",
+      "bytes": 18284,
+      "aabb": {
+        "min": [
+          -0.2150000035762787,
+          0,
+          -0.2150000035762787
+        ],
+        "max": [
+          0.2150000035762787,
+          1.044800043106079,
+          0.2150000035762787
+        ]
+      },
+      "size": [
+        0.4300000071525574,
+        1.044800043106079,
+        0.4300000071525574
+      ],
+      "clips": [],
+      "materials": 1,
+      "meshes": 1,
+      "phase": "themed:spooky"
+    },
+    "deco.coffin": {
+      "file": "assets/models/deco.coffin.glb",
+      "bytes": 24096,
+      "aabb": {
+        "min": [
+          -0.2869037389755249,
+          0,
+          -0.41891196370124817
+        ],
+        "max": [
+          0.2869037389755249,
+          0.325,
+          0.41891196370124817
+        ]
+      },
+      "size": [
+        0.5738074779510498,
+        0.325,
+        0.8378239274024963
+      ],
+      "clips": [],
+      "materials": 1,
+      "meshes": 2,
+      "phase": "themed:spooky"
+    },
+    "deco.jack-o-lantern": {
+      "file": "assets/models/deco.jack-o-lantern.glb",
+      "bytes": 27600,
+      "aabb": {
+        "min": [
+          -0.18874600529670715,
+          0,
+          -0.18874600529670715
+        ],
+        "max": [
+          0.18874600529670715,
+          0.3211478590965271,
+          0.18874600529670715
+        ]
+      },
+      "size": [
+        0.3774920105934143,
+        0.3211478590965271,
+        0.3774920105934143
+      ],
+      "clips": [],
+      "materials": 1,
+      "meshes": 1,
+      "phase": "themed:spooky"
+    },
+    "deco.candles": {
+      "file": "assets/models/deco.candles.glb",
+      "bytes": 18264,
+      "aabb": {
+        "min": [
+          -0.12485615909099579,
+          0,
+          -0.13051964342594147
+        ],
+        "max": [
+          0.13033583760261536,
+          0.2001657485961914,
+          0.13622049987316132
+        ]
+      },
+      "size": [
+        0.25519199669361115,
+        0.2001657485961914,
+        0.2667401432991028
+      ],
+      "clips": [],
+      "materials": 1,
+      "meshes": 1,
+      "phase": "themed:spooky"
+    },
+    "deco.brazier": {
+      "file": "assets/models/deco.brazier.glb",
+      "bytes": 22164,
+      "aabb": {
+        "min": [
+          -0.2082788646221161,
+          0,
+          -0.20827889442443848
+        ],
+        "max": [
+          0.2082788646221161,
+          0.16779901087284088,
+          0.20827889442443848
+        ]
+      },
+      "size": [
+        0.4165577292442322,
+        0.16779901087284088,
+        0.41655778884887695
+      ],
+      "clips": [],
+      "materials": 1,
+      "meshes": 1,
+      "phase": "themed:spooky"
+    },
+    "deco.spirit-lantern": {
+      "file": "assets/models/deco.spirit-lantern.glb",
+      "bytes": 21348,
+      "aabb": {
+        "min": [
+          -0.12000000476837158,
+          0,
+          -0.12000000476837158
+        ],
+        "max": [
+          0.12000000476837158,
+          0.3876776695251465,
+          0.12000000476837158
+        ]
+      },
+      "size": [
+        0.24000000953674316,
+        0.3876776695251465,
+        0.24000000953674316
+      ],
+      "clips": [],
+      "materials": 1,
+      "meshes": 1,
+      "phase": "themed:spooky"
+    },
+    "deco.iron-fence": {
+      "file": "assets/models/deco.iron-fence.glb",
+      "bytes": 25516,
+      "aabb": {
+        "min": [
+          -0.5,
+          0,
+          -0.3799999952316284
+        ],
+        "max": [
+          0.5,
+          0.8789000511169434,
+          -0.26999998092651367
+        ]
+      },
+      "size": [
+        1,
+        0.8789000511169434,
+        0.11000001430511475
+      ],
+      "clips": [],
+      "materials": 1,
+      "meshes": 1,
+      "phase": "themed:spooky"
+    },
+    "deco.iron-gate": {
+      "file": "assets/models/deco.iron-gate.glb",
+      "bytes": 23552,
+      "aabb": {
+        "min": [
+          -0.5,
+          0,
+          -0.43575000762939453
+        ],
+        "max": [
+          0.5,
+          0.7599999904632568,
+          -0.21424996852874756
+        ]
+      },
+      "size": [
+        1,
+        0.7599999904632568,
+        0.22150003910064697
+      ],
+      "clips": [],
+      "materials": 1,
+      "meshes": 1,
+      "phase": "themed:spooky"
+    },
+    "building.mausoleum": {
+      "file": "assets/models/building.mausoleum.glb",
+      "bytes": 39960,
+      "aabb": {
+        "min": [
+          -0.925000011920929,
+          0,
+          -1.2000877857208252
+        ],
+        "max": [
+          0.925000011920929,
+          1,
+          1.2000876665115356
+        ]
+      },
+      "size": [
+        1.850000023841858,
+        1,
+        2.400175452232361
+      ],
+      "clips": [],
+      "materials": 1,
+      "meshes": 1,
+      "phase": "themed:spooky"
+    },
+    "building.keepers-crypt": {
+      "file": "assets/models/building.keepers-crypt.glb",
+      "bytes": 31648,
+      "aabb": {
+        "min": [
+          -0.675000011920929,
+          0,
+          -0.7000876665115356
+        ],
+        "max": [
+          0.675000011920929,
+          1,
+          0.7000876665115356
+        ]
+      },
+      "size": [
+        1.350000023841858,
+        1,
+        1.4001753330230713
+      ],
+      "clips": [],
+      "materials": 1,
+      "meshes": 1,
+      "phase": "themed:spooky"
+    },
+    "nature.snow-pine": {
+      "file": "assets/models/nature.snow-pine.glb",
+      "bytes": 10464,
+      "aabb": {
+        "min": [
+          -0.3085094094276428,
+          -0.050000000000000065,
+          -0.3562360107898712
+        ],
+        "max": [
+          0.3085094094276428,
+          1.3164371967315673,
+          0.3562360107898712
+        ]
+      },
+      "size": [
+        0.6170188188552856,
+        1.3664371967315674,
+        0.7124720215797424
+      ],
+      "clips": [],
+      "materials": 2,
+      "meshes": 1,
+      "phase": "themed:snowcap"
+    },
+    "nature.spruce": {
+      "file": "assets/models/nature.spruce.glb",
+      "bytes": 5360,
+      "aabb": {
+        "min": [
+          -0.17917943000793457,
+          -0.05,
+          -0.1939135044813156
+        ],
+        "max": [
+          0.2070934921503067,
+          1.8846060752868652,
+          0.19803650677204132
+        ]
+      },
+      "size": [
+        0.38627292215824127,
+        1.9346060752868652,
+        0.39195001125335693
+      ],
+      "clips": [],
+      "materials": 2,
+      "meshes": 1,
+      "phase": "themed:snowcap"
+    },
+    "nature.pine-small": {
+      "file": "assets/models/nature.pine-small.glb",
+      "bytes": 9276,
+      "aabb": {
+        "min": [
+          -0.25,
+          -0.05,
+          -0.25
+        ],
+        "max": [
+          0.25,
+          0.9171999812126159,
+          0.25
+        ]
+      },
+      "size": [
+        0.5,
+        0.967199981212616,
+        0.5
+      ],
+      "clips": [],
+      "materials": 2,
+      "meshes": 1,
+      "phase": "themed:snowcap"
+    },
+    "nature.ice-rock": {
+      "file": "assets/models/nature.ice-rock.glb",
+      "bytes": 8448,
+      "aabb": {
+        "min": [
+          -0.49153444170951843,
+          -0.05,
+          -0.34160539507865906
+        ],
+        "max": [
+          0.49153444170951843,
+          0.9459259033203125,
+          0.34160539507865906
+        ]
+      },
+      "size": [
+        0.9830688834190369,
+        0.9959259033203125,
+        0.6832107901573181
+      ],
+      "clips": [],
+      "materials": 3,
+      "meshes": 1,
+      "phase": "themed:snowcap"
+    },
+    "nature.snow-boulder": {
+      "file": "assets/models/nature.snow-boulder.glb",
+      "bytes": 5240,
+      "aabb": {
+        "min": [
+          -0.5322049260139465,
+          -0.05000000000000027,
+          -0.5078310370445251
+        ],
+        "max": [
+          0.5322049260139465,
+          0.2711120069026947,
+          0.5078310370445251
+        ]
+      },
+      "size": [
+        1.064409852027893,
+        0.321112006902695,
+        1.0156620740890503
+      ],
+      "clips": [],
+      "materials": 2,
+      "meshes": 1,
+      "phase": "themed:snowcap"
+    },
+    "deco.firewood": {
+      "file": "assets/models/deco.firewood.glb",
+      "bytes": 14572,
+      "aabb": {
+        "min": [
+          -0.32471713423728943,
+          -0.05000008344650127,
+          -0.35499998927116394
+        ],
+        "max": [
+          0.3092438578605652,
+          0.2964101850986481,
+          0.35499998927116394
+        ]
+      },
+      "size": [
+        0.6339609920978546,
+        0.34641026854514934,
+        0.7099999785423279
+      ],
+      "clips": [],
+      "materials": 3,
+      "meshes": 1,
+      "phase": "themed:snowcap"
+    },
+    "deco.snow-log": {
+      "file": "assets/models/deco.snow-log.glb",
+      "bytes": 5804,
+      "aabb": {
+        "min": [
+          -0.5,
+          -0.050000000000000024,
+          -0.2527414858341217
+        ],
+        "max": [
+          0.5,
+          0.3667194366455078,
+          0.29658013582229614
+        ]
+      },
+      "size": [
+        1,
+        0.41671943664550787,
+        0.5493216216564178
+      ],
+      "clips": [],
+      "materials": 2,
+      "meshes": 1,
+      "phase": "themed:snowcap"
+    },
+    "deco.warming-fire": {
+      "file": "assets/models/deco.warming-fire.glb",
+      "bytes": 12116,
+      "aabb": {
+        "min": [
+          -0.24997441470623016,
+          -0.050000000000000114,
+          -0.25775352120399475
+        ],
+        "max": [
+          0.2908634841442108,
+          0.027751003205776212,
+          0.25775352120399475
+        ]
+      },
+      "size": [
+        0.540837898850441,
+        0.07775100320577633,
+        0.5155070424079895
+      ],
+      "clips": [],
+      "materials": 1,
+      "meshes": 1,
+      "phase": "themed:snowcap"
+    },
+    "deco.frost-stump": {
+      "file": "assets/models/deco.frost-stump.glb",
+      "bytes": 6712,
+      "aabb": {
+        "min": [
+          -0.1606477051973343,
+          -0.05,
+          -0.18549999594688416
+        ],
+        "max": [
+          0.19587929546833038,
+          0.6164999723434448,
+          0.18549999594688416
+        ]
+      },
+      "size": [
+        0.3565270006656647,
+        0.6664999723434448,
+        0.3709999918937683
+      ],
+      "clips": [],
+      "materials": 1,
+      "meshes": 1,
+      "phase": "themed:snowcap"
+    },
+    "deco.camp-tent": {
+      "file": "assets/models/deco.camp-tent.glb",
+      "bytes": 10144,
+      "aabb": {
+        "min": [
+          -0.27379998564720154,
+          -0.050000000000000266,
+          -0.3181999921798706
+        ],
+        "max": [
+          0.27379998564720154,
+          0.5111308217048645,
+          0.3181999921798706
+        ]
+      },
+      "size": [
+        0.5475999712944031,
+        0.5611308217048647,
+        0.6363999843597412
+      ],
+      "clips": [],
+      "materials": 4,
+      "meshes": 1,
+      "phase": "themed:snowcap"
+    },
+    "ground.frozen-pond": {
+      "file": "assets/models/ground.frozen-pond.glb",
+      "bytes": 7756,
+      "aabb": {
+        "min": [
+          -0.5,
+          -0.10000000074505806,
+          -0.5
+        ],
+        "max": [
+          0.5,
+          -0.04999999999999999,
+          0.5
+        ]
+      },
+      "size": [
+        1,
+        0.050000000745058074,
+        1
+      ],
+      "clips": [],
+      "materials": 4,
+      "meshes": 1,
+      "phase": "themed:snowcap"
+    },
+    "building.log-cabin": {
+      "file": "assets/models/building.log-cabin.glb",
+      "bytes": 118068,
+      "aabb": {
+        "min": [
+          -0.5393396597355604,
+          0.0004618262714083317,
+          -0.8930991573211061
+        ],
+        "max": [
+          0.35061335656791925,
+          1.2266961708197572,
+          0.27931968001130447
+        ]
+      },
+      "size": [
+        0.8899530163034797,
+        1.226234344548349,
+        1.1724188373324105
+      ],
+      "clips": [],
+      "materials": 6,
+      "meshes": 1,
+      "phase": "themed:snowcap"
+    },
+    "building.chalet": {
+      "file": "assets/models/building.chalet.glb",
+      "bytes": 177888,
+      "aabb": {
+        "min": [
+          -0.6853018421679735,
+          0.000461739696725917,
+          -0.5850150147626074
+        ],
+        "max": [
+          0.6853018421679735,
+          1.5046053299137243,
+          0.5850148172662362
+        ]
+      },
+      "size": [
+        1.370603684335947,
+        1.5041435902169984,
+        1.1700298320288436
+      ],
+      "clips": [],
+      "materials": 6,
+      "meshes": 1,
+      "phase": "themed:snowcap"
+    },
+    "building.warm-lodge": {
+      "file": "assets/models/building.warm-lodge.glb",
+      "bytes": 188036,
+      "aabb": {
+        "min": [
+          -0.631886487826705,
+          -0.040194027518122726,
+          -0.6202993566566511
+        ],
+        "max": [
+          0.631887000054121,
+          1.213628038917646,
+          0.6202992906441943
+        ]
+      },
+      "size": [
+        1.263773487880826,
+        1.2538220664357687,
+        1.2405986473008455
+      ],
+      "clips": [],
+      "materials": 3,
+      "meshes": 1,
+      "phase": "themed:snowcap"
+    },
+    "building.cocoa-stall": {
+      "file": "assets/models/building.cocoa-stall.glb",
+      "bytes": 18876,
+      "aabb": {
+        "min": [
+          -0.32499998807907104,
+          0,
+          -0.5
+        ],
+        "max": [
+          0.32499998807907104,
+          0.36550140380859375,
+          0.5
+        ]
+      },
+      "size": [
+        0.6499999761581421,
+        0.36550140380859375,
+        1
+      ],
+      "clips": [],
+      "materials": 1,
+      "meshes": 1,
+      "phase": "themed:snowcap"
+    },
+    "building.town-hall": {
+      "file": "assets/models/building.town-hall.glb",
+      "bytes": 316252,
+      "aabb": {
+        "min": [
+          -0.9279662743210793,
+          -0.007499922508388863,
+          -0.9279662415504761
+        ],
+        "max": [
+          0.9279662743210793,
+          1.2695947522677082,
+          0.9279662435658047
+        ]
+      },
+      "size": [
+        1.8559325486421585,
+        1.2770946747760972,
+        1.8559324851162808
+      ],
+      "clips": [],
+      "materials": 3,
+      "meshes": 1,
+      "phase": "early"
+    },
+    "building.grand-market": {
+      "file": "assets/models/building.grand-market.glb",
+      "bytes": 383384,
+      "aabb": {
+        "min": [
+          -0.9686476550996304,
+          -0.00719771726068372,
+          -1.080774337721241
+        ],
+        "max": [
+          0.922149233520031,
+          0.5453804653751693,
+          1.0276395073405862
+        ]
+      },
+      "size": [
+        1.8907968886196613,
+        0.552578182635853,
+        2.1084138450618273
+      ],
+      "clips": [],
+      "materials": 7,
+      "meshes": 1,
+      "phase": "early"
+    },
+    "building.grain-mill": {
+      "file": "assets/models/building.grain-mill.glb",
+      "bytes": 96288,
+      "aabb": {
+        "min": [
+          -0.667799636721611,
+          -0.027804800008457684,
+          -0.38070346512598446
+        ],
+        "max": [
+          0.6677993573248386,
+          1.5834266298063313,
+          0.561697342817683
+        ]
+      },
+      "size": [
+        1.3355989940464497,
+        1.611231429814789,
+        0.9424008079436674
+      ],
+      "clips": [],
+      "materials": 7,
+      "meshes": 1,
+      "phase": "early"
+    },
+    "building.guildhall": {
+      "file": "assets/models/building.guildhall.glb",
+      "bytes": 425776,
+      "aabb": {
+        "min": [
+          -0.7746578194200993,
+          -0.010260260698778804,
+          -0.5805347448927003
+        ],
+        "max": [
+          0.8747085928916931,
+          0.8807334341264458,
+          0.6714589668782832
+        ]
+      },
+      "size": [
+        1.6493664123117924,
+        0.8909936948252246,
+        1.2519937117709836
+      ],
+      "clips": [],
+      "materials": 7,
+      "meshes": 1,
+      "phase": "early"
+    },
+    "building.mine": {
+      "file": "assets/models/building.mine.glb",
+      "bytes": 108976,
+      "aabb": {
+        "min": [
+          -0.5291751585900784,
+          -0.015435565450361363,
+          -0.6499731230779895
+        ],
+        "max": [
+          0.7551243528723717,
+          1.1538186380288369,
+          0.7112638327867186
+        ]
+      },
+      "size": [
+        1.28429951146245,
+        1.1692542034791982,
+        1.3612369558647082
+      ],
+      "clips": [],
+      "materials": 5,
+      "meshes": 1,
+      "phase": "early"
+    },
+    "building.manor": {
+      "file": "assets/models/building.manor.glb",
+      "bytes": 111780,
+      "aabb": {
+        "min": [
+          -0.7058695890009403,
+          0.00046173980130451424,
+          -0.7940858118252392
+        ],
+        "max": [
+          0.6472979672253132,
+          0.5913044343853064,
+          0.6670337059963581
+        ]
+      },
+      "size": [
+        1.3531675562262535,
+        0.590842694584002,
+        1.4611195178215972
+      ],
+      "clips": [],
+      "materials": 5,
+      "meshes": 1,
+      "phase": "early"
+    },
+    "building.townhouse": {
+      "file": "assets/models/building.townhouse.glb",
+      "bytes": 177888,
+      "aabb": {
+        "min": [
+          -0.6853018421679735,
+          0.000461739696725917,
+          -0.5850150147626074
+        ],
+        "max": [
+          0.6853018421679735,
+          1.5046053299137243,
+          0.5850148172662362
+        ]
+      },
+      "size": [
+        1.370603684335947,
+        1.5041435902169984,
+        1.1700298320288436
+      ],
+      "clips": [],
+      "materials": 6,
+      "meshes": 1,
+      "phase": "early"
+    },
+    "deco.castle": {
+      "file": "assets/models/deco.castle.glb",
+      "bytes": 458924,
+      "aabb": {
+        "min": [
+          -1.0517163202166557,
+          -0.05028068150831528,
+          -0.9939678604363206
+        ],
+        "max": [
+          1.0741371661424637,
+          1.30215599559693,
+          0.9629008962005963
+        ]
+      },
+      "size": [
+        2.1258534863591194,
+        1.3524366771052452,
+        1.9568687566369167
+      ],
+      "clips": [],
+      "materials": 4,
+      "meshes": 1,
+      "phase": "early"
+    },
+    "deco.temple": {
+      "file": "assets/models/deco.temple.glb",
+      "bytes": 25784,
+      "aabb": {
+        "min": [
+          -0.8725646883249283,
+          -0.0017924878338390175,
+          -0.8725646723817897
+        ],
+        "max": [
+          0.8725646883249283,
+          2.7954076391285563,
+          1.095648072651277
+        ]
+      },
+      "size": [
+        1.7451293766498566,
+        2.7972001269623954,
+        1.9682127450330666
+      ],
+      "clips": [],
+      "materials": 3,
+      "meshes": 1,
+      "phase": "early"
+    },
+    "deco.grand-fountain": {
+      "file": "assets/models/deco.grand-fountain.glb",
+      "bytes": 69448,
+      "aabb": {
+        "min": [
+          -1,
+          -4.591168408512693e-20,
+          -1
+        ],
+        "max": [
+          1,
+          0.48000001907348633,
+          1
+        ]
+      },
+      "size": [
+        2,
+        0.48000001907348633,
+        2
+      ],
+      "clips": [],
+      "materials": 2,
+      "meshes": 2,
+      "phase": "early"
+    },
+    "deco.monument": {
+      "file": "assets/models/deco.monument.glb",
+      "bytes": 190264,
+      "aabb": {
+        "min": [
+          -0.6286281626671553,
+          -0.0028428938915494206,
+          -0.6286281432489014
+        ],
+        "max": [
+          0.6286281626671553,
+          1.346286945890803,
+          0.6286281390513497
+        ]
+      },
+      "size": [
+        1.2572563253343105,
+        1.3491298397823526,
+        1.257256282300251
+      ],
+      "clips": [],
+      "materials": 3,
+      "meshes": 1,
+      "phase": "early"
+    },
+    "deco.clock-tower": {
+      "file": "assets/models/deco.clock-tower.glb",
+      "bytes": 157892,
+      "aabb": {
+        "min": [
+          -0.4441295750439167,
+          -0.013071299481572709,
+          -0.22694518419166398
+        ],
+        "max": [
+          0.3942885436117649,
+          1.3440081698494555,
+          0.3869179983163777
+        ]
+      },
+      "size": [
+        0.8384181186556816,
+        1.3570794693310282,
+        0.6138631825080416
+      ],
+      "clips": [],
+      "materials": 5,
+      "meshes": 1,
+      "phase": "early"
+    },
+    "deco.market-square": {
+      "file": "assets/models/deco.market-square.glb",
+      "bytes": 761216,
+      "aabb": {
+        "min": [
+          -1.0158282704651356,
+          -0.07117435457509744,
+          -0.9826271238713248
+        ],
+        "max": [
+          0.9171371348202229,
+          0.5859332010247137,
+          1.0028344530318434
+        ]
+      },
+      "size": [
+        1.9329654052853584,
+        0.6571075555998112,
+        1.9854615769031683
+      ],
+      "clips": [],
+      "materials": 8,
+      "meshes": 1,
+      "phase": "early"
+    },
+    "deco.town-gate": {
+      "file": "assets/models/deco.town-gate.glb",
+      "bytes": 16180,
+      "aabb": {
+        "min": [
+          -0.07580000162124634,
+          0,
+          -0.3310754597187042
+        ],
+        "max": [
+          0.07580000162124634,
+          0.9103385210037231,
+          0.3310754597187042
+        ]
+      },
+      "size": [
+        0.15160000324249268,
+        0.9103385210037231,
+        0.6621509194374084
+      ],
+      "clips": [],
+      "materials": 1,
+      "meshes": 1,
+      "phase": "early"
+    },
+    "deco.grand-banner": {
+      "file": "assets/models/deco.grand-banner.glb",
+      "bytes": 12400,
+      "aabb": {
+        "min": [
+          0,
+          0,
+          -0.3149999976158142
+        ],
+        "max": [
+          0.03999999910593033,
+          2.169999837875366,
+          0.3149999976158142
+        ]
+      },
+      "size": [
+        0.03999999910593033,
+        2.169999837875366,
+        0.6299999952316284
+      ],
+      "clips": [],
+      "materials": 1,
+      "meshes": 1,
+      "phase": "early"
+    },
+    "ground.path-dirt-end": {
+      "file": "assets/models/ground.path-dirt-end.glb",
+      "bytes": 4264,
+      "aabb": {
+        "min": [
+          -0.5,
+          -0.10000000074505806,
+          -0.5
+        ],
+        "max": [
+          0.5,
+          -0.05,
+          0.5
+        ]
+      },
+      "size": [
+        1,
+        0.05000000074505806,
+        1
+      ],
+      "clips": [],
+      "materials": 3,
+      "meshes": 1,
+      "phase": "boot"
+    },
+    "ground.path-dirt-straight": {
+      "file": "assets/models/ground.path-dirt-straight.glb",
+      "bytes": 4668,
+      "aabb": {
+        "min": [
+          -0.5,
+          -0.10000000074505806,
+          -0.5
+        ],
+        "max": [
+          0.5,
+          -0.05,
+          0.5
+        ]
+      },
+      "size": [
+        1,
+        0.05000000074505806,
+        1
+      ],
+      "clips": [],
+      "materials": 3,
+      "meshes": 1,
+      "phase": "boot"
+    },
+    "ground.path-dirt-corner": {
+      "file": "assets/models/ground.path-dirt-corner.glb",
+      "bytes": 3028,
+      "aabb": {
+        "min": [
+          -0.5,
+          -0.10000000074505806,
+          -0.5
+        ],
+        "max": [
+          0.5,
+          -0.05,
+          0.5
+        ]
+      },
+      "size": [
+        1,
+        0.05000000074505806,
+        1
+      ],
+      "clips": [],
+      "materials": 3,
+      "meshes": 1,
+      "phase": "boot"
+    },
+    "ground.path-dirt-tee": {
+      "file": "assets/models/ground.path-dirt-tee.glb",
+      "bytes": 4956,
+      "aabb": {
+        "min": [
+          -0.5,
+          -0.10000000074505806,
+          -0.5
+        ],
+        "max": [
+          0.5,
+          -0.05,
+          0.5
+        ]
+      },
+      "size": [
+        1,
+        0.05000000074505806,
+        1
+      ],
+      "clips": [],
+      "materials": 3,
+      "meshes": 1,
+      "phase": "boot"
+    },
+    "ground.path-dirt-cross": {
+      "file": "assets/models/ground.path-dirt-cross.glb",
+      "bytes": 5272,
+      "aabb": {
+        "min": [
+          -0.5,
+          -0.10000000074505806,
+          -0.5
+        ],
+        "max": [
+          0.5,
+          -0.05,
+          0.5
+        ]
+      },
+      "size": [
+        1,
+        0.05000000074505806,
+        1
+      ],
+      "clips": [],
+      "materials": 3,
+      "meshes": 1,
+      "phase": "boot"
+    },
+    "ground.path-stone-end": {
+      "file": "assets/models/ground.path-stone-end.glb",
+      "bytes": 6640,
+      "aabb": {
+        "min": [
+          -0.11823346465826035,
+          -0.05,
+          -0.29294857382774353
+        ],
+        "max": [
+          0.5,
+          7.450580569168253e-10,
+          0.2780592739582062
+        ]
+      },
+      "size": [
+        0.6182334646582603,
+        0.05000000074505806,
+        0.5710078477859497
+      ],
+      "clips": [],
+      "materials": 3,
+      "meshes": 1,
+      "phase": "boot"
+    },
+    "ground.path-stone-corner": {
+      "file": "assets/models/ground.path-stone-corner.glb",
+      "bytes": 7604,
+      "aabb": {
+        "min": [
+          -0.47041061520576477,
+          -0.05,
+          -0.30395808815956116
+        ],
+        "max": [
+          0.26785895228385925,
+          7.450580569168253e-10,
+          0.4744146466255188
+        ]
+      },
+      "size": [
+        0.738269567489624,
+        0.05000000074505806,
+        0.77837273478508
+      ],
+      "clips": [],
+      "materials": 3,
+      "meshes": 1,
+      "phase": "boot"
+    },
+    "ground.river-end": {
+      "file": "assets/models/ground.river-end.glb",
+      "bytes": 4856,
+      "aabb": {
+        "min": [
+          -0.5,
+          -0.10000000074505806,
+          -0.5
+        ],
+        "max": [
+          0.5,
+          -0.05,
+          0.5
+        ]
+      },
+      "size": [
+        1,
+        0.05000000074505806,
+        1
+      ],
+      "clips": [],
+      "materials": 4,
+      "meshes": 1,
+      "phase": "early"
+    },
+    "ground.river-straight": {
+      "file": "assets/models/ground.river-straight.glb",
+      "bytes": 5240,
+      "aabb": {
+        "min": [
+          -0.5,
+          -0.10000000074505806,
+          -0.5
+        ],
+        "max": [
+          0.5,
+          -0.05,
+          0.5
+        ]
+      },
+      "size": [
+        1,
+        0.05000000074505806,
+        1
+      ],
+      "clips": [],
+      "materials": 4,
+      "meshes": 1,
+      "phase": "early"
+    },
+    "ground.river-corner": {
+      "file": "assets/models/ground.river-corner.glb",
+      "bytes": 4288,
+      "aabb": {
+        "min": [
+          -0.5,
+          -0.10000000074505806,
+          -0.5
+        ],
+        "max": [
+          0.5,
+          -0.05,
+          0.5
+        ]
+      },
+      "size": [
+        1,
+        0.05000000074505806,
+        1
+      ],
+      "clips": [],
+      "materials": 4,
+      "meshes": 1,
+      "phase": "early"
+    },
+    "ground.river-tee": {
+      "file": "assets/models/ground.river-tee.glb",
+      "bytes": 5728,
+      "aabb": {
+        "min": [
+          -0.5,
+          -0.10000000074505806,
+          -0.5
+        ],
+        "max": [
+          0.5,
+          -0.05,
+          0.5
+        ]
+      },
+      "size": [
+        1,
+        0.05000000074505806,
+        1
+      ],
+      "clips": [],
+      "materials": 4,
+      "meshes": 1,
+      "phase": "early"
+    },
+    "ground.river-cross": {
+      "file": "assets/models/ground.river-cross.glb",
+      "bytes": 6264,
+      "aabb": {
+        "min": [
+          -0.5,
+          -0.10000000074505806,
+          -0.5
+        ],
+        "max": [
+          0.5,
+          -0.05,
+          0.5
+        ]
+      },
+      "size": [
+        1,
+        0.05000000074505806,
+        1
+      ],
+      "clips": [],
+      "materials": 4,
+      "meshes": 1,
+      "phase": "early"
+    },
+    "building.keep": {
+      "file": "assets/models/building.keep.glb",
+      "bytes": 368064,
+      "aabb": {
+        "min": [
+          -1.0517163202166557,
+          -0.000047262436722047214,
+          -0.9939678604363206
+        ],
+        "max": [
+          1.0517163202166557,
+          0.9368464052107366,
+          0.9629008962005963
+        ]
+      },
+      "size": [
+        2.1034326404333115,
+        0.9368936676474586,
+        1.9568687566369167
+      ],
+      "clips": [],
+      "materials": 3,
+      "meshes": 1,
+      "phase": "early"
+    },
+    "deco.castle-tower": {
+      "file": "assets/models/deco.castle-tower.glb",
+      "bytes": 13176,
+      "aabb": {
+        "min": [
+          -0.4650000035762787,
+          0,
+          -0.4650000035762787
+        ],
+        "max": [
+          0.4650000035762787,
+          1.0099999904632568,
+          0.4650000035762787
+        ]
+      },
+      "size": [
+        0.9300000071525574,
+        1.0099999904632568,
+        0.9300000071525574
+      ],
+      "clips": [],
+      "materials": 1,
+      "meshes": 1,
+      "phase": "early"
+    },
+    "deco.castle-wall": {
+      "file": "assets/models/deco.castle-wall.glb",
+      "bytes": 18680,
+      "aabb": {
+        "min": [
+          -0.5,
+          0,
+          -0.5
+        ],
+        "max": [
+          0.5,
+          1.309999942779541,
+          0.5
+        ]
+      },
+      "size": [
+        1,
+        1.309999942779541,
+        1
+      ],
+      "clips": [],
+      "materials": 1,
+      "meshes": 1,
+      "phase": "early"
+    },
+    "deco.drawbridge": {
+      "file": "assets/models/deco.drawbridge.glb",
+      "bytes": 10960,
+      "aabb": {
+        "min": [
+          -1.0020725727081299,
+          -7.331912559221793e-17,
+          -0.4155377149581909
+        ],
+        "max": [
+          0,
+          0.10000000149011612,
+          0.4155377149581909
+        ]
+      },
+      "size": [
+        1.0020725727081299,
+        0.10000000149011619,
+        0.8310754299163818
+      ],
+      "clips": [],
+      "materials": 1,
+      "meshes": 1,
+      "phase": "early"
+    },
+    "building.tavern": {
+      "file": "assets/models/building.tavern.glb",
+      "bytes": 76948,
+      "aabb": {
+        "min": [
+          -0.5048034712672234,
+          -0.007163834322511221,
+          -0.39161084336950686
+        ],
+        "max": [
+          0.5048034712672234,
+          0.712012912547581,
+          0.6865198476476064
+        ]
+      },
+      "size": [
+        1.0096069425344467,
+        0.7191767468700923,
+        1.0781306910171133
+      ],
+      "clips": [],
+      "materials": 8,
+      "meshes": 1,
+      "phase": "early"
+    },
+    "deco.pop-post": {
+      "file": "assets/models/deco.pop-post.glb",
+      "bytes": 14516,
+      "aabb": {
+        "min": [
+          -0.07999999821186066,
+          -1.263344982148579e-15,
+          -0.08000000566244125
+        ],
+        "max": [
+          0.07999999821186066,
+          1,
+          0.07999999821186066
+        ]
+      },
+      "size": [
+        0.1599999964237213,
+        1.0000000000000013,
+        0.1600000038743019
+      ],
+      "clips": [],
+      "materials": 1,
+      "meshes": 1,
+      "phase": "early"
+    },
+    "building.civic-hall": {
+      "file": "assets/models/building.civic-hall.glb",
+      "bytes": 38044,
+      "aabb": {
+        "min": [
+          -0.631886487826705,
+          -0.024034252822116554,
+          -0.6202993566566511
+        ],
+        "max": [
+          0.631887000054121,
+          0.279309933511934,
+          0.6202992906441943
+        ]
+      },
+      "size": [
+        1.263773487880826,
+        0.3033441863340506,
+        1.2405986473008455
+      ],
+      "clips": [],
+      "materials": 2,
+      "meshes": 1,
+      "phase": "early"
+    },
+    "deco.marble-column": {
+      "file": "assets/models/deco.marble-column.glb",
+      "bytes": 17820,
+      "aabb": {
+        "min": [
+          -0.30156251788139343,
+          0,
+          -0.30000001192092896
+        ],
+        "max": [
+          0.30156251788139343,
+          1,
+          0.30000001192092896
+        ]
+      },
+      "size": [
+        0.6031250357627869,
+        1,
+        0.6000000238418579
+      ],
+      "clips": [],
+      "materials": 1,
+      "meshes": 1,
+      "phase": "early"
+    },
+    "deco.statue-hero": {
+      "file": "assets/models/deco.statue-hero.glb",
+      "bytes": 35900,
+      "aabb": {
+        "min": [
+          -0.3499999940395355,
+          0,
+          -0.3499999940395355
+        ],
+        "max": [
+          0.3499999940395355,
+          1.33632493019104,
+          0.3499999940395355
+        ]
+      },
+      "size": [
+        0.699999988079071,
+        1.33632493019104,
+        0.699999988079071
+      ],
+      "clips": [],
+      "materials": 1,
+      "meshes": 1,
+      "phase": "early"
+    },
+    "deco.trophy": {
+      "file": "assets/models/deco.trophy.glb",
+      "bytes": 19828,
+      "aabb": {
+        "min": [
+          -0.284660279750824,
+          0,
+          -0.22576025128364563
+        ],
+        "max": [
+          0.284660279750824,
+          0.4773999750614166,
+          0.22576025128364563
+        ]
+      },
+      "size": [
+        0.569320559501648,
+        0.4773999750614166,
+        0.45152050256729126
+      ],
+      "clips": [],
+      "materials": 1,
+      "meshes": 1,
+      "phase": "early"
+    },
+    "nature.golden-tree": {
+      "file": "assets/models/nature.golden-tree.glb",
+      "bytes": 22764,
+      "aabb": {
+        "min": [
+          -0.43248260021209717,
+          -0.05,
+          -0.3721359670162201
+        ],
+        "max": [
+          0.4146324396133423,
+          1.2824170112609863,
+          0.3894665241241455
+        ]
+      },
+      "size": [
+        0.8471150398254395,
+        1.3324170112609863,
+        0.7616024911403656
+      ],
+      "clips": [],
+      "materials": 3,
+      "meshes": 1,
+      "phase": "early"
+    },
+    "deco.cog-sculpture": {
+      "file": "assets/models/deco.cog-sculpture.glb",
+      "bytes": 20172,
+      "aabb": {
+        "min": [
+          -0.5,
+          -0.15000000596046448,
+          -0.5
+        ],
+        "max": [
+          0.5,
+          0.07499998807907104,
+          0.5
+        ]
+      },
+      "size": [
+        1,
+        0.22499999403953552,
+        1
+      ],
+      "clips": [],
+      "materials": 1,
+      "meshes": 1,
+      "phase": "early"
+    },
+    "building.the-wonder": {
+      "file": "assets/models/building.the-wonder.glb",
+      "bytes": 491488,
+      "aabb": {
+        "min": [
+          -1.098736748099327,
+          -0.01753133671473604,
+          -1.0044273752443882
+        ],
+        "max": [
+          1.098736748099327,
+          1.5840911882603617,
+          0.945928755211246
+        ]
+      },
+      "size": [
+        2.197473496198654,
+        1.6016225249750977,
+        1.950356130455634
+      ],
+      "clips": [],
+      "materials": 3,
+      "meshes": 1,
+      "phase": "early"
     }
   }
 }

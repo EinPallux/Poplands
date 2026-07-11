@@ -93,6 +93,39 @@ export function footprintCenter(
 /** Yaw (radians around +Y) for a rotation step. */
 export const rotYaw = (rot: Rot): number => (rot * Math.PI) / 2;
 
+/** Outward-facing unit normal for an edge-anchor item at a given rotation
+ *  (rotating a canonical +Z-facing mesh by rotYaw cycles +Z → +X → -Z → -X). */
+export const facingNormal = (rot: Rot): { nx: number; nz: number } =>
+  (
+    [
+      { nx: 0, nz: 1 },
+      { nx: 1, nz: 0 },
+      { nx: 0, nz: -1 },
+      { nx: -1, nz: 0 },
+    ] as const
+  )[rot];
+
+/**
+ * Effective footprint origin for an edge-anchor item (S8). `footprintCells`
+ * always grows toward +X/+Z from its origin, and the hovered anchor cell is
+ * always on-island (input only hovers island cells) — so a rotation facing
+ * -X/-Z needs the origin pulled BACK by (size-1) along that axis, putting the
+ * anchor cell at the far (land) end of the rectangle. This is what lets a dock
+ * be rotated onto the island's south/west edges, not just north/east.
+ */
+export function edgeAnchorOrigin(
+  anchor: { wx: number; wz: number },
+  fp: Footprint,
+  rot: Rot,
+): { wx: number; wz: number } {
+  const { w, d } = rotatedSize(fp, rot);
+  const { nx, nz } = facingNormal(rot);
+  return {
+    wx: nx < 0 ? anchor.wx - (w - 1) : anchor.wx,
+    wz: nz < 0 ? anchor.wz - (d - 1) : anchor.wz,
+  };
+}
+
 /** Axis-aligned bounds of a set of chunks, in world units (min inclusive, max exclusive). */
 export function chunksBounds(chunks: Iterable<ChunkCoord>): {
   minX: number;

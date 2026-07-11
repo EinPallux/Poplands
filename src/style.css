@@ -120,7 +120,8 @@ body {
   position: absolute;
   left: 50%;
   bottom: 14px;
-  transform: translateX(-50%);
+  transform: translateX(-50%) scale(var(--ui-scale, 1));
+  transform-origin: 50% 100%; /* bottom-center: grows upward, never clipped below viewport */
   width: min(860px, calc(100vw - 24px));
   background: var(--ui-cream);
   border: 1px solid rgba(74, 63, 94, 0.12);
@@ -132,7 +133,7 @@ body {
 }
 
 .buildbar.collapsed {
-  transform: translateX(-50%) translateY(calc(100% - 46px));
+  transform: translateX(-50%) translateY(calc(100% - 46px)) scale(var(--ui-scale, 1));
 }
 
 .buildbar-top {
@@ -357,6 +358,19 @@ body {
   opacity: 0.82;
 }
 
+/* non-colour affordability cue (S23): a small ✕ next to the price, revealed only
+   when the item is unaffordable (and not already carrying a 🔒 lock badge). */
+.afford-flag {
+  display: none;
+  color: var(--accent-coral);
+  font-weight: 800;
+}
+
+.build-card.unaffordable:not(.locked) .afford-flag,
+.survey-chip.unaffordable .afford-flag {
+  display: inline;
+}
+
 /* freshly unlocked "New!" badge */
 .build-card.card-new::after {
   content: 'New!';
@@ -387,7 +401,8 @@ body {
   position: absolute;
   left: 50%;
   bottom: 172px;
-  transform: translateX(-50%);
+  transform: translateX(-50%) scale(var(--ui-scale, 1));
+  transform-origin: 50% 100%;
   background: rgba(30, 26, 44, 0.78);
   color: #fff6e8;
   font-size: 12.5px;
@@ -396,6 +411,10 @@ body {
   border-radius: 999px;
   pointer-events: none;
   white-space: nowrap;
+}
+
+.build-hint.blocked {
+  background: rgba(192, 57, 43, 0.85);
 }
 
 /* — settings — */
@@ -408,6 +427,8 @@ body {
   flex-direction: column;
   align-items: flex-end;
   gap: 8px;
+  transform: scale(var(--ui-scale, 1));
+  transform-origin: 100% 0%; /* pinned top-right: grows left/down, never off-screen */
 }
 
 .settings-gear {
@@ -497,7 +518,8 @@ body {
   position: absolute;
   top: 16px;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(-50%) scale(var(--ui-scale, 1));
+  transform-origin: 50% 0%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -532,6 +554,8 @@ body {
   display: flex;
   gap: 8px;
   pointer-events: none;
+  transform: scale(var(--ui-scale, 1));
+  transform-origin: 0% 0%; /* top-left */
 }
 
 .hud-pill {
@@ -564,6 +588,8 @@ body {
   width: 48px;
   height: 48px;
   pointer-events: none;
+  transform: scale(var(--ui-scale, 1));
+  transform-origin: 100% 0%; /* top-right, same side as settings/wallet */
 }
 
 .hud-level svg {
@@ -605,6 +631,8 @@ body {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  transform: scale(var(--ui-scale, 1));
+  transform-origin: 0% 0%; /* top-left */
 }
 
 .mailbox-title {
@@ -927,18 +955,19 @@ body {
   text-align: center;
   pointer-events: none;
   opacity: 0;
-  transform: translate(-50%, -18px) scale(0.82);
+  transform: translate(-50%, -18px) scale(calc(0.82 * var(--ui-scale, 1)));
+  transform-origin: 50% 0%;
   transition:
     opacity 0.35s ease,
     transform 0.5s cubic-bezier(0.34, 1.56, 0.5, 1);
 }
 .chunk-popup.show {
   opacity: 1;
-  transform: translate(-50%, 0) scale(1);
+  transform: translate(-50%, 0) scale(var(--ui-scale, 1));
 }
 .chunk-popup.reduced {
   transition: opacity 0.2s ease;
-  transform: translate(-50%, 0) scale(1);
+  transform: translate(-50%, 0) scale(var(--ui-scale, 1));
 }
 .chunk-popup-emoji {
   font-size: 30px;
@@ -1019,6 +1048,8 @@ body {
   right: 12px;
   pointer-events: auto;
   z-index: 6;
+  transform: scale(var(--ui-scale, 1));
+  transform-origin: 100% 0%; /* top-right */
 }
 .album-btn {
   width: 40px;
@@ -1098,7 +1129,8 @@ body {
   position: absolute;
   bottom: 22px;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(-50%) scale(var(--ui-scale, 1));
+  transform-origin: 50% 100%;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -1142,4 +1174,6 @@ body {
     monospace;
   white-space: pre;
   pointer-events: none;
+  transform: scale(var(--ui-scale, 1));
+  transform-origin: 0% 0%;
 }

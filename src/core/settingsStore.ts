@@ -14,6 +14,7 @@ export const reducedMotionSignal = signal(
 );
 export const timeOfDaySignal = signal<SaveSettings['timeOfDay']>(DEFAULT_SETTINGS.timeOfDay);
 export const fpsCapSignal = signal<SaveSettings['fpsCap']>(DEFAULT_SETTINGS.fpsCap);
+export const uiScaleSignal = signal(DEFAULT_SETTINGS.uiScale);
 
 export function loadSettings(s: SaveSettings): void {
   volumeSignal.set(s.volume);
@@ -21,6 +22,7 @@ export function loadSettings(s: SaveSettings): void {
   reducedMotionSignal.set(s.reducedMotion);
   timeOfDaySignal.set(s.timeOfDay);
   fpsCapSignal.set(s.fpsCap);
+  uiScaleSignal.set(s.uiScale);
 }
 
 export function snapshotSettings(): SaveSettings {
@@ -30,6 +32,7 @@ export function snapshotSettings(): SaveSettings {
     reducedMotion: reducedMotionSignal.get(),
     timeOfDay: timeOfDaySignal.get(),
     fpsCap: fpsCapSignal.get(),
+    uiScale: uiScaleSignal.get(),
   };
 }
 

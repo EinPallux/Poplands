@@ -77,4 +77,27 @@ describe('IslandModel occupancy & placements', () => {
     expect(next.id).not.toBe('p7');
     expect(Number(next.id.slice(1))).toBeGreaterThan(7);
   });
+
+  describe('edge-anchor placement (S8)', () => {
+    it('straddles the boundary and rejects fully-inland or fully-void placements', () => {
+      const dock = itemDef('decor.dock')!; // edgeAnchor, 2×2
+      expect(island.canPlace(dock, 5, 5, 0)).toEqual({ ok: false, reason: 'needs-edge' }); // no edge
+      expect(island.canPlace(dock, 20, 20, 0)).toEqual({ ok: false, reason: 'off-island' }); // all void
+
+      // east edge, rot=1 (facing +X): anchor col 15 on-island, reaches col 16 (void)
+      expect(island.canPlace(dock, 15, 5, 1)).toEqual({ ok: true });
+      const eastDock = island.place(dock.id, 15, 5, 1);
+      expect(island.occupantAt(15, 5)?.id).toBe(eastDock.id); // on-island cell occupied
+      expect(island.occupantAt(16, 5)?.id).toBe(eastDock.id); // off-island overhang ALSO tracked
+      // a second dock overlapping the overhang is rejected
+      expect(island.canPlace(dock, 15, 5, 1)).toEqual({ ok: false, reason: 'occupied' });
+    });
+
+    it('keeps an overhang occupied even after the adjacent chunk is bought', () => {
+      const dock = itemDef('decor.dock')!;
+      island.place(dock.id, 15, 5, 1); // overhang at (16,5)/(16,6)
+      island.addChunk(2, 0); // fills in what used to be void at wx∈[16,24)
+      expect(island.canPlace(dock, 16, 5, 0)).toEqual({ ok: false, reason: 'occupied' });
+    });
+  });
 });

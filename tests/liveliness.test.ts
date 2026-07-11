@@ -27,4 +27,26 @@ describe('LivelinessSystem (S13)', () => {
     for (let i = 0; i < 100; i++) sys.update(1 / 60); // ~1.7 s of frames
     expect(credited).toBe(0);
   });
+
+  it('applies a civic-building liveliness bonus to the payout (Grand Assembly Hall)', () => {
+    let credited = 0;
+    // 10 souls × 2 = 20 base; a +5% bonus → round(21) = 21
+    const sys = new LivelinessSystem(
+      { credit: (p) => (credited += p) },
+      () => 10,
+      () => 0.05,
+    );
+    sys.update(10);
+    expect(credited).toBe(21);
+
+    // +20% (four halls, capped by the caller): round(20 × 1.2) = 24
+    credited = 0;
+    const sys2 = new LivelinessSystem(
+      { credit: (p) => (credited += p) },
+      () => 10,
+      () => 0.2,
+    );
+    sys2.update(10);
+    expect(credited).toBe(24);
+  });
 });

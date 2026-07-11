@@ -12,20 +12,27 @@
 import type {
   Object3D} from 'three';
 import {
+  Box3,
+  BoxGeometry,
+  CanvasTexture,
   Group,
   InstancedMesh,
   Matrix4,
   Mesh,
   MeshStandardMaterial,
   Quaternion,
+  Sprite,
+  SpriteMaterial,
   Vector3,
   type BufferGeometry,
   type Material,
 } from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { footprintCenter, rotYaw } from '@/core/grid';
+import { DIRS, resolveTileShape } from '@/core/autotile';
 import { itemDef, type ItemDef } from '@/content/catalog';
-import type { Placement, PlacementId } from '@/world/IslandModel';
+import { TILE_KITS } from '@/content/tileKits';
+import type { IslandModel, Placement, PlacementId } from '@/world/IslandModel';
 import type { AssetRegistry } from '@/assets/AssetRegistry';
 import { palette } from '@/render/palette';
 
@@ -33,6 +40,28 @@ const tmpMatrix = new Matrix4();
 const tmpPos = new Vector3();
 const tmpQuat = new Quaternion();
 const tmpScale = new Vector3();
+const tmpBox = new Box3();
+
+/** A small round badge canvas for the ghost validity cue — icon, not colour alone
+ *  (GDD §11 colour-blind support). Built once per glyph and cached on the renderer. */
+function makeGlyphTexture(glyph: string, ink: string): CanvasTexture {
+  const size = 64;
+  const canvas = document.createElement('canvas');
+  canvas.width = canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.fillStyle = 'rgba(255,255,255,0.92)';
+    ctx.beginPath();
+    ctx.arc(size / 2, size / 2, size / 2 - 3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = ink;
+    ctx.font = `800 ${size * 0.6}px system-ui, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(glyph, size / 2, size / 2 + 2);
+  }
+  return new CanvasTexture(canvas);
+}
 
 /** Merge a model's meshes into one geometry (groups preserved) + material list. */
 function mergeModel(scene: Group): { geometry: BufferGeometry; materials: Material[] } {
@@ -136,11 +165,22 @@ export class PropRenderer {
   private pools = new Map<string, InstancedPool>();
   private merged = new Map<string, { geometry: BufferGeometry; materials: Material[] }>();
   private uniques = new Map<PlacementId, Object3D>();
+  /** For auto-tile items only: the pool key each placement currently lives in
+   *  (its resolved shape can change as neighbours come and go). */
+  private groundPoolKey = new Map<PlacementId, string>();
+  /** Placements whose model is still streaming in (S4 lazy-loading). Flushed to a
+   *  plain `show()` the moment `assets.ensure` resolves; cancelled if removed first. */
+  private pendingShow = new Map<PlacementId, Placement>();
 
   private readonly ghostValid: MeshStandardMaterial;
   private readonly ghostInvalid: MeshStandardMaterial;
+  private readonly validIconTex: CanvasTexture;
+  private readonly invalidIconTex: CanvasTexture;
 
-  constructor(private readonly assets: AssetRegistry) {
+  constructor(
+    private readonly assets: AssetRegistry,
+    private readonly island: IslandModel,
+  ) {
     this.group.name = 'props';
     const ghostBase = {
       transparent: true,
@@ -151,6 +191,8 @@ export class PropRenderer {
     };
     this.ghostValid = new MeshStandardMaterial({ ...ghostBase, color: palette.accentMint });
     this.ghostInvalid = new MeshStandardMaterial({ ...ghostBase, color: palette.accentCoral });
+    this.validIconTex = makeGlyphTexture('✓', '#2f9e5c');
+    this.invalidIconTex = makeGlyphTexture('✕', '#c0392b');
   }
 
   /** World transform for a placement (origin: footprint center on the ground). */
@@ -162,18 +204,58 @@ export class PropRenderer {
     return new Matrix4().compose(tmpPos, tmpQuat, tmpScale);
   }
 
+  /** Every model a def could render with. For a tile kit that's the fallback + all
+   *  variant GLBs (auto-tiling can resolve to any of them, and neighbours re-resolve
+   *  as the mask changes), so the whole kit must be present before we commit — the
+   *  base being cached is NOT enough (the variants ride the same lazy phase and land
+   *  at independent times within loadPhase's Promise.all). */
+  private modelsFor(def: ItemDef): string[] {
+    if (!def.tileKit) return [def.model];
+    const kit = TILE_KITS[def.tileKit];
+    if (!kit) return [def.model];
+    return [def.model, kit.fallback, ...Object.values(kit.variants)];
+  }
+
+  private modelsReady(def: ItemDef): boolean {
+    return this.modelsFor(def).every((m) => this.assets.has(m));
+  }
+
   /** Instantly show a placement (no animation) — used for bulk rebuild on load. */
   show(placement: Placement): void {
     const def = itemDef(placement.def);
     if (!def) return;
+    if (!this.modelsReady(def)) {
+      this.deferShow(placement, def);
+      return;
+    }
     if (def.renderTier === 'instanced') {
-      this.pool(def).add(placement.id, this.matrixFor(def, placement.wx, placement.wz, placement.rot));
+      this.commitInstanced(placement, def);
     } else {
       const obj = this.assets.cloneModel(def.model);
       this.applyTransform(obj, def, placement);
       this.uniques.set(placement.id, obj);
       this.group.add(obj);
     }
+  }
+
+  /** Queue a placement whose model(s) haven't streamed in yet (S4). Kicks the on-demand
+   *  loads (all of them, incl. a tile kit's variants — else commitInstanced would later
+   *  resolve to an uncached variant and throw), then flushes to a plain `show()` — unless
+   *  the placement was removed first. A load failure drops the entry (no leak / no
+   *  unhandled rejection); a reload's rebuildAll retries from truth. */
+  private deferShow(placement: Placement, def: ItemDef): void {
+    this.pendingShow.set(placement.id, placement);
+    void Promise.all(this.modelsFor(def).map((m) => this.assets.ensure(m)))
+      .then(() => {
+        if (this.pendingShow.get(placement.id) === placement) {
+          this.pendingShow.delete(placement.id);
+          this.show(placement);
+        }
+      })
+      .catch((err: unknown) => {
+        this.pendingShow.delete(placement.id);
+        console.error(`[props] deferred model load failed for ${def.id}`, err);
+      });
   }
 
   /**
@@ -184,6 +266,14 @@ export class PropRenderer {
   promote(placement: Placement): Object3D | null {
     const def = itemDef(placement.def);
     if (!def) return null;
+    if (!this.modelsReady(def)) {
+      // model(s) still streaming in: skip the pop-in juice this once, show it plain
+      // the moment they land (never a crash on a freshly-unlocked interactive place,
+      // incl. a tile kit whose variant GLBs haven't arrived — bake() would resolve
+      // to an uncached variant otherwise).
+      this.deferShow(placement, def);
+      return null;
+    }
     const obj = this.assets.cloneModel(def.model);
     this.applyTransform(obj, def, placement);
     this.group.add(obj);
@@ -199,7 +289,7 @@ export class PropRenderer {
     if (!def) return;
     if (def.renderTier === 'instanced') {
       this.group.remove(promoted);
-      this.pool(def).add(placement.id, this.matrixFor(def, placement.wx, placement.wz, placement.rot));
+      this.commitInstanced(placement, def);
     }
   }
 
@@ -210,9 +300,15 @@ export class PropRenderer {
   extract(placement: Placement): Object3D | null {
     const def = itemDef(placement.def);
     if (!def) return null;
+    if (this.pendingShow.delete(placement.id)) return null; // removed before its model landed
     if (def.renderTier === 'instanced') {
-      const pool = this.pools.get(def.id);
+      const key = def.tileKit ? this.groundPoolKey.get(placement.id) : def.id;
+      const pool = key ? this.pools.get(key) : undefined;
       if (!pool?.remove(placement.id)) return null;
+      if (def.tileKit) {
+        this.groundPoolKey.delete(placement.id);
+        this.refreshGroundNeighbors(def, placement.wx, placement.wz); // placement already gone from sim
+      }
       const obj = this.assets.cloneModel(def.model);
       this.applyTransform(obj, def, placement);
       this.group.add(obj);
@@ -228,8 +324,14 @@ export class PropRenderer {
   hide(placement: Placement): void {
     const def = itemDef(placement.def);
     if (!def) return;
+    if (this.pendingShow.delete(placement.id)) return; // hidden before its model landed
     if (def.renderTier === 'instanced') {
-      this.pools.get(def.id)?.remove(placement.id);
+      const key = def.tileKit ? this.groundPoolKey.get(placement.id) : def.id;
+      if (key) this.pools.get(key)?.remove(placement.id);
+      if (def.tileKit) {
+        this.groundPoolKey.delete(placement.id);
+        this.refreshGroundNeighbors(def, placement.wx, placement.wz);
+      }
     } else {
       const obj = this.uniques.get(placement.id);
       if (obj) {
@@ -253,37 +355,133 @@ export class PropRenderer {
       pool.mesh.dispose();
     }
     this.pools.clear();
+    this.groundPoolKey.clear();
+    this.pendingShow.clear();
     for (const p of placements) this.show(p);
   }
 
-  /** A ghost preview object for a def, with swappable validity tint. */
-  makeGhost(defId: string): { object: Object3D; setValid: (valid: boolean) => void } | null {
+  /** A ghost preview object for a def, with swappable validity tint. If the model
+   *  hasn't streamed in yet (S4), a footprint-sized box stands in and the real GLB
+   *  loads in the background — the preview is never a crash, just briefly a box.
+   *  `dispose()` frees the ghost-owned badge material + placeholder geometry (the
+   *  cloned model's geometry/materials are shared with the cache — never disposed);
+   *  BuildSession calls it on teardown so repeated tool/item switches don't orphan. */
+  makeGhost(
+    defId: string,
+  ): { object: Object3D; setValid: (valid: boolean) => void; dispose: () => void } | null {
     const def = itemDef(defId);
     if (!def) return null;
-    const object = this.assets.cloneModel(def.model, { castShadow: false, receiveShadow: false });
-    object.scale.setScalar(def.scale);
+    const owned: Array<{ dispose: () => void }> = [];
+    let object: Object3D;
+    let hostScale: number;
+    if (this.assets.has(def.model)) {
+      object = this.assets.cloneModel(def.model, { castShadow: false, receiveShadow: false });
+      object.scale.setScalar(def.scale);
+      hostScale = def.scale;
+    } else {
+      void this.assets.ensure(def.model); // stream it in; the real ghost isn't rebuilt, but placement will show it
+      const boxGeo = new BoxGeometry(Math.max(1, def.footprint.w) * 0.85, 1, Math.max(1, def.footprint.d) * 0.85);
+      owned.push(boxGeo);
+      const box = new Mesh(boxGeo, this.ghostValid);
+      box.position.y = 0.5;
+      const holder = new Group();
+      holder.add(box);
+      object = holder;
+      hostScale = 1;
+    }
+
+    // Non-colour validity cue (GDD §11): a check/cross badge floating above the
+    // ghost, so the valid/invalid state reads without relying on the mint/coral
+    // tint. Sizes are divided by hostScale so the badge is a constant world size
+    // regardless of the model it sits on. One-time alloc on ghost creation only.
+    tmpBox.setFromObject(object);
+    const topLocalY = tmpBox.isEmpty() ? 1 : tmpBox.max.y / hostScale;
+    const iconMaterial = new SpriteMaterial({
+      map: this.validIconTex,
+      transparent: true,
+      depthWrite: false,
+      fog: false,
+    });
+    owned.push(iconMaterial);
+    const icon = new Sprite(iconMaterial);
+    icon.position.set(0, topLocalY + 0.35 / hostScale, 0);
+    icon.scale.setScalar(0.6 / hostScale);
+    object.add(icon);
+
     const setValid = (valid: boolean) => {
       const mat = valid ? this.ghostValid : this.ghostInvalid;
       object.traverse((o) => {
         if (o instanceof Mesh) o.material = mat;
       });
+      iconMaterial.map = valid ? this.validIconTex : this.invalidIconTex;
+      iconMaterial.needsUpdate = true;
     };
     setValid(true);
-    return { object, setValid };
+    return { object, setValid, dispose: () => owned.forEach((o) => o.dispose()) };
   }
 
-  private pool(def: ItemDef): InstancedPool {
-    let pool = this.pools.get(def.id);
+  private pool(poolKey: string, modelId: string): InstancedPool {
+    let pool = this.pools.get(poolKey);
     if (!pool) {
-      let merged = this.merged.get(def.model);
+      let merged = this.merged.get(modelId);
       if (!merged) {
-        merged = mergeModel(this.assets.sharedScene(def.model));
-        this.merged.set(def.model, merged);
+        merged = mergeModel(this.assets.sharedScene(modelId));
+        this.merged.set(modelId, merged);
       }
       pool = new InstancedPool(this.group, merged.geometry, merged.materials);
-      this.pools.set(def.id, pool);
+      this.pools.set(poolKey, pool);
     }
     return pool;
+  }
+
+  // ——— auto-tiling (S10, v0.6) ———
+
+  /** OR of DIRS bits for same-kit neighbours around (wx,wz). */
+  private groundMask(tileKit: string, wx: number, wz: number): number {
+    let mask = 0;
+    for (const { dx, dz, bit } of DIRS) {
+      const occ = this.island.occupantAt(wx + dx, wz + dz, { preferGround: true });
+      if (occ && itemDef(occ.def)?.tileKit === tileKit) mask |= bit;
+    }
+    return mask;
+  }
+
+  /** Resolve a placement to its pool key + model + rotation. Non-kit items are
+   *  identity (pool key = def.id, model = def.model, rot = placement.rot). */
+  private resolveVariant(
+    placement: Placement,
+    def: ItemDef,
+  ): { poolKey: string; modelId: string; rot: 0 | 1 | 2 | 3 } {
+    if (!def.tileKit) return { poolKey: def.id, modelId: def.model, rot: placement.rot };
+    const kit = TILE_KITS[def.tileKit]!;
+    const { shape, rot } = resolveTileShape(this.groundMask(def.tileKit, placement.wx, placement.wz));
+    const modelId = shape === 'isolated' ? kit.fallback : (kit.variants[shape] ?? kit.fallback);
+    return { poolKey: `${def.id}::${shape}`, modelId, rot };
+  }
+
+  /** Commit an instanced placement into its resolved pool (moving pools if the
+   *  shape changed), then ripple to same-kit neighbours whose shape may shift. */
+  private commitInstanced(placement: Placement, def: ItemDef): void {
+    const v = this.resolveVariant(placement, def);
+    const prev = this.groundPoolKey.get(placement.id);
+    if (prev === v.poolKey && this.pools.get(prev)?.has(placement.id)) return; // no-op
+    if (prev) this.pools.get(prev)?.remove(placement.id);
+    this.pool(v.poolKey, v.modelId).add(placement.id, this.matrixFor(def, placement.wx, placement.wz, v.rot));
+    if (def.tileKit) {
+      this.groundPoolKey.set(placement.id, v.poolKey);
+      this.refreshGroundNeighbors(def, placement.wx, placement.wz);
+    }
+  }
+
+  /** Re-resolve already-rendered same-kit neighbours (their mask just changed). */
+  private refreshGroundNeighbors(def: ItemDef, wx: number, wz: number): void {
+    for (const { dx, dz } of DIRS) {
+      const occ = this.island.occupantAt(wx + dx, wz + dz, { preferGround: true });
+      const nDef = occ && itemDef(occ.def);
+      if (!occ || !nDef || nDef.tileKit !== def.tileKit) continue;
+      if (!this.groundPoolKey.has(occ.id)) continue; // not currently shown
+      this.commitInstanced(occ, nDef);
+    }
   }
 
   private applyTransform(obj: Object3D, def: ItemDef, placement: Placement): void {
@@ -297,5 +495,11 @@ export class PropRenderer {
     let instanced = 0;
     for (const pool of this.pools.values()) instanced += pool.count;
     return { pools: this.pools.size, instanced, uniques: this.uniques.size };
+  }
+
+  /** Debug: the resolved auto-tile shape a placement is currently rendered as. */
+  shapeOf(placementId: PlacementId): string | null {
+    const key = this.groundPoolKey.get(placementId);
+    return key ? (key.split('::')[1] ?? null) : null;
   }
 }

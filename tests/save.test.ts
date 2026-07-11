@@ -142,6 +142,20 @@ describe('parseSave', () => {
     expect(parsed).not.toBeNull();
     expect(parsed!.islanders.residents).toEqual([]);
   });
+
+  it('back-fills a new settings field (uiScale) on a save that predates it', () => {
+    // The uiScale accessibility setting (S23) shipped without a version bump —
+    // normalize()'s `{ ...DEFAULT_SETTINGS, ...settings }` must default any older
+    // save's settings blob (which never persisted uiScale) to 1.
+    const save = makeSave();
+    const settings = save.settings as unknown as Record<string, unknown>;
+    delete settings['uiScale'];
+    const parsed = parseSave(JSON.stringify(save));
+    expect(parsed).not.toBeNull();
+    expect(parsed!.settings.uiScale).toBe(1);
+    // pre-existing settings values still survive the merge
+    expect(parsed!.settings.volume).toBe(save.settings.volume);
+  });
 });
 
 describe('SaveManager', () => {
@@ -163,6 +177,46 @@ describe('SaveManager', () => {
   it('returns null with no save present', () => {
     const mgr = new SaveManager(() => makeSave());
     expect(mgr.load()).toBeNull();
+  });
+
+  it('keeps the main save when storage is nearly full (sacrifices backups)', () => {
+    // A storage that rejects any write pushing total size over a tight budget —
+    // simulating a near-full localStorage. The main save must survive by dropping
+    // the recovery backups rather than being lost.
+    class QuotaStorage extends MemoryStorage {
+      constructor(private readonly budget: number) {
+        super();
+      }
+      override setItem(k: string, v: string): void {
+        let total = v.length;
+        for (let i = 0; i < this.length; i++) {
+          const key = this.key(i)!;
+          if (key !== k) total += this.getItem(key)!.length;
+        }
+        if (total > this.budget) {
+          const err = new Error('quota'); // Node-safe stand-in for QuotaExceededError
+          err.name = 'QuotaExceededError';
+          throw err;
+        }
+        super.setItem(k, v);
+      }
+    }
+    const save = makeSave();
+    const oneSize = JSON.stringify(save).length;
+    // budget ≈ 2.4 saves: two pre-existing backups fit, but main + both do not, so
+    // the first main write throws and must free the backups and retry.
+    vi.stubGlobal('localStorage', new QuotaStorage(Math.floor(oneSize * 2.4)));
+    localStorage.setItem('poplands.save.bak1', 'x'.repeat(oneSize)); // near-full backups
+    localStorage.setItem('poplands.save.bak2', 'x'.repeat(oneSize));
+
+    const mgr = new SaveManager(() => save);
+    mgr.writeNow(); // main write overflows → drop backups → retry → succeeds
+
+    const loaded = mgr.load();
+    expect(loaded).not.toBeNull();
+    expect(loaded!.player.pops).toBe(275); // the main save survived the squeeze
+    expect(localStorage.getItem('poplands.save.bak1')).toBeNull(); // backups sacrificed
+    expect(localStorage.getItem('poplands.save.bak2')).toBeNull();
   });
 
   it('import validates before persisting', () => {
