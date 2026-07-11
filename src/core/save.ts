@@ -192,19 +192,35 @@ export function parseSave(json: string): Save | null {
 }
 
 function normalizeV2(v2: Save): Save {
-  // normalize gently (older exports / hand-edited files / partial slices)
+  // normalize gently (older exports / hand-edited files / partial slices). Default
+  // NESTED fields too, not just top-level slices: a present-but-partial object must
+  // never survive parse and then throw in the sim at boot. (A `postcards` missing
+  // its `skipped` array would crash the eligiblePostcards sort → brick load, which
+  // the no-fail-states covenant forbids; a `player` missing `level`/`xp` would NaN
+  // the HUD.) A wrong-TYPED slice still throws here and is caught by parseSave → backup.
   v2.attic ??= [];
   v2.settings = { ...DEFAULT_SETTINGS, ...v2.settings };
   v2.island.placements ??= [];
+  v2.player.level ??= 1;
+  v2.player.xp ??= 0;
+  v2.player.pops ??= 0;
+  v2.player.stardust ??= 0;
   v2.player.xpGranted ??= [];
   v2.economy ??= freshEconomy();
   v2.economy.accrual ??= [];
   v2.quests ??= freshQuests(v2.island.placements.length);
+  v2.quests.freePlayUnlocked ??= false;
   v2.quests.progress ??= {};
   v2.quests.milestones ??= { itemsPlaced: 0, popsCollected: 0, questsDone: 0, levelsGained: 0 };
   v2.quests.milestoneTier ??= {};
   v2.quests.postcards ??= { active: [], done: [], skipped: [], cooldownUntil: 0 };
+  v2.quests.postcards.active ??= [];
+  v2.quests.postcards.done ??= [];
+  v2.quests.postcards.skipped ??= [];
+  v2.quests.postcards.cooldownUntil ??= 0;
   v2.quests.tutorial ??= { activeId: null, done: [] };
+  v2.quests.tutorial.activeId ??= null;
+  v2.quests.tutorial.done ??= [];
   return v2;
 }
 

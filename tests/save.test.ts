@@ -66,6 +66,24 @@ describe('parseSave', () => {
     expect(parsed!.settings.volume).toBeGreaterThan(0);
   });
 
+  it('deep-defaults present-but-partial nested slices (hand-edited saves never brick boot)', () => {
+    // A hand-edited file where `postcards` is present but missing `skipped`, and
+    // `player` is missing level/xp — the exact partial shape that used to survive
+    // parse and then throw in the sim (eligiblePostcards sort on undefined / NaN HUD).
+    const save = makeSave();
+    const postcards = save.quests.postcards as unknown as Record<string, unknown>;
+    delete postcards['skipped'];
+    const player = save.player as unknown as Record<string, unknown>;
+    delete player['level'];
+    delete player['xp'];
+    const parsed = parseSave(JSON.stringify(save));
+    expect(parsed).not.toBeNull();
+    // nested defaults filled → eligiblePostcards' sort can't read .includes on undefined
+    expect(parsed!.quests.postcards.skipped).toEqual([]);
+    expect(parsed!.player.level).toBe(1);
+    expect(parsed!.player.xp).toBe(0);
+  });
+
   it('withCarried folds a Move-mode item back into the snapshot (no data loss)', () => {
     const placements: SavePlacement[] = [{ id: 'p1', def: 'nature.tree', wx: 1, wz: 1, rot: 0 }];
     const carried: SavePlacement = { id: 'p2', def: 'income.stall', wx: 5, wz: 5, rot: 0 };

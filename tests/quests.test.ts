@@ -131,6 +131,29 @@ describe('QuestSystem milestones & postcards', () => {
     expect(completed.some((id) => id.startsWith('ms.placed'))).toBe(true);
   });
 
+  it('tick refills a freed slot only after the cooldown, and no-ops when the pool is dry', () => {
+    qs.dispose(); // drop the beforeEach subscription; rewire in free-play
+    state.freePlayUnlocked = true;
+    qs = new QuestSystem(island, state, 1, () => now);
+    qs.wire();
+    qs.announce(); // draws the 2 L1 postcards
+    expect(state.postcards.active.length).toBe(2);
+
+    bus.emit('cmd:skipPostcard', { id: state.postcards.active[0]!.id }); // frees a slot, 4 s cooldown
+    expect(state.postcards.active.length).toBe(1);
+    qs.tick(); // still inside the cooldown → no refill (and no per-frame pool scan)
+    expect(state.postcards.active.length).toBe(1);
+
+    now += 5000; // cooldown lapsed
+    qs.tick(); // refills the open slot
+    expect(state.postcards.active.length).toBe(2);
+
+    // pool now dry at L1 (both cards held) — further ticks are safe, allocation-free no-ops
+    now += 5000;
+    expect(() => qs.tick()).not.toThrow();
+    expect(state.postcards.active.length).toBe(2);
+  });
+
   it('skipping a postcard defers it behind a cooldown, then redraws', () => {
     state.freePlayUnlocked = true;
     qs = new QuestSystem(island, state, 1, () => now);

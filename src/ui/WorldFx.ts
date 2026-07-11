@@ -11,7 +11,6 @@
  */
 import { bus } from '@/core/events';
 import { tweens, easings } from '@/core/tween';
-import { footprintCenter } from '@/core/grid';
 import { itemDef } from '@/content/catalog';
 import { isReducedMotion } from '@/core/settingsStore';
 import type { EconomySystem } from '@/sim/EconomySystem';
@@ -31,6 +30,9 @@ const SHOW_THRESHOLD = 0.02; // hide the bubble on an empty (just-collected) bui
 export class WorldFx {
   private root: HTMLDivElement;
   private bubbles = new Map<string, Bubble>();
+  // reused across frames so update() allocates nothing in steady state (TECH §6.5)
+  private live = new Set<string>();
+  private stale: string[] = [];
 
   constructor(
     parent: HTMLElement,
@@ -106,18 +108,26 @@ export class WorldFx {
    * App. Deriving from state (not events) fixes the load-greet and move cases.
    */
   update(): void {
-    const live = new Set<string>();
+    const live = this.live;
+    live.clear();
     for (const p of this.island.allPlacements()) {
       const def = itemDef(p.def);
       if (!def?.income) continue;
       const frac = this.economy.ripeFraction(p.id);
       if (frac < SHOW_THRESHOLD) continue;
       live.add(p.id);
-      const c = footprintCenter(p.wx, p.wz, def.footprint, p.rot);
-      this.ensureBubble(p.id, c.x, c.z, frac);
+      // inline footprint-center (avoid footprintCenter's per-frame {x,z}+{w,d} allocs)
+      const rotated = p.rot === 1 || p.rot === 3;
+      const cx = p.wx + (rotated ? def.footprint.d : def.footprint.w) / 2;
+      const cz = p.wz + (rotated ? def.footprint.w : def.footprint.d) / 2;
+      this.ensureBubble(p.id, cx, cz, frac);
     }
-    // drop bubbles for buildings that are gone or emptied
-    for (const id of [...this.bubbles.keys()]) if (!live.has(id)) this.removeBubble(id);
+    // drop bubbles for buildings that are gone or emptied (collect stale ids into a
+    // reused array — can't delete from the Map mid key-iteration without snapshotting)
+    const stale = this.stale;
+    stale.length = 0;
+    for (const id of this.bubbles.keys()) if (!live.has(id)) stale.push(id);
+    for (const id of stale) this.removeBubble(id);
     // project the survivors
     for (const b of this.bubbles.values()) {
       const proj = this.project(b.x, b.y, b.z);

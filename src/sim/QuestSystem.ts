@@ -32,6 +32,7 @@ export class QuestSystem {
   private unsubs: Array<() => void> = [];
   private completing = new Set<string>(); // re-entrancy guard
   private lastCurrent = new Map<string, number>(); // for quest:progress dedupe
+  private needsRefill = false; // a slot wants a card; gates the per-frame tick's pool scan
 
   constructor(
     private readonly island: IslandModel,
@@ -119,7 +120,10 @@ export class QuestSystem {
   }
 
   private onLevel(level: number): void {
-    this.level = level;
+    // monotonic: a quest reward handled mid-cascade may have already advanced the
+    // player further than this queued level:up payload — never regress (latent
+    // until a reachLevel postcard exists, but cheap insurance for v0.4).
+    this.level = Math.max(this.level, level);
     this.bumpMilestone('levelsGained', 1);
     this.reevalActive();
     this.drawPostcards();
@@ -137,10 +141,19 @@ export class QuestSystem {
     this.drawPostcards();
   }
 
-  /** Low-frequency tick (App loop): refill postcard slots once a cooldown lapses.
-   *  Without this, a slot freed on completion/skip never refills until a level-up. */
+  /** Low-frequency tick (App loop): refill a freed postcard slot once its cooldown
+   *  lapses. Gated by needsRefill so the steady-state per-frame cost is a boolean
+   *  check — it only scans/sorts the pool when a slot actually wants a card and the
+   *  cooldown has passed. Without the gate this re-filtered POSTCARDS every frame
+   *  whenever a slot sat open with an exhausted pool (both reviewers flagged it). */
   tick(): void {
-    if (this.state.freePlayUnlocked) this.drawPostcards();
+    if (!this.needsRefill || !this.state.freePlayUnlocked) return;
+    if (this.state.postcards.active.length >= 2) {
+      this.needsRefill = false;
+      return;
+    }
+    if (this.now() < this.state.postcards.cooldownUntil) return; // wait out the cooldown cheaply
+    this.drawPostcards();
   }
 
   private reevalActive(): void {
@@ -243,6 +256,12 @@ export class QuestSystem {
       this.offer(pick.id);
       this.evalAndMaybeComplete(pick.id);
     }
+    // Re-arm the frame tick ONLY while a slot is open behind an unexpired cooldown
+    // (time will let it draw). If the pool is exhausted at this level (cooldown lapsed,
+    // nothing to draw), clear it so tick stops scanning until an event — level:up,
+    // completion, or skip, each of which calls back here — re-arms it.
+    this.needsRefill =
+      this.state.postcards.active.length < 2 && this.now() < this.state.postcards.cooldownUntil;
   }
 
   private eligiblePostcards(): QuestDef[] {
