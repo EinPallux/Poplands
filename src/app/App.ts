@@ -29,6 +29,7 @@ import { Hud } from '@/ui/Hud';
 import { Mailbox } from '@/ui/Mailbox';
 import { WorldFx } from '@/ui/WorldFx';
 import { SurveyLayer } from '@/ui/SurveyLayer';
+import { SecretLayer } from '@/ui/SecretLayer';
 import '@/ui/questState'; // side-effect: registers quest signal subscriptions
 import { initToasts, showToast } from '@/ui/Toasts';
 import { renderThumbnails } from '@/ui/thumbnails';
@@ -232,6 +233,18 @@ export class App {
       sky.setCenter(c.x, c.z);
     });
 
+    // — secrets (S19): escalating dig poofs, then the discovery payoff
+    bus.on('secret:progress', (e) => {
+      particles.poof(e.wx + 0.5, 0.4, e.wz + 0.5, 1.1 + e.clicks * 0.3);
+      audio.plop();
+    });
+    bus.on('secret:found', (e) => {
+      particles.coinBurst(e.wx + 0.5, 1.2, e.wz + 0.5);
+      particles.sparkle(e.wx + 0.5, 1.0, e.wz + 0.5);
+      audio.chime();
+      showToast(t('toast.secretFound'));
+    });
+
     // — UI (thumbnails render post-boot; they'd otherwise delay first frame)
     initToasts(uiRoot);
     const hud = new Hud(uiRoot);
@@ -244,6 +257,7 @@ export class App {
       island,
     );
     const surveyLayer = new SurveyLayer(uiRoot, (x, y, z) => rig.projectToScreen(x, y, z));
+    const secretLayer = new SecretLayer(uiRoot, (x, y, z) => rig.projectToScreen(x, y, z));
     const buildBar = new BuildBar(uiRoot);
     setTimeout(() => buildBar.setThumbnails(renderThumbnails(assets)), 80);
     const settings = new SettingsPanel(
@@ -312,6 +326,7 @@ export class App {
     loop.add((dt) => particles.update(dt));
     loop.add(() => worldFx.update());
     loop.add(() => surveyLayer.update());
+    loop.add(() => secretLayer.update());
     loop.add((dt) => hover.update(dt));
     loop.add((dt) => probe?.update(dt));
     loop.add((dt) => debugHud.update(dt));
@@ -350,6 +365,9 @@ export class App {
         surveys: () => state.expansion.surveys(),
         buyChunk: (cx: number, cz: number) => bus.emit('cmd:buyChunk', { cx, cz }),
         chunkCount: () => island.chunkCount,
+        secrets: () => state.secrets.snapshot(),
+        clickSecret: (cx: number, cz: number) => bus.emit('cmd:clickSecret', { cx, cz }),
+        milestones: () => state.save.quests.milestones,
         /** Screen pixel position of a block center (headless click targeting). */
         projectCell: (wx: number, wz: number) => {
           const v = new Vector3(wx + 0.5, 0, wz + 0.5).project(rig.camera);

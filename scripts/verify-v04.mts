@@ -62,6 +62,10 @@ interface Poplands {
   buyChunk: (cx: number, cz: number) => void;
   island: { hasBlock: (wx: number, wz: number) => boolean };
   state: { economy: { credit: (pops: number, stardust: number) => void } };
+  wallet: () => { pops: number; stardust: number };
+  secrets: () => Array<{ cx: number; cz: number; kind: string; found: boolean }>;
+  clickSecret: (cx: number, cz: number) => void;
+  milestones: () => { secretsFound: number };
 }
 type Win = { __poplands: Poplands };
 
@@ -126,6 +130,20 @@ async function main(): Promise<void> {
   check('the new chunk is buildable (hasBlock)', gotBlock === true);
   await page.screenshot({ path: path.join(ROOT, 'shots/v04-1-expanded.png') });
 
+  // 2b — discover the starter island's forced dig secret (S19: (0,0) = generous dig)
+  const secrets = await page.evaluate(() => (window as never as Win).__poplands.secrets());
+  const dig = secrets.find((s) => s.cx === 0 && s.cz === 0);
+  check('starter chunk (0,0) has a forced dig secret', dig?.kind === 'dig', `${dig?.kind}`);
+  const wPops = (await page.evaluate(() => (window as never as Win).__poplands.wallet())).pops;
+  for (let i = 0; i < 3; i++) {
+    await page.evaluate(() => (window as never as Win).__poplands.clickSecret(0, 0));
+    await page.waitForTimeout(150);
+  }
+  const afterPops = (await page.evaluate(() => (window as never as Win).__poplands.wallet())).pops;
+  const ms = await page.evaluate(() => (window as never as Win).__poplands.milestones());
+  check('digging 3× discovers the secret (secretsFound=1)', ms.secretsFound === 1, `${ms.secretsFound}`);
+  check('the dig reward (100 ●) lands in the wallet', afterPops === wPops + 100, `${afterPops} (was ${wPops})`);
+
   // 3 — persistence across reload
   await page.reload();
   await settle(page);
@@ -136,6 +154,8 @@ async function main(): Promise<void> {
     slot,
   );
   check('the new chunk still buildable after reload', gotBlock2 === true);
+  const ms2 = await page.evaluate(() => (window as never as Win).__poplands.milestones());
+  check('the discovered secret persists across reload', ms2.secretsFound === 1, `${ms2.secretsFound}`);
 
   await browser.close();
   close();

@@ -96,7 +96,7 @@ describe('parseSave', () => {
     expect(withCarried(placements, null)).toBe(placements);
   });
 
-  it('migrates a v1 save to v2, seeding economy + quests + xpGranted', () => {
+  it('migrates a v1 save through to v3, seeding economy + quests + xpGranted + secrets', () => {
     // a hand-built v0.2-era v1 save
     const v1 = {
       v: 1,
@@ -116,7 +116,7 @@ describe('parseSave', () => {
     };
     const parsed = parseSave(JSON.stringify(v1));
     expect(parsed).not.toBeNull();
-    expect(parsed!.v).toBe(2);
+    expect(parsed!.v).toBe(3); // chains v1→v2→v3
     // wallets preserved, not reset
     expect(parsed!.player.pops).toBe(300);
     expect(parsed!.player.level).toBe(2);
@@ -127,6 +127,9 @@ describe('parseSave', () => {
     expect(parsed!.quests.tutorial.activeId).toBeNull();
     expect(parsed!.quests.milestones.itemsPlaced).toBe(2);
     expect(parsed!.quests.freePlayUnlocked).toBe(false);
+    // v3: empty secrets slice + the secretsFound counter (SecretSystem seeds on start)
+    expect(parsed!.secrets).toEqual([]);
+    expect(parsed!.quests.milestones.secretsFound).toBe(0);
   });
 });
 

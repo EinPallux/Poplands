@@ -815,6 +815,47 @@ body {
   }
 }
 
+/* Secret markers (S19) — world-anchored sparkle over a chunk's hidden secret.
+   Transform is set inline per frame (positioning), so the pulse uses filter +
+   opacity only, never transform. */
+.secret-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.secret-marker {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: auto;
+  border: none;
+  background: transparent;
+  padding: 6px;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  animation: secretPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes secretPulse {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 2px rgba(255, 214, 102, 0.7));
+    opacity: 0.85;
+  }
+  50% {
+    filter: drop-shadow(0 0 9px rgba(255, 214, 102, 0.95));
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .secret-marker {
+    animation: none;
+  }
+}
+
 .ripe-bubble {
   position: absolute;
   top: 0;

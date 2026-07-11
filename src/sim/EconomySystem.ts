@@ -109,9 +109,13 @@ export class EconomySystem {
     const offQuest = bus.on('quest:completed', (e) => {
       this.credit(e.rewards.pops ?? 0, e.rewards.stardust ?? 0);
     });
+    const offSecret = bus.on('secret:found', (e) => {
+      this.credit(e.rewards.pops ?? 0, e.rewards.stardust ?? 0);
+    });
     return () => {
       offLevel();
       offQuest();
+      offSecret();
     };
   }
 

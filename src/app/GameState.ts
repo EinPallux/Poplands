@@ -13,6 +13,7 @@ import { EconomySystem } from '@/sim/EconomySystem';
 import { ProgressionSystem } from '@/sim/ProgressionSystem';
 import { QuestSystem } from '@/sim/QuestSystem';
 import { ExpansionSystem } from '@/sim/ExpansionSystem';
+import { SecretSystem } from '@/sim/SecretSystem';
 import { itemDef } from '@/content/catalog';
 import { STARTER_PLACEMENTS } from '@/content/starterIsland';
 
@@ -24,6 +25,7 @@ export class GameState {
   readonly progression: ProgressionSystem;
   readonly quests: QuestSystem;
   readonly expansion: ExpansionSystem;
+  readonly secrets: SecretSystem;
   readonly isFresh: boolean;
   /** Supplies the item held in Move mode so the snapshot never drops it. */
   private carriedProvider: (() => Placement | null) | null = null;
@@ -61,6 +63,8 @@ export class GameState {
     this.quests = new QuestSystem(this.island, this.save.quests, this.save.player.level);
     // expansion owns survey offers + the buy flow (grows the island lattice)
     this.expansion = new ExpansionSystem(this.island, this.economy, this.save.seed);
+    // secrets own the per-chunk discovery roll + dig/chest state (mutates save.secrets)
+    this.secrets = new SecretSystem(this.island, this.save.secrets, this.save.seed);
 
     // a bought chunk is appended to the persisted chunk set (only ExpansionSystem
     // grows the model, so save.chunks and the model stay in lock-step — themes stay
@@ -79,6 +83,9 @@ export class GameState {
       'quest:completed',
       'cmd:skipPostcard', // mutates persisted quest state → must autosave
       'chunk:unlocked', // grew the island → persist the new chunk
+      'secret:spawned', // rolled a new chunk's secret → persist it
+      'secret:progress', // partial dig → persist the click count
+      'secret:found', // discovered → persist + reward flows credited
       'settings:changed',
     ] as const) {
       bus.on(ev, () => this.manager.requestSave());
@@ -95,9 +102,11 @@ export class GameState {
     this.progression.wire();
     this.quests.wire();
     this.expansion.wire();
+    this.secrets.wire();
     this.economy.resolveOffline();
     this.quests.announce();
     this.expansion.announce();
+    this.secrets.announce();
   }
 
   private static makeFreshSave(): Save {
