@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-11T15:57:40.617Z",
+  "generatedAt": "2026-07-11T19:44:58.527Z",
   "models": {
     "ground.grass-block": {
       "file": "assets/models/ground.grass-block.glb",
@@ -4804,6 +4804,231 @@
       "materials": 3,
       "meshes": 1,
       "phase": "early"
+    },
+    "nature.cattails": {
+      "file": "assets/models/nature.cattails.glb",
+      "bytes": 18384,
+      "aabb": {
+        "min": [
+          -0.5342857837677002,
+          0,
+          -0.6551088690757751
+        ],
+        "max": [
+          0.579903781414032,
+          0.5196152329444885,
+          0.5819038152694702
+        ]
+      },
+      "size": [
+        1.1141895651817322,
+        0.5196152329444885,
+        1.2370126843452454
+      ],
+      "clips": [],
+      "materials": 1,
+      "meshes": 1,
+      "phase": "early"
+    },
+    "deco.message-bottle": {
+      "file": "assets/models/deco.message-bottle.glb",
+      "bytes": 15616,
+      "aabb": {
+        "min": [
+          -0.23290880024433136,
+          0,
+          -0.23290880024433136
+        ],
+        "max": [
+          0.23290880024433136,
+          0.8904509544372559,
+          0.23290880024433136
+        ]
+      },
+      "size": [
+        0.4658176004886627,
+        0.8904509544372559,
+        0.4658176004886627
+      ],
+      "clips": [],
+      "materials": 1,
+      "meshes": 1,
+      "phase": "early"
+    },
+    "building.river-cottage": {
+      "file": "assets/models/building.river-cottage.glb",
+      "bytes": 155688,
+      "aabb": {
+        "min": [
+          -0.5393396597355604,
+          -0.006128897984093123,
+          -0.8930991196033444
+        ],
+        "max": [
+          0.5686675198376179,
+          0.9459721812150442,
+          0.27931971772906616
+        ]
+      },
+      "size": [
+        1.1080071795731783,
+        0.9521010791991373,
+        1.1724188373324105
+      ],
+      "clips": [],
+      "materials": 5,
+      "meshes": 1,
+      "phase": "early"
+    },
+    "building.harbor-house": {
+      "file": "assets/models/building.harbor-house.glb",
+      "bytes": 106824,
+      "aabb": {
+        "min": [
+          -0.5393396597355604,
+          -0.006128851488931016,
+          -0.5432384931985157
+        ],
+        "max": [
+          0.35061335656791925,
+          0.7660770436201375,
+          0.3212252992289608
+        ]
+      },
+      "size": [
+        0.8899530163034797,
+        0.7722058951090686,
+        0.8644637924274765
+      ],
+      "clips": [],
+      "materials": 5,
+      "meshes": 1,
+      "phase": "early"
+    },
+    "building.harbor-villa": {
+      "file": "assets/models/building.harbor-villa.glb",
+      "bytes": 261544,
+      "aabb": {
+        "min": [
+          -0.9449765086174011,
+          -0.0076437724361608245,
+          -0.8850149605356188
+        ],
+        "max": [
+          0.9756583720445633,
+          0.9459720430907707,
+          0.9988583910237576
+        ]
+      },
+      "size": [
+        1.9206348806619644,
+        0.9536158155269315,
+        1.8838733515593764
+      ],
+      "clips": [],
+      "materials": 5,
+      "meshes": 1,
+      "phase": "early"
+    },
+    "nature.coastal-rocks": {
+      "file": "assets/models/nature.coastal-rocks.glb",
+      "bytes": 21588,
+      "aabb": {
+        "min": [
+          -1.624382495880127,
+          0,
+          -1.8812979459762573
+        ],
+        "max": [
+          2.018326997756958,
+          2.299999952316284,
+          1.7879022359848022
+        ]
+      },
+      "size": [
+        3.642709493637085,
+        2.299999952316284,
+        3.6692001819610596
+      ],
+      "clips": [],
+      "materials": 1,
+      "meshes": 1,
+      "phase": "early"
+    },
+    "deco.watchtower": {
+      "file": "assets/models/deco.watchtower.glb",
+      "bytes": 23108,
+      "aabb": {
+        "min": [
+          -1.5244011878967285,
+          0,
+          -1.5244011878967285
+        ],
+        "max": [
+          1.5244011878967285,
+          2.7850000858306885,
+          1.5244011878967285
+        ]
+      },
+      "size": [
+        3.048802375793457,
+        2.7850000858306885,
+        3.048802375793457
+      ],
+      "clips": [],
+      "materials": 1,
+      "meshes": 1,
+      "phase": "early"
+    },
+    "building.beach-bungalow": {
+      "file": "assets/models/building.beach-bungalow.glb",
+      "bytes": 47928,
+      "aabb": {
+        "min": [
+          -0.029409507988020778,
+          0.0004617750824158122,
+          -0.7952494062101356
+        ],
+        "max": [
+          0.6470914930105209,
+          0.5913042815751289,
+          -0.11874386322265457
+        ]
+      },
+      "size": [
+        0.6765010009985417,
+        0.5908425064927131,
+        0.6765055429874811
+      ],
+      "clips": [],
+      "materials": 5,
+      "meshes": 1,
+      "phase": "themed:sandbar"
+    },
+    "building.haunted-galleon": {
+      "file": "assets/models/building.haunted-galleon.glb",
+      "bytes": 82616,
+      "aabb": {
+        "min": [
+          -2.4000000953674316,
+          0,
+          -5.300000190734863
+        ],
+        "max": [
+          2.4000000953674316,
+          9.963520050048828,
+          5.300000190734863
+        ]
+      },
+      "size": [
+        4.800000190734863,
+        9.963520050048828,
+        10.600000381469727
+      ],
+      "clips": [],
+      "materials": 1,
+      "meshes": 4,
+      "phase": "themed:spooky"
     }
   }
 }
