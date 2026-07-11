@@ -163,6 +163,25 @@ const en = {
   'item.income.watermill': 'Watermill',
   'item.decor.statue': 'Stone Statue',
   'item.decor.stone-bridge': 'Stone Bridge',
+  // Tier 7–8 "Riverside"
+  'item.income.fish-market': 'Fish Market',
+  'item.ground.river': 'River Tile',
+  'item.decor.wooden-bridge': 'Wooden Bridge',
+  'item.nature.lily-pad': 'Lily Pads',
+  'item.nature.reeds': 'Reed Cluster',
+  'item.income.cider-mill': 'Cider Mill',
+  'item.home.fishing-hut': 'Fishing Hut',
+  'item.decor.canoe': 'Canoe',
+  // Tier 9–10 "Harbor"
+  'item.income.harbor-market': 'Harbor Market',
+  'item.decor.dock': 'Dock',
+  'item.nature.palm': 'Palm Tree',
+  'item.nature.beach-rock': 'Beach Rocks',
+  'item.decor.crate': 'Crate Stack',
+  'item.decor.barrel': 'Barrel',
+  'item.income.lighthouse': 'Lighthouse',
+  'item.decor.moored-sloop': 'Moored Sloop',
+  'item.decor.pennant': 'Pennant Flag',
 } as const;
 
 export type StringKey = keyof typeof en;

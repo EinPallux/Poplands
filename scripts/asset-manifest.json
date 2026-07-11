@@ -52,6 +52,23 @@
     "building.market-stall": "assets/Fantasy Town Assets/Models/GLB format/stall-red.glb",
     "building.bakery": "assets/Fantasy RTS Assets/Business Building.glb",
     "building.village-house": "assets/Fantasy RTS Assets/House-k6tP5nFUd2.glb",
-    "building.watermill": "assets/Fantasy Town Assets/Models/GLB format/watermill.glb"
+    "building.watermill": "assets/Fantasy Town Assets/Models/GLB format/watermill.glb",
+    "building.fish-market": "assets/Fantasy RTS Assets/Port.glb",
+    "ground.river": "assets/Nature Assets 2/Models/GLTF format/ground_riverStraight.glb",
+    "deco.bridge-wood": "assets/Nature Assets 2/Models/GLTF format/bridge_wood.glb",
+    "nature.lily": "assets/Nature Assets 2/Models/GLTF format/lily_large.glb",
+    "nature.reeds": "assets/Nature Assets 2/Models/GLTF format/grass_large.glb",
+    "building.cider-mill": "assets/Fantasy Town Assets/Models/GLB format/watermill-wide.glb",
+    "building.fishing-hut": "assets/Fantasy RTS Assets/Shack.glb",
+    "deco.canoe": "assets/Nature Assets 2/Models/GLTF format/canoe.glb",
+    "building.harbor-market": "assets/Fantasy RTS Assets/Docks.glb",
+    "deco.dock": "assets/Pirate Assets/Models/GLB format/structure-platform-dock.glb",
+    "nature.palm": "assets/Pirate Assets/Models/GLB format/palm-straight.glb",
+    "nature.beach-rock": "assets/Pirate Assets/Models/GLB format/rocks-sand-b.glb",
+    "deco.crate": "assets/Pirate Assets/Models/GLB format/crate.glb",
+    "deco.barrel": "assets/Pirate Assets/Models/GLB format/barrel.glb",
+    "building.lighthouse": "assets/Pirate Assets/Models/GLB format/tower-complete-small.glb",
+    "deco.sloop": "assets/Pirate Assets/Models/GLB format/ship-small.glb",
+    "deco.pennant": "assets/Pirate Assets/Models/GLB format/flag-pennant.glb"
   }
 }

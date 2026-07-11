@@ -46,10 +46,10 @@ describe('catalog integrity', () => {
     }
   });
 
-  it('tiers are within 1..6', () => {
+  it('tiers are within 1..10', () => {
     for (const d of CATALOG) {
       expect(d.tier).toBeGreaterThanOrEqual(1);
-      expect(d.tier).toBeLessThanOrEqual(6);
+      expect(d.tier).toBeLessThanOrEqual(10);
     }
   });
 });
