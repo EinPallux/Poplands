@@ -13,6 +13,7 @@ import type {
   Object3D} from 'three';
 import {
   Box3,
+  BoxGeometry,
   CanvasTexture,
   Group,
   InstancedMesh,
@@ -167,6 +168,9 @@ export class PropRenderer {
   /** For auto-tile items only: the pool key each placement currently lives in
    *  (its resolved shape can change as neighbours come and go). */
   private groundPoolKey = new Map<PlacementId, string>();
+  /** Placements whose model is still streaming in (S4 lazy-loading). Flushed to a
+   *  plain `show()` the moment `assets.ensure` resolves; cancelled if removed first. */
+  private pendingShow = new Map<PlacementId, Placement>();
 
   private readonly ghostValid: MeshStandardMaterial;
   private readonly ghostInvalid: MeshStandardMaterial;
@@ -204,6 +208,10 @@ export class PropRenderer {
   show(placement: Placement): void {
     const def = itemDef(placement.def);
     if (!def) return;
+    if (!this.assets.has(def.model)) {
+      this.deferShow(placement, def);
+      return;
+    }
     if (def.renderTier === 'instanced') {
       this.commitInstanced(placement, def);
     } else {
@@ -214,6 +222,18 @@ export class PropRenderer {
     }
   }
 
+  /** Queue a placement whose model hasn't streamed in yet (S4). Kicks the on-demand
+   *  load, then flushes to a plain `show()` — unless the placement was removed first. */
+  private deferShow(placement: Placement, def: ItemDef): void {
+    this.pendingShow.set(placement.id, placement);
+    void this.assets.ensure(def.model).then(() => {
+      if (this.pendingShow.get(placement.id) === placement) {
+        this.pendingShow.delete(placement.id);
+        this.show(placement);
+      }
+    });
+  }
+
   /**
    * Promote a placement to a temporary real Object3D (for juice), to be baked
    * with `bake()` when the animation finishes. Returns the temp object, placed
@@ -222,6 +242,12 @@ export class PropRenderer {
   promote(placement: Placement): Object3D | null {
     const def = itemDef(placement.def);
     if (!def) return null;
+    if (!this.assets.has(def.model)) {
+      // model still streaming in: skip the pop-in juice this once, show it plain
+      // the moment it lands (never a crash on a freshly-unlocked interactive place).
+      this.deferShow(placement, def);
+      return null;
+    }
     const obj = this.assets.cloneModel(def.model);
     this.applyTransform(obj, def, placement);
     this.group.add(obj);
@@ -248,6 +274,7 @@ export class PropRenderer {
   extract(placement: Placement): Object3D | null {
     const def = itemDef(placement.def);
     if (!def) return null;
+    if (this.pendingShow.delete(placement.id)) return null; // removed before its model landed
     if (def.renderTier === 'instanced') {
       const key = def.tileKit ? this.groundPoolKey.get(placement.id) : def.id;
       const pool = key ? this.pools.get(key) : undefined;
@@ -271,6 +298,7 @@ export class PropRenderer {
   hide(placement: Placement): void {
     const def = itemDef(placement.def);
     if (!def) return;
+    if (this.pendingShow.delete(placement.id)) return; // hidden before its model landed
     if (def.renderTier === 'instanced') {
       const key = def.tileKit ? this.groundPoolKey.get(placement.id) : def.id;
       if (key) this.pools.get(key)?.remove(placement.id);
@@ -302,27 +330,46 @@ export class PropRenderer {
     }
     this.pools.clear();
     this.groundPoolKey.clear();
+    this.pendingShow.clear();
     for (const p of placements) this.show(p);
   }
 
-  /** A ghost preview object for a def, with swappable validity tint. */
+  /** A ghost preview object for a def, with swappable validity tint. If the model
+   *  hasn't streamed in yet (S4), a footprint-sized box stands in and the real GLB
+   *  loads in the background — the preview is never a crash, just briefly a box. */
   makeGhost(defId: string): { object: Object3D; setValid: (valid: boolean) => void } | null {
     const def = itemDef(defId);
     if (!def) return null;
-    const object = this.assets.cloneModel(def.model, { castShadow: false, receiveShadow: false });
-    object.scale.setScalar(def.scale);
+    let object: Object3D;
+    let hostScale: number;
+    if (this.assets.has(def.model)) {
+      object = this.assets.cloneModel(def.model, { castShadow: false, receiveShadow: false });
+      object.scale.setScalar(def.scale);
+      hostScale = def.scale;
+    } else {
+      void this.assets.ensure(def.model); // stream it in; the real ghost isn't rebuilt, but placement will show it
+      const box = new Mesh(
+        new BoxGeometry(Math.max(1, def.footprint.w) * 0.85, 1, Math.max(1, def.footprint.d) * 0.85),
+        this.ghostValid,
+      );
+      box.position.y = 0.5;
+      const holder = new Group();
+      holder.add(box);
+      object = holder;
+      hostScale = 1;
+    }
 
     // Non-colour validity cue (GDD §11): a check/cross badge floating above the
     // ghost, so the valid/invalid state reads without relying on the mint/coral
-    // tint. Sizes are divided by def.scale so the badge is a constant world size
+    // tint. Sizes are divided by hostScale so the badge is a constant world size
     // regardless of the model it sits on. One-time alloc on ghost creation only.
     tmpBox.setFromObject(object);
-    const topLocalY = tmpBox.isEmpty() ? 1 : tmpBox.max.y / def.scale;
+    const topLocalY = tmpBox.isEmpty() ? 1 : tmpBox.max.y / hostScale;
     const icon = new Sprite(
       new SpriteMaterial({ map: this.validIconTex, transparent: true, depthWrite: false, fog: false }),
     );
-    icon.position.set(0, topLocalY + 0.35 / def.scale, 0);
-    icon.scale.setScalar(0.6 / def.scale);
+    icon.position.set(0, topLocalY + 0.35 / hostScale, 0);
+    icon.scale.setScalar(0.6 / hostScale);
     object.add(icon);
 
     const setValid = (valid: boolean) => {

@@ -38,6 +38,7 @@ export function renderThumbnails(assets: AssetRegistry): Map<string, string> {
   const camera = new OrthographicCamera(-1, 1, 1, -1, 0.01, 50);
 
   for (const def of CATALOG) {
+    if (!assets.has(def.model)) continue; // model in a not-yet-loaded phase (S4) — re-run on assets:phaseLoaded
     try {
       const model = assets.cloneModel(def.model, { castShadow: false, receiveShadow: false });
       scene.add(model);

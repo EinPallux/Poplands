@@ -55,8 +55,9 @@ import { bus } from '@/core/events';
 import { qualitySignal, timeOfDaySignal, fpsCapSignal, uiScaleSignal } from '@/core/settingsStore';
 import { popsSignal, stardustSignal, levelSignal, xpSignal } from '@/core/playerStore';
 import { effect } from '@/core/signals';
-import { footprintCenter } from '@/core/grid';
-import { itemDef } from '@/content/catalog';
+import { footprintCenter, type ChunkTheme } from '@/core/grid';
+import { itemDef, CATALOG } from '@/content/catalog';
+import type { AssetPhase } from '@/content/assetPhases';
 import { themeFor } from '@/content/themes';
 
 const VERSION = '0.2.0';
@@ -97,9 +98,21 @@ export class App {
 
     // — assets, then state
     const assets = new AssetRegistry();
-    await assets.loadBoot(import.meta.env.BASE_URL);
+    await assets.loadBoot(import.meta.env.BASE_URL); // boot wave only: Tiers 1–4 + agents
     const state = new GameState();
     const island = state.island;
+
+    // Returning-save guard (S4 §6.1): boot carries only Tiers 1–4 + agents, so a
+    // veteran's Tier-5+/themed buildings would miss the cache. Await exactly the
+    // phases this save actually places, before projecting any of it — every
+    // downstream synchronous show()/rebuildAll keeps its throw-free contract.
+    const neededPhases = new Set<AssetPhase>();
+    for (const p of island.allPlacements()) {
+      const def = itemDef(p.def);
+      if (def) neededPhases.add(assets.phaseOf(def.model) ?? 'boot');
+    }
+    neededPhases.delete('boot');
+    if (neededPhases.size) await Promise.all([...neededPhases].map((ph) => assets.loadPhase(ph)));
 
     // — world visuals. Ground + base are held by ref so a chunk purchase can
     // rebuild them for the new island shape (the outline/slab re-trace organically).
@@ -343,6 +356,20 @@ export class App {
     });
     const buildBar = new BuildBar(uiRoot);
     setTimeout(() => buildBar.setThumbnails(renderThumbnails(assets)), 80);
+    // — phased asset streaming (S4 §5): later waves fetch in the background so first
+    // paint waits only on boot. Each trigger is idempotent (loadPhase no-ops if done);
+    // thumbnails re-render in place as each wave lands (BuildBar.setThumbnails is additive).
+    const themeForTier = (tier: number): ChunkTheme | undefined =>
+      CATALOG.find((d) => d.tier === tier)?.theme;
+    bus.on('level:up', (e) => {
+      if (e.level >= 5) void assets.loadPhase('early'); // net if requestIdleCallback never fired (backgrounded tab)
+      const theme = e.unlockedTier != null ? themeForTier(e.unlockedTier) : undefined;
+      if (theme) void assets.loadPhase(`themed:${theme}`); // a biome tier just unlocked → fetch its set
+    });
+    bus.on('chunk:unlocked', (e) => {
+      if (e.theme !== 'meadow') void assets.loadPhase(`themed:${e.theme}`); // biome arriving → prefetch its props
+    });
+    bus.on('assets:phaseLoaded', () => buildBar.setThumbnails(renderThumbnails(assets)));
     const settings = new SettingsPanel(
       uiRoot,
       () => state.exportToFile(),
@@ -480,6 +507,17 @@ export class App {
     state.start();
     bus.emit('app:ready', undefined);
 
+    // — background-load the `early` wave (Tiers 5–14, no biome) once the boot frame
+    // is settled. A cozy player takes many minutes to reach Tier 5, so this ~5 MB
+    // wave has ample cover; `level:up` above is the safety net if idle never fires.
+    const whenIdle = (fn: () => void): void => {
+      const ric = (window as unknown as { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => void })
+        .requestIdleCallback;
+      if (ric) ric(fn, { timeout: 4000 });
+      else setTimeout(fn, 1500);
+    };
+    whenIdle(() => void assets.loadPhase('early'));
+
     // Dev handle for the debug console & headless verification (?debug=1 only).
     if (new URLSearchParams(window.location.search).get('debug') === '1') {
       (window as unknown as Record<string, unknown>)['__poplands'] = {
@@ -522,6 +560,11 @@ export class App {
         nightFactor: () => timeOfDay.nightFactor,
         glowCount: () => glow.count,
         themeAmbience: () => themeAmbience.counts,
+        // — S4 phased loading (headless verify): which models are cached now + on-demand phase loads
+        loadPhase: (phase: AssetPhase) => assets.loadPhase(phase),
+        phaseOf: (id: string) => assets.phaseOf(id),
+        loadedModels: () => CATALOG.filter((d) => assets.has(d.model)).length,
+        modelLoaded: (id: string) => assets.has(itemDef(id)?.model ?? id),
         /** Debug soak (non-persistent): grow the lattice to N chunks + rebuild once,
          *  skipping economy/arrival — for the draw/tri budget measurement only. */
         growTo: (n: number) => {

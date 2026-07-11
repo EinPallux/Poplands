@@ -70,6 +70,9 @@ export class AgentRenderer {
   sync(agents: readonly AgentView[], dt: number): void {
     this.seen.clear();
     for (const a of agents) {
+      // Insurance (S4): roster models are all boot-tagged, so this never trips in
+      // practice — but never throw if a future model ships un-tagged; retry next frame.
+      if (!this.assets.has(a.model)) continue;
       this.seen.add(a.id);
       const rec = this.recs.get(a.id) ?? this.spawn(a);
       rec.root.position.set(a.x, rec.footY, a.z);

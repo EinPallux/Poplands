@@ -75,7 +75,7 @@ async function main(): Promise<void> {
   await page.click('.settings-gear');
   await page.waitForTimeout(250);
   const beforeTransform = await page.evaluate(
-    () => getComputedStyle(document.querySelector('.buildbar')!).transform,
+    () => window.getComputedStyle(document.querySelector('.buildbar')!).transform,
   );
   await page.selectOption('.s-uiscale', '1.3');
   await page.waitForTimeout(500);
@@ -83,7 +83,7 @@ async function main(): Promise<void> {
     document.documentElement.style.getPropertyValue('--ui-scale'),
   );
   const afterTransform = await page.evaluate(
-    () => getComputedStyle(document.querySelector('.buildbar')!).transform,
+    () => window.getComputedStyle(document.querySelector('.buildbar')!).transform,
   );
   check('uiScale select sets --ui-scale=1.3', cssVar.trim() === '1.3', `--ui-scale='${cssVar}'`);
   check('buildbar transform matrix changes when scaled', beforeTransform !== afterTransform);
