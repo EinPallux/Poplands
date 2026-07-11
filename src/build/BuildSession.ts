@@ -19,6 +19,7 @@ interface GhostState {
   def: ItemDef;
   object: Object3D;
   setValid: (valid: boolean) => void;
+  dispose: () => void;
   rot: Rot;
   cell: { wx: number; wz: number } | null;
   valid: boolean;
@@ -126,6 +127,7 @@ export class BuildSession {
       def,
       object: ghost.object,
       setValid: ghost.setValid,
+      dispose: ghost.dispose,
       rot,
       cell: this.hoverCell,
       valid: false,
@@ -138,6 +140,7 @@ export class BuildSession {
   private teardownGhost(): void {
     if (this.ghost) {
       this.group.remove(this.ghost.object);
+      this.ghost.dispose(); // free the ghost-owned badge material + placeholder geometry
       this.ghost = null;
     }
   }

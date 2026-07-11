@@ -64,21 +64,31 @@ export class AssetRegistry {
     await this.loadPhase('boot');
   }
 
-  /** Load every model in a phase. Idempotent — an already-loaded phase resolves at once. */
+  /** Load every model in a phase. Idempotent — an already-loaded phase resolves at once.
+   *  Per-model failures are logged and swallowed (never reject the whole wave, so a
+   *  fire-and-forget `void loadPhase()` can't raise an unhandled rejection); the phase
+   *  is only marked loaded when all its models actually landed, so a transient miss
+   *  can still be retried by a later trigger. */
   async loadPhase(phase: AssetPhase): Promise<void> {
     if (this.loadedPhases.has(phase)) return;
     if (!this.manifest) throw new Error('[assets] loadPhase before loadBoot');
     const entries = Object.entries(this.manifest.models).filter(([, m]) => m.phase === phase);
     let loaded = 0;
+    let failed = 0;
     bus.emit('assets:progress', { phase, progress: entries.length ? 0 : 1 });
     await Promise.all(
       entries.map(async ([id, meta]) => {
-        await this.loadOne(id, meta);
+        try {
+          await this.loadOne(id, meta);
+        } catch (err) {
+          failed++;
+          console.error(`[assets] failed to load ${id} (phase ${phase})`, err);
+        }
         loaded++;
         bus.emit('assets:progress', { phase, progress: loaded / entries.length });
       }),
     );
-    this.loadedPhases.add(phase);
+    if (failed === 0) this.loadedPhases.add(phase);
     bus.emit('assets:phaseLoaded', { phase });
   }
 
@@ -95,18 +105,26 @@ export class AssetRegistry {
     return this.manifest?.models[id]?.phase ?? null;
   }
 
-  /** Load + cache one model, de-duping concurrent requests via the pending map. */
+  /** Load + cache one model, de-duping concurrent requests via the pending map. On
+   *  failure the pending promise is evicted (not cached forever) so a later `ensure`
+   *  can retry, and the rejection still propagates to this caller. */
   private loadOne(id: string, meta: ModelMeta): Promise<CachedModel> {
     const cached = this.cache.get(id);
     if (cached) return Promise.resolve(cached);
     let p = this.pending.get(id);
     if (!p) {
-      p = this.loader.loadAsync(`${this.baseUrl}${meta.file}`).then((gltf) => {
-        const entry: CachedModel = { scene: gltf.scene, meta, clips: gltf.animations };
-        this.cache.set(id, entry);
-        this.pending.delete(id);
-        return entry;
-      });
+      p = this.loader
+        .loadAsync(`${this.baseUrl}${meta.file}`)
+        .then((gltf) => {
+          const entry: CachedModel = { scene: gltf.scene, meta, clips: gltf.animations };
+          this.cache.set(id, entry);
+          this.pending.delete(id);
+          return entry;
+        })
+        .catch((err: unknown) => {
+          this.pending.delete(id); // don't cache the dead promise — allow a retry
+          throw err;
+        });
       this.pending.set(id, p);
     }
     return p;

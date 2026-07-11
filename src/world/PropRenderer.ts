@@ -204,11 +204,27 @@ export class PropRenderer {
     return new Matrix4().compose(tmpPos, tmpQuat, tmpScale);
   }
 
+  /** Every model a def could render with. For a tile kit that's the fallback + all
+   *  variant GLBs (auto-tiling can resolve to any of them, and neighbours re-resolve
+   *  as the mask changes), so the whole kit must be present before we commit — the
+   *  base being cached is NOT enough (the variants ride the same lazy phase and land
+   *  at independent times within loadPhase's Promise.all). */
+  private modelsFor(def: ItemDef): string[] {
+    if (!def.tileKit) return [def.model];
+    const kit = TILE_KITS[def.tileKit];
+    if (!kit) return [def.model];
+    return [def.model, kit.fallback, ...Object.values(kit.variants)];
+  }
+
+  private modelsReady(def: ItemDef): boolean {
+    return this.modelsFor(def).every((m) => this.assets.has(m));
+  }
+
   /** Instantly show a placement (no animation) — used for bulk rebuild on load. */
   show(placement: Placement): void {
     const def = itemDef(placement.def);
     if (!def) return;
-    if (!this.assets.has(def.model)) {
+    if (!this.modelsReady(def)) {
       this.deferShow(placement, def);
       return;
     }
@@ -222,16 +238,24 @@ export class PropRenderer {
     }
   }
 
-  /** Queue a placement whose model hasn't streamed in yet (S4). Kicks the on-demand
-   *  load, then flushes to a plain `show()` — unless the placement was removed first. */
+  /** Queue a placement whose model(s) haven't streamed in yet (S4). Kicks the on-demand
+   *  loads (all of them, incl. a tile kit's variants — else commitInstanced would later
+   *  resolve to an uncached variant and throw), then flushes to a plain `show()` — unless
+   *  the placement was removed first. A load failure drops the entry (no leak / no
+   *  unhandled rejection); a reload's rebuildAll retries from truth. */
   private deferShow(placement: Placement, def: ItemDef): void {
     this.pendingShow.set(placement.id, placement);
-    void this.assets.ensure(def.model).then(() => {
-      if (this.pendingShow.get(placement.id) === placement) {
+    void Promise.all(this.modelsFor(def).map((m) => this.assets.ensure(m)))
+      .then(() => {
+        if (this.pendingShow.get(placement.id) === placement) {
+          this.pendingShow.delete(placement.id);
+          this.show(placement);
+        }
+      })
+      .catch((err: unknown) => {
         this.pendingShow.delete(placement.id);
-        this.show(placement);
-      }
-    });
+        console.error(`[props] deferred model load failed for ${def.id}`, err);
+      });
   }
 
   /**
@@ -242,9 +266,11 @@ export class PropRenderer {
   promote(placement: Placement): Object3D | null {
     const def = itemDef(placement.def);
     if (!def) return null;
-    if (!this.assets.has(def.model)) {
-      // model still streaming in: skip the pop-in juice this once, show it plain
-      // the moment it lands (never a crash on a freshly-unlocked interactive place).
+    if (!this.modelsReady(def)) {
+      // model(s) still streaming in: skip the pop-in juice this once, show it plain
+      // the moment they land (never a crash on a freshly-unlocked interactive place,
+      // incl. a tile kit whose variant GLBs haven't arrived — bake() would resolve
+      // to an uncached variant otherwise).
       this.deferShow(placement, def);
       return null;
     }
@@ -336,10 +362,16 @@ export class PropRenderer {
 
   /** A ghost preview object for a def, with swappable validity tint. If the model
    *  hasn't streamed in yet (S4), a footprint-sized box stands in and the real GLB
-   *  loads in the background — the preview is never a crash, just briefly a box. */
-  makeGhost(defId: string): { object: Object3D; setValid: (valid: boolean) => void } | null {
+   *  loads in the background — the preview is never a crash, just briefly a box.
+   *  `dispose()` frees the ghost-owned badge material + placeholder geometry (the
+   *  cloned model's geometry/materials are shared with the cache — never disposed);
+   *  BuildSession calls it on teardown so repeated tool/item switches don't orphan. */
+  makeGhost(
+    defId: string,
+  ): { object: Object3D; setValid: (valid: boolean) => void; dispose: () => void } | null {
     const def = itemDef(defId);
     if (!def) return null;
+    const owned: Array<{ dispose: () => void }> = [];
     let object: Object3D;
     let hostScale: number;
     if (this.assets.has(def.model)) {
@@ -348,10 +380,9 @@ export class PropRenderer {
       hostScale = def.scale;
     } else {
       void this.assets.ensure(def.model); // stream it in; the real ghost isn't rebuilt, but placement will show it
-      const box = new Mesh(
-        new BoxGeometry(Math.max(1, def.footprint.w) * 0.85, 1, Math.max(1, def.footprint.d) * 0.85),
-        this.ghostValid,
-      );
+      const boxGeo = new BoxGeometry(Math.max(1, def.footprint.w) * 0.85, 1, Math.max(1, def.footprint.d) * 0.85);
+      owned.push(boxGeo);
+      const box = new Mesh(boxGeo, this.ghostValid);
       box.position.y = 0.5;
       const holder = new Group();
       holder.add(box);
@@ -365,9 +396,14 @@ export class PropRenderer {
     // regardless of the model it sits on. One-time alloc on ghost creation only.
     tmpBox.setFromObject(object);
     const topLocalY = tmpBox.isEmpty() ? 1 : tmpBox.max.y / hostScale;
-    const icon = new Sprite(
-      new SpriteMaterial({ map: this.validIconTex, transparent: true, depthWrite: false, fog: false }),
-    );
+    const iconMaterial = new SpriteMaterial({
+      map: this.validIconTex,
+      transparent: true,
+      depthWrite: false,
+      fog: false,
+    });
+    owned.push(iconMaterial);
+    const icon = new Sprite(iconMaterial);
     icon.position.set(0, topLocalY + 0.35 / hostScale, 0);
     icon.scale.setScalar(0.6 / hostScale);
     object.add(icon);
@@ -377,12 +413,11 @@ export class PropRenderer {
       object.traverse((o) => {
         if (o instanceof Mesh) o.material = mat;
       });
-      const iconMat = icon.material as SpriteMaterial;
-      iconMat.map = valid ? this.validIconTex : this.invalidIconTex;
-      iconMat.needsUpdate = true;
+      iconMaterial.map = valid ? this.validIconTex : this.invalidIconTex;
+      iconMaterial.needsUpdate = true;
     };
     setValid(true);
-    return { object, setValid };
+    return { object, setValid, dispose: () => owned.forEach((o) => o.dispose()) };
   }
 
   private pool(poolKey: string, modelId: string): InstancedPool {

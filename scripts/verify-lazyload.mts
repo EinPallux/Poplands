@@ -9,6 +9,7 @@
  *
  *   npm run build && npx tsx scripts/verify-lazyload.mts
  */
+/* eslint-disable @typescript-eslint/no-explicit-any -- headless script pokes the debug handle */
 import { chromium, type Page } from 'playwright';
 import http from 'node:http';
 import { readFile } from 'node:fs/promises';
@@ -54,9 +55,7 @@ const checks: Array<{ name: string; pass: boolean; detail?: string }> = [];
 const check = (name: string, pass: boolean, detail?: string) =>
   checks.push({ name, pass, ...(detail !== undefined ? { detail } : {}) });
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const pl = (page: Page, expr: (h: any) => unknown) =>
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   page.evaluate(expr as any, undefined) as Promise<any>;
 
 async function main(): Promise<void> {
@@ -111,7 +110,11 @@ async function main(): Promise<void> {
   const save = JSON.parse(saveJson);
   save.player.level = 9;
   save.island.placements.push({ id: 'seed-early', def: 'income.harbor-market', wx: 2, wz: 2, rot: 0 });
-  save.player.xpGranted.push('seed-early'); // no retroactive XP windfall
+  // two ADJACENT river tiles (early phase, tileKit 'river'): rebuildAll → commitInstanced
+  // resolves one to a 'straight'/'end' VARIANT GLB — must not throw for a missing variant.
+  save.island.placements.push({ id: 'seed-river-a', def: 'ground.river', wx: 5, wz: 5, rot: 0 });
+  save.island.placements.push({ id: 'seed-river-b', def: 'ground.river', wx: 5, wz: 6, rot: 0 });
+  save.player.xpGranted.push('seed-early', 'seed-river-a', 'seed-river-b'); // no retroactive XP windfall
   const seeded = JSON.stringify(save);
 
   const errors2: string[] = [];
@@ -129,6 +132,13 @@ async function main(): Promise<void> {
   );
   check('returning save: early placement survived load', seededPlaced === true);
   check('returning save: its early model was pre-awaited before rebuild', seededLoaded === true);
+  // finding #1 regression: adjacent river tiles resolve to variant GLBs on rebuild —
+  // all kit variants must be present (not just the base) or sharedScene(variant) throws.
+  const riverShapes = await pl(page2, () =>
+    ['seed-river-a', 'seed-river-b'].map((id) => (window as any).__poplands.props.shapeOf(id)),
+  );
+  const riverResolved = Array.isArray(riverShapes) && riverShapes.every((s: unknown) => s && s !== 'isolated');
+  check('returning save: adjacent river tiles auto-tiled without a missing-variant crash', riverResolved, JSON.stringify(riverShapes));
   check('returning save: booted with zero page errors', errors2.length === 0, errors2.join(' | '));
   await page2.close();
 
