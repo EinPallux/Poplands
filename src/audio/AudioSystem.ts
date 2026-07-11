@@ -201,6 +201,82 @@ export class AudioSystem {
     osc.stop(now + 0.26);
   }
 
+  /** A soft water plop as the line hits the pond (fishing cast). */
+  splash(): void {
+    const ctx = this.ensure();
+    if (!ctx || !this.master) return;
+    const now = ctx.currentTime;
+    // low sine "bloop" body
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(420, now);
+    osc.frequency.exponentialRampToValueAtTime(180, now + 0.14);
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.32, now + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.2);
+    osc.connect(gain).connect(this.master);
+    osc.start(now);
+    osc.stop(now + 0.22);
+    // a little watery noise droplet on top
+    const dur = 0.16;
+    const buffer = ctx.createBuffer(1, Math.ceil(ctx.sampleRate * dur), ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / data.length);
+    const src = ctx.createBufferSource();
+    src.buffer = buffer;
+    const bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.setValueAtTime(1400, now);
+    bp.frequency.exponentialRampToValueAtTime(600, now + dur);
+    const ng = ctx.createGain();
+    ng.gain.setValueAtTime(0.12, now);
+    ng.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+    src.connect(bp).connect(ng).connect(this.master);
+    src.start(now);
+  }
+
+  /** A curious little "bloop-bloop" when a fish nibbles the line. */
+  bite(): void {
+    const ctx = this.ensure();
+    if (!ctx || !this.master) return;
+    const now = ctx.currentTime;
+    for (let i = 0; i < 2; i++) {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      const at = now + i * 0.13;
+      osc.frequency.setValueAtTime(500, at);
+      osc.frequency.exponentialRampToValueAtTime(760, at + 0.07);
+      gain.gain.setValueAtTime(0.0001, at);
+      gain.gain.exponentialRampToValueAtTime(0.26, at + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, at + 0.11);
+      osc.connect(gain).connect(this.master);
+      osc.start(at);
+      osc.stop(at + 0.13);
+    }
+  }
+
+  /** A happy little rising flourish when a fish is reeled in. */
+  reel(): void {
+    const ctx = this.ensure();
+    if (!ctx || !this.master) return;
+    const now = ctx.currentTime;
+    [523.25, 659.25, 880, 1174.7].forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'triangle';
+      const t = now + i * 0.07;
+      osc.frequency.setValueAtTime(freq, t);
+      gain.gain.setValueAtTime(0.0001, t);
+      gain.gain.exponentialRampToValueAtTime(0.3, t + 0.012);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.26);
+      osc.connect(gain).connect(this.master!);
+      osc.start(t);
+      osc.stop(t + 0.28);
+    });
+  }
+
   /** A soft two-note birdsong — the daytime ambient (rate-limited by the caller). */
   chirp(): void {
     const ctx = this.ensure();

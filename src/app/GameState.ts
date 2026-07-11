@@ -16,6 +16,7 @@ import { ExpansionSystem } from '@/sim/ExpansionSystem';
 import { SecretSystem } from '@/sim/SecretSystem';
 import { IslanderSystem } from '@/sim/IslanderSystem';
 import { PalSystem } from '@/sim/PalSystem';
+import { FishingSystem } from '@/sim/FishingSystem';
 import { itemDef } from '@/content/catalog';
 import { STARTER_PLACEMENTS } from '@/content/starterIsland';
 
@@ -30,6 +31,7 @@ export class GameState {
   readonly secrets: SecretSystem;
   readonly islanders: IslanderSystem;
   readonly pals: PalSystem;
+  readonly fishing: FishingSystem;
   readonly isFresh: boolean;
   /** Supplies the item held in Move mode so the snapshot never drops it. */
   private carriedProvider: (() => Placement | null) | null = null;
@@ -74,6 +76,8 @@ export class GameState {
     // islanders + pals own their rosters + wander AI (mutate save.islanders in place)
     this.islanders = new IslanderSystem(this.island, this.save.islanders, this.save.seed);
     this.pals = new PalSystem(this.island, this.save.islanders, this.save.seed);
+    // fishing owns the pond minigame + catch collection (mutates save.fishing on snapshot)
+    this.fishing = new FishingSystem(this.island, this.save.fishing, this.save.seed);
 
     // a bought chunk is appended to the persisted chunk set (only ExpansionSystem
     // grows the model, so save.chunks and the model stay in lock-step — themes stay
@@ -97,6 +101,7 @@ export class GameState {
       'secret:found', // discovered → persist + reward flows credited
       'npc:arrived', // a neighbour moved in → persist the roster
       'pal:adopted', // a Pal came to visit → persist the roster
+      'fishing:caught', // reeled in a fish → persist the collection
       'settings:changed',
     ] as const) {
       bus.on(ev, () => this.manager.requestSave());
@@ -116,6 +121,7 @@ export class GameState {
     this.secrets.wire();
     this.islanders.wire();
     this.pals.wire();
+    this.fishing.wire();
     this.economy.resolveOffline();
     this.quests.announce();
     this.expansion.announce();
@@ -159,6 +165,7 @@ export class GameState {
     this.save.player.xpGranted = this.save.player.xpGranted.filter((id) => live.has(id));
     Object.assign(this.save.player, snapshotWallet());
     this.save.economy = this.economy.snapshot();
+    this.save.fishing = this.fishing.snapshot();
     this.save.settings = snapshotSettings();
     return this.save;
   }

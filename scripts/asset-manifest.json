@@ -55,6 +55,7 @@
     "building.watermill": "assets/Fantasy Town Assets/Models/GLB format/watermill.glb",
     "building.fish-market": "assets/Fantasy RTS Assets/Port.glb",
     "ground.river": "assets/Nature Assets 2/Models/GLTF format/ground_riverTile.glb",
+    "nature.fishing-pond": "assets/Nature Assets 2/Models/GLTF format/ground_riverTile.glb",
     "deco.bridge-wood": "assets/Nature Assets 2/Models/GLTF format/bridge_wood.glb",
     "nature.lily": "assets/Nature Assets 2/Models/GLTF format/lily_large.glb",
     "nature.reeds": "assets/Nature Assets 2/Models/GLTF format/grass_large.glb",

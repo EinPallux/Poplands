@@ -165,6 +165,22 @@ export interface AppEvents extends Record<string, unknown> {
   'cmd:clickPal': { id: string }; // player tapped a Pal → pet it
   'pal:petted': { id: string }; // a Pal was petted → hearts + happy sound
 
+  // fishing (post-1.0): the pond cast→nibble→catch minigame
+  'cmd:castLine': { placementId: string }; // player tapped a pond — the FSM casts or reels
+  'fishing:cast': { placementId: string; wx: number; wz: number }; // the line is in the water
+  'fishing:nibble': { placementId: string; wx: number; wz: number }; // a bite! tap to reel it in
+  'fishing:caught': {
+    fishId: string;
+    nameKey: StringKey;
+    icon: string;
+    rarity: 'common' | 'uncommon' | 'rare' | 'legendary';
+    rewards: QuestReward;
+    isNew: boolean; // first time this species is caught → a discovery moment
+    wx: number;
+    wz: number;
+  };
+  'fishing:missed': { placementId: string; wx: number; wz: number }; // it got away (no penalty)
+
   // ambient events (S19, v0.5): night sky life
   'event:shootingStar': void; // a star streaks by — make a wish ✨
 

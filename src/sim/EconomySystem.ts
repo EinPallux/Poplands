@@ -117,10 +117,14 @@ export class EconomySystem {
     const offSecret = bus.on('secret:found', (e) => {
       this.credit(e.rewards.pops ?? 0, e.rewards.stardust ?? 0);
     });
+    const offFish = bus.on('fishing:caught', (e) => {
+      this.credit(e.rewards.pops ?? 0, e.rewards.stardust ?? 0);
+    });
     return () => {
       offLevel();
       offQuest();
       offSecret();
+      offFish();
     };
   }
 

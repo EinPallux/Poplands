@@ -44,6 +44,9 @@ export class ProgressionSystem {
       bus.on('secret:found', (e) => {
         if (e.rewards.xp) this.grantXp(e.rewards.xp, 'discovery');
       }),
+      bus.on('fishing:caught', (e) => {
+        if (e.rewards.xp) this.grantXp(e.rewards.xp, 'discovery');
+      }),
     );
   }
 

@@ -61,6 +61,10 @@ export interface ItemDef {
    *  Each placed instance adds this fraction to the per-tick liveliness payout
    *  (stacking is capped in LivelinessSystem). 0.05 = +5%. */
   livelinessBonus?: number;
+  /** The fishing pond (post-1.0): tapping this placeable casts a line for the
+   *  cast→nibble→catch minigame (FishingSystem). Purely interactive — no passive
+   *  income; the reward is whatever you catch. */
+  fishing?: true;
 }
 
 const def = (d: ItemDef): ItemDef => d;
@@ -115,6 +119,9 @@ export const CATALOG: readonly ItemDef[] = [
   def({ id: 'income.bakery', nameKey: 'item.income.bakery', category: 'income', tier: 5, footprint: { w: 3, d: 3 }, cost: 800, income: { ratePerMin: 12, cap: 500 }, model: 'building.bakery', scale: 1.6, renderTier: 'unique' }),
   def({ id: 'home.village-house', nameKey: 'item.home.village-house', category: 'home', tier: 5, footprint: { w: 3, d: 4 }, cost: 900, houses: 2, model: 'building.village-house', scale: 1.8, renderTier: 'unique' }),
   def({ id: 'decor.fountain', nameKey: 'item.decor.fountain', category: 'decor', tier: 5, footprint: { w: 2, d: 2 }, cost: 350, model: 'deco.fountain', scale: 1.0, renderTier: 'unique' }),
+  // Water-tile model (1×1, model-y ∈ [−0.1,−0.05]): scale 2 fills the 2×2 footprint,
+  // yOffset floats the water surface (−0.1 after scale) to ~+0.02, just above the lawn.
+  def({ id: 'nature.fishing-pond', nameKey: 'item.nature.fishing-pond', category: 'nature', tier: 5, footprint: { w: 2, d: 2 }, cost: 350, model: 'nature.fishing-pond', scale: 2.0, yOffset: 0.12, renderTier: 'unique', rotatable: false, fishing: true }),
   def({ id: 'decor.lightpost', nameKey: 'item.decor.lightpost', category: 'decor', tier: 5, footprint: { w: 1, d: 1 }, cost: 45, model: 'deco.lightpost', scale: 1.0, renderTier: 'instanced' }),
   def({ id: 'decor.banner', nameKey: 'item.decor.banner', category: 'decor', tier: 5, footprint: { w: 1, d: 1 }, cost: 30, model: 'deco.banner', scale: 1.3, renderTier: 'instanced' }),
 

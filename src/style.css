@@ -1245,3 +1245,174 @@ body {
   transform: scale(var(--ui-scale, 1));
   transform-origin: 0% 0%;
 }
+
+/* ——— Fishing (post-1.0) ——— */
+.fishing-fx {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 5;
+}
+/* the bobber: a little red-over-cream float on the water */
+.fishing-bobber {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: linear-gradient(to bottom, #e8584a 0 48%, #fdfbf5 48% 100%);
+  border: 1.5px solid rgba(46, 34, 58, 0.55);
+  box-shadow: 0 2px 5px rgba(60, 45, 30, 0.35);
+  will-change: transform;
+}
+.fishing-bobber.nibbling {
+  animation: bobberJiggle 0.32s ease-in-out infinite;
+}
+.fishing-mark {
+  display: none;
+  position: absolute;
+  left: 50%;
+  top: -20px;
+  transform: translateX(-50%);
+  font-weight: 800;
+  font-size: 18px;
+  color: #e8584a;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+}
+.fishing-bobber.nibbling .fishing-mark {
+  display: block;
+  animation: markPulse 0.5s ease-in-out infinite;
+}
+@keyframes bobberJiggle {
+  0%, 100% { margin-left: -1.5px; }
+  50% { margin-left: 1.5px; }
+}
+@keyframes markPulse {
+  0%, 100% { transform: translateX(-50%) scale(1); }
+  50% { transform: translateX(-50%) scale(1.25); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fishing-bobber.nibbling,
+  .fishing-bobber.nibbling .fishing-mark {
+    animation: none;
+  }
+}
+.fishing-prompt {
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--ui-cream);
+  color: var(--ui-ink);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(74, 63, 94, 0.3);
+  border: 1.5px solid rgba(232, 88, 74, 0.6);
+  will-change: transform;
+}
+/* the catch popup — a rarity-tinted card that rises + fades */
+.fishing-catch {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 10px 16px 8px;
+  border-radius: 16px;
+  background: var(--ui-cream);
+  color: var(--ui-ink);
+  box-shadow: 0 6px 20px rgba(74, 63, 94, 0.3);
+  border: 2.5px solid var(--rarity, #8a94a6);
+  will-change: transform, opacity;
+}
+.fishing-catch.rarity-common { --rarity: #8a94a6; }
+.fishing-catch.rarity-uncommon { --rarity: #57b368; }
+.fishing-catch.rarity-rare { --rarity: #4a90d9; }
+.fishing-catch.rarity-legendary { --rarity: #f0b429; box-shadow: 0 0 22px rgba(240, 180, 41, 0.6); }
+.fc-new {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: #fff;
+  background: var(--rarity, #8a94a6);
+  padding: 1px 8px;
+  border-radius: 999px;
+  margin-bottom: 2px;
+}
+.fc-icon { font-size: 34px; line-height: 1.1; }
+.fc-name { font-size: 15px; font-weight: 800; }
+.fc-reward { font-size: 13px; font-weight: 700; color: var(--accent-gold); }
+.fishing-float {
+  position: absolute;
+  top: 0;
+  left: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ui-ink);
+  text-shadow: 0 1px 3px rgba(255, 255, 255, 0.8);
+  white-space: nowrap;
+  will-change: transform, opacity;
+}
+
+/* ——— Fish Journal panel ——— */
+.journal-root {
+  position: absolute;
+  top: 108px;
+  right: 12px;
+  pointer-events: auto;
+  z-index: 6;
+  transform: scale(var(--ui-scale, 1));
+  transform-origin: 100% 0%;
+}
+.journal-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: var(--ui-cream);
+  color: var(--ui-ink);
+  font-size: 20px;
+  cursor: pointer;
+  box-shadow: 0 3px 10px rgba(74, 63, 94, 0.25);
+}
+.journal-panel {
+  position: absolute;
+  top: 48px;
+  right: 0;
+  width: 288px;
+  max-height: 70vh;
+  overflow-y: auto;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: var(--ui-cream);
+  color: var(--ui-ink);
+  box-shadow: 0 8px 26px rgba(74, 63, 94, 0.3);
+}
+.journal-panel h2 { margin: 0 0 4px; font-size: 18px; }
+.journal-summary { font-size: 12px; opacity: 0.75; margin-bottom: 10px; }
+.journal-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 5px; }
+.jf {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.45);
+  border-left: 4px solid var(--rarity, #cbb);
+}
+.jf.rarity-common { --rarity: #8a94a6; }
+.jf.rarity-uncommon { --rarity: #57b368; }
+.jf.rarity-rare { --rarity: #4a90d9; }
+.jf.rarity-legendary { --rarity: #f0b429; }
+.jf.locked { opacity: 0.5; border-left-color: rgba(120, 110, 130, 0.4); }
+.jf-icon { font-size: 20px; width: 24px; text-align: center; }
+.jf-name { flex: 1; font-size: 13px; font-weight: 700; }
+.jf-badge { font-size: 10px; font-weight: 700; color: var(--rarity, #8a94a6); text-transform: uppercase; letter-spacing: 0.03em; }
+.jf-count { font-size: 13px; font-weight: 800; color: var(--accent-gold); }
+.journal-hint { margin-top: 10px; font-size: 12px; font-style: italic; opacity: 0.7; }
