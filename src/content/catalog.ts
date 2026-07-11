@@ -68,6 +68,15 @@ export interface ItemDef {
   /** The Collections Hall (post-1.0): tapping this placeable opens the Museum,
    *  where caught fish are donated onto display for a reward (MuseumSystem). */
   museum?: true;
+  /** Furniture interactions (post-1.0): Islanders occasionally seek out this
+   *  placeable and use it — `sit` = they perch on it (plays the `sit` clip, lifted
+   *  onto the seat), `gather` = they stand near it and observe (idle + the odd
+   *  emote: warm hands at a fire, watch a fountain, admire a statue). Purely
+   *  presentational diorama life; drives the IslanderSystem furniture FSM. */
+  interaction?: 'sit' | 'gather';
+  /** World-unit vertical lift for the `sit` pose so the avatar rests ON the seat
+   *  surface rather than the ground (only meaningful with interaction: 'sit'). */
+  sitLift?: number;
 }
 
 const def = (d: ItemDef): ItemDef => d;
@@ -86,7 +95,7 @@ export const CATALOG: readonly ItemDef[] = [
   def({ id: 'decor.fence', nameKey: 'item.decor.fence', category: 'decor', tier: 1, footprint: { w: 1, d: 1 }, cost: 10, model: 'deco.fence', scale: 1, renderTier: 'instanced' }),
   def({ id: 'ground.path.dirt', nameKey: 'item.ground.path.dirt', category: 'ground', tier: 1, footprint: { w: 1, d: 1 }, cost: 5, model: 'ground.path-dirt', scale: 1, yOffset: 0.002, renderTier: 'instanced', groundOverlay: true, rotatable: false, tileKit: 'dirt-path' }),
   def({ id: 'ground.path.stone', nameKey: 'item.ground.path.stone', category: 'ground', tier: 1, footprint: { w: 1, d: 1 }, cost: 8, model: 'ground.path-stone', scale: 1, yOffset: 0.002, renderTier: 'instanced', groundOverlay: true, rotatable: false, tileKit: 'stone-path' }),
-  def({ id: 'decor.bench', nameKey: 'item.decor.bench', category: 'decor', tier: 1, footprint: { w: 2, d: 1 }, cost: 30, model: 'deco.bench', scale: 1.6, renderTier: 'unique' }),
+  def({ id: 'decor.bench', nameKey: 'item.decor.bench', category: 'decor', tier: 1, footprint: { w: 2, d: 1 }, cost: 30, model: 'deco.bench', scale: 1.6, renderTier: 'unique', interaction: 'sit', sitLift: 0.34 }),
   def({ id: 'decor.pot', nameKey: 'item.decor.pot', category: 'decor', tier: 1, footprint: { w: 1, d: 1 }, cost: 18, model: 'deco.pot', scale: 1.5, renderTier: 'instanced' }),
   def({ id: 'decor.stump', nameKey: 'item.decor.stump', category: 'decor', tier: 1, footprint: { w: 1, d: 1 }, cost: 14, model: 'deco.stump', scale: 1.8, renderTier: 'instanced' }),
   def({ id: 'decor.sign', nameKey: 'item.decor.sign', category: 'decor', tier: 1, footprint: { w: 1, d: 1 }, cost: 12, model: 'deco.sign', scale: 1.6, renderTier: 'instanced' }),
@@ -109,7 +118,7 @@ export const CATALOG: readonly ItemDef[] = [
   def({ id: 'nature.berry-bush', nameKey: 'item.nature.berry-bush', category: 'nature', tier: 3, footprint: { w: 1, d: 1 }, cost: 20, model: 'nature.berry-bush', scale: 1.5, renderTier: 'instanced' }),
   def({ id: 'nature.corn', nameKey: 'item.nature.corn', category: 'nature', tier: 3, footprint: { w: 1, d: 1 }, cost: 18, model: 'crop.corn', scale: 1.2, renderTier: 'instanced' }),
   def({ id: 'decor.hay-bale', nameKey: 'item.decor.hay-bale', category: 'decor', tier: 3, footprint: { w: 1, d: 1 }, cost: 22, model: 'deco.hay-bale', scale: 1.3, renderTier: 'instanced' }),
-  def({ id: 'decor.campfire', nameKey: 'item.decor.campfire', category: 'decor', tier: 3, footprint: { w: 1, d: 1 }, cost: 55, model: 'deco.campfire', scale: 1.6, renderTier: 'instanced' }),
+  def({ id: 'decor.campfire', nameKey: 'item.decor.campfire', category: 'decor', tier: 3, footprint: { w: 1, d: 1 }, cost: 55, model: 'deco.campfire', scale: 1.6, renderTier: 'instanced', interaction: 'gather' }),
 
   // ——— Tier 4 · "Homestead+" (unlocks at Level 4) ———
   def({ id: 'home.farmhouse', nameKey: 'item.home.farmhouse', category: 'home', tier: 4, footprint: { w: 3, d: 4 }, cost: 400, houses: 2, model: 'building.farm', scale: 1.6, renderTier: 'unique' }),
@@ -121,7 +130,7 @@ export const CATALOG: readonly ItemDef[] = [
   def({ id: 'income.market-stall', nameKey: 'item.income.market-stall', category: 'income', tier: 5, footprint: { w: 2, d: 2 }, cost: 500, income: { ratePerMin: 8, cap: 350 }, model: 'building.market-stall', scale: 1.9, renderTier: 'unique' }),
   def({ id: 'income.bakery', nameKey: 'item.income.bakery', category: 'income', tier: 5, footprint: { w: 3, d: 3 }, cost: 800, income: { ratePerMin: 12, cap: 500 }, model: 'building.bakery', scale: 1.6, renderTier: 'unique' }),
   def({ id: 'home.village-house', nameKey: 'item.home.village-house', category: 'home', tier: 5, footprint: { w: 3, d: 4 }, cost: 900, houses: 2, model: 'building.village-house', scale: 1.8, renderTier: 'unique' }),
-  def({ id: 'decor.fountain', nameKey: 'item.decor.fountain', category: 'decor', tier: 5, footprint: { w: 2, d: 2 }, cost: 350, model: 'deco.fountain', scale: 1.0, renderTier: 'unique' }),
+  def({ id: 'decor.fountain', nameKey: 'item.decor.fountain', category: 'decor', tier: 5, footprint: { w: 2, d: 2 }, cost: 350, model: 'deco.fountain', scale: 1.0, renderTier: 'unique', interaction: 'gather' }),
   // Water-tile model (1×1, model-y ∈ [−0.1,−0.05]): scale 2 fills the 2×2 footprint,
   // yOffset floats the water surface (−0.1 after scale) to ~+0.02, just above the lawn.
   def({ id: 'nature.fishing-pond', nameKey: 'item.nature.fishing-pond', category: 'nature', tier: 5, footprint: { w: 2, d: 2 }, cost: 350, model: 'nature.fishing-pond', scale: 2.0, yOffset: 0.12, renderTier: 'unique', rotatable: false, fishing: true }),
@@ -130,7 +139,7 @@ export const CATALOG: readonly ItemDef[] = [
 
   // ——— Tier 6 · "Grand" (unlocks at Level 6) ———
   def({ id: 'income.watermill', nameKey: 'item.income.watermill', category: 'income', tier: 6, footprint: { w: 3, d: 3 }, cost: 2000, income: { ratePerMin: 20, cap: 900 }, model: 'building.watermill', scale: 1.6, renderTier: 'unique' }),
-  def({ id: 'decor.statue', nameKey: 'item.decor.statue', category: 'decor', tier: 6, footprint: { w: 1, d: 1 }, cost: 150, model: 'deco.statue', scale: 1.4, renderTier: 'instanced' }),
+  def({ id: 'decor.statue', nameKey: 'item.decor.statue', category: 'decor', tier: 6, footprint: { w: 1, d: 1 }, cost: 150, model: 'deco.statue', scale: 1.4, renderTier: 'instanced', interaction: 'gather' }),
   def({ id: 'decor.stone-bridge', nameKey: 'item.decor.stone-bridge', category: 'decor', tier: 6, footprint: { w: 1, d: 1 }, cost: 60, model: 'deco.bridge', scale: 1.0, renderTier: 'instanced' }),
 
   // ——— Tier 7 · "Riverside" (unlocks at Level 7). Scales tuned against pipeline AABBs. ———
@@ -196,7 +205,7 @@ export const CATALOG: readonly ItemDef[] = [
   def({ id: 'decor.coffin', nameKey: 'item.decor.coffin', category: 'decor', tier: 12, theme: 'spooky', footprint: { w: 1, d: 2 }, cost: 170, model: 'deco.coffin', scale: 1.5, renderTier: 'instanced' }),
   def({ id: 'decor.jack-o-lantern', nameKey: 'item.decor.jack-o-lantern', category: 'decor', tier: 12, theme: 'spooky', footprint: { w: 1, d: 1 }, cost: 90, model: 'deco.jack-o-lantern', scale: 1.6, renderTier: 'instanced' }),
   def({ id: 'decor.candles', nameKey: 'item.decor.candles', category: 'decor', tier: 12, theme: 'spooky', footprint: { w: 1, d: 1 }, cost: 70, model: 'deco.candles', scale: 2, renderTier: 'instanced' }),
-  def({ id: 'decor.brazier', nameKey: 'item.decor.brazier', category: 'decor', tier: 12, theme: 'spooky', footprint: { w: 1, d: 1 }, cost: 150, model: 'deco.brazier', scale: 1.68, renderTier: 'instanced' }),
+  def({ id: 'decor.brazier', nameKey: 'item.decor.brazier', category: 'decor', tier: 12, theme: 'spooky', footprint: { w: 1, d: 1 }, cost: 150, model: 'deco.brazier', scale: 1.68, renderTier: 'instanced', interaction: 'gather' }),
   def({ id: 'decor.spirit-lantern', nameKey: 'item.decor.spirit-lantern', category: 'decor', tier: 12, theme: 'spooky', footprint: { w: 1, d: 1 }, cost: 120, costStardust: 1, model: 'deco.spirit-lantern', scale: 1.9, renderTier: 'instanced' }),
   def({ id: 'decor.iron-fence', nameKey: 'item.decor.iron-fence', category: 'decor', tier: 12, theme: 'spooky', footprint: { w: 1, d: 1 }, cost: 90, model: 'deco.iron-fence', scale: 1, renderTier: 'instanced' }),
   def({ id: 'decor.iron-gate', nameKey: 'item.decor.iron-gate', category: 'decor', tier: 12, theme: 'spooky', footprint: { w: 1, d: 1 }, cost: 130, model: 'deco.iron-gate', scale: 1, renderTier: 'instanced' }),
@@ -211,7 +220,7 @@ export const CATALOG: readonly ItemDef[] = [
   def({ id: 'nature.snow-boulder', nameKey: 'item.nature.snow-boulder', category: 'nature', tier: 13, theme: 'snowcap', footprint: { w: 1, d: 1 }, cost: 20, model: 'nature.snow-boulder', scale: 1.13, renderTier: 'instanced' }),
   def({ id: 'decor.firewood', nameKey: 'item.decor.firewood', category: 'decor', tier: 13, theme: 'snowcap', footprint: { w: 1, d: 1 }, cost: 30, model: 'deco.firewood', scale: 1.34, renderTier: 'instanced' }),
   def({ id: 'decor.snow-log', nameKey: 'item.decor.snow-log', category: 'decor', tier: 13, theme: 'snowcap', footprint: { w: 2, d: 1 }, cost: 26, model: 'deco.snow-log', scale: 1.9, renderTier: 'instanced' }),
-  def({ id: 'decor.warming-fire', nameKey: 'item.decor.warming-fire', category: 'decor', tier: 13, theme: 'snowcap', footprint: { w: 1, d: 1 }, cost: 55, model: 'deco.warming-fire', scale: 1.48, renderTier: 'instanced' }),
+  def({ id: 'decor.warming-fire', nameKey: 'item.decor.warming-fire', category: 'decor', tier: 13, theme: 'snowcap', footprint: { w: 1, d: 1 }, cost: 55, model: 'deco.warming-fire', scale: 1.48, renderTier: 'instanced', interaction: 'gather' }),
   def({ id: 'decor.frost-stump', nameKey: 'item.decor.frost-stump', category: 'decor', tier: 13, theme: 'snowcap', footprint: { w: 1, d: 1 }, cost: 16, model: 'deco.frost-stump', scale: 1.89, renderTier: 'instanced' }),
   def({ id: 'decor.camp-tent', nameKey: 'item.decor.camp-tent', category: 'decor', tier: 13, theme: 'snowcap', footprint: { w: 1, d: 1 }, cost: 60, costStardust: 1, model: 'deco.camp-tent', scale: 1.81, renderTier: 'unique' }),
   def({ id: 'ground.frozen-pond', nameKey: 'item.ground.frozen-pond', category: 'ground', tier: 13, theme: 'snowcap', footprint: { w: 1, d: 1 }, cost: 25, model: 'ground.frozen-pond', scale: 1, groundOverlay: true, renderTier: 'instanced' }),
@@ -229,7 +238,7 @@ export const CATALOG: readonly ItemDef[] = [
   def({ id: 'home.townhouse', nameKey: 'item.home.townhouse', category: 'home', tier: 14, footprint: { w: 2, d: 2 }, cost: 4400, houses: 2, model: 'building.townhouse', scale: 1.46, renderTier: 'unique' }),
   def({ id: 'decor.castle', nameKey: 'item.decor.castle', category: 'decor', tier: 14, footprint: { w: 3, d: 3 }, cost: 7000, costStardust: 3, model: 'deco.castle', scale: 1.41, renderTier: 'unique' }),
   def({ id: 'decor.temple', nameKey: 'item.decor.temple', category: 'decor', tier: 14, footprint: { w: 2, d: 2 }, cost: 5000, costStardust: 2, model: 'deco.temple', scale: 1.02, renderTier: 'unique' }),
-  def({ id: 'decor.grand-fountain', nameKey: 'item.decor.grand-fountain', category: 'decor', tier: 14, footprint: { w: 2, d: 2 }, cost: 2600, costStardust: 1, model: 'deco.grand-fountain', scale: 1, renderTier: 'unique' }),
+  def({ id: 'decor.grand-fountain', nameKey: 'item.decor.grand-fountain', category: 'decor', tier: 14, footprint: { w: 2, d: 2 }, cost: 2600, costStardust: 1, model: 'deco.grand-fountain', scale: 1, renderTier: 'unique', interaction: 'gather' }),
   def({ id: 'decor.monument', nameKey: 'item.decor.monument', category: 'decor', tier: 14, footprint: { w: 2, d: 2 }, cost: 2800, costStardust: 1, model: 'deco.monument', scale: 1.59, renderTier: 'unique' }),
   def({ id: 'decor.clock-tower', nameKey: 'item.decor.clock-tower', category: 'decor', tier: 14, footprint: { w: 2, d: 2 }, cost: 3200, costStardust: 1, model: 'deco.clock-tower', scale: 2.38, renderTier: 'unique' }),
   def({ id: 'decor.market-square', nameKey: 'item.decor.market-square', category: 'decor', tier: 14, footprint: { w: 2, d: 2 }, cost: 2400, model: 'deco.market-square', scale: 1.01, renderTier: 'unique' }),
@@ -251,7 +260,7 @@ export const CATALOG: readonly ItemDef[] = [
   def({ id: 'decor.marble-column', nameKey: 'item.decor.marble-column', category: 'decor', tier: 17, footprint: { w: 1, d: 1 }, cost: 400, model: 'deco.marble-column', scale: 1.43, renderTier: 'instanced' }),
 
   // ——— Tier 18 · "Wonders" (Level 18) ———
-  def({ id: 'decor.statue-hero', nameKey: 'item.decor.statue-hero', category: 'decor', tier: 18, footprint: { w: 1, d: 1 }, cost: 600, model: 'deco.statue-hero', scale: 1.23, renderTier: 'unique' }),
+  def({ id: 'decor.statue-hero', nameKey: 'item.decor.statue-hero', category: 'decor', tier: 18, footprint: { w: 1, d: 1 }, cost: 600, model: 'deco.statue-hero', scale: 1.23, renderTier: 'unique', interaction: 'gather' }),
   def({ id: 'decor.trophy', nameKey: 'item.decor.trophy', category: 'decor', tier: 18, footprint: { w: 1, d: 1 }, cost: 700, costStardust: 1, model: 'deco.trophy', scale: 1.5, renderTier: 'unique' }),
 
   // ——— Tier 19 · "Dreamer" (Level 19) ———

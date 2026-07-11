@@ -15,6 +15,7 @@ import {
   AnimationMixer,
   AnimationClip,
   LoopOnce,
+  LoopRepeat,
   Raycaster,
   Vector2,
   type AnimationAction,
@@ -45,6 +46,7 @@ interface AgentRec {
   clips: AnimationClip[]; // this model's clip set (for one-shot emotes)
   emote: AnimationAction | null; // one-shot reaction currently playing (else null)
   emoteTime: number; // seconds left on the emote
+  held: AnimationAction | null; // sustained pose (e.g. sitting) held until cleared
 }
 
 export class AgentRenderer {
@@ -63,7 +65,8 @@ export class AgentRenderer {
     this.group.name = 'agents';
     this.targetHeight = opts?.targetHeight ?? 1.0;
     this.yawOffset = opts?.yawOffset ?? 0;
-    bus.on('agent:playClip', (e) => this.playClip(e.id, e.clip));
+    bus.on('agent:playClip', (e) => this.playClip(e.id, e.clip, e.hold ?? false));
+    bus.on('agent:clearClip', (e) => this.clearHeld(e.id));
   }
 
   /** Reconcile meshes to the snapshot, advance animation. Call after sim.update(). */
@@ -75,7 +78,9 @@ export class AgentRenderer {
       if (!this.assets.has(a.model)) continue;
       this.seen.add(a.id);
       const rec = this.recs.get(a.id) ?? this.spawn(a);
-      rec.root.position.set(a.x, rec.footY, a.z);
+      // a render-only lean/lift lets a seated avatar rest ON the bench while the sim
+      // keeps the agent logically on its walkable approach cell (ox/oz/lift ⇒ 0 default)
+      rec.root.position.set(a.x + (a.ox ?? 0), rec.footY + (a.lift ?? 0), a.z + (a.oz ?? 0));
       rec.root.rotation.y = a.yaw + this.yawOffset;
 
       const target = a.moving ? 1 : 0;
@@ -84,12 +89,18 @@ export class AgentRenderer {
         // a reaction is playing — it takes the foreground; the walk/idle blend rests
         rec.emoteTime -= dt;
         rec.emote.setEffectiveWeight(1);
+        rec.held?.setEffectiveWeight(0);
         rec.idle?.setEffectiveWeight(0);
         rec.walk?.setEffectiveWeight(0);
         if (rec.emoteTime <= 0) {
           rec.emote.stop();
           rec.emote = null;
         }
+      } else if (rec.held) {
+        // a sustained pose (sitting) holds the foreground until it's cleared
+        rec.held.setEffectiveWeight(1);
+        rec.idle?.setEffectiveWeight(0);
+        rec.walk?.setEffectiveWeight(0);
       } else {
         rec.idle?.setEffectiveWeight(1 - rec.walkW);
         rec.walk?.setEffectiveWeight(rec.walkW);
@@ -139,24 +150,43 @@ export class AgentRenderer {
       clips,
       emote: null,
       emoteTime: 0,
+      held: null,
     };
     this.recs.set(a.id, rec);
     this.group.add(root);
     return rec;
   }
 
-  /** Play a one-shot reaction clip over the idle/walk blend (tap-to-greet emote). */
-  private playClip(id: string, clip: string): void {
+  /** Play a reaction clip over the idle/walk blend. A one-shot (tap-to-greet emote)
+   *  clamps and reverts; a `hold` clip (sitting) sustains as a loop until cleared. */
+  private playClip(id: string, clip: string, hold: boolean): void {
     const rec = this.recs.get(id);
     if (!rec) return;
     const action = bindAction(rec.mixer, rec.clips, clip);
     if (!action) return;
+    if (hold) {
+      rec.held?.stop(); // swap any prior held pose
+      action.setLoop(LoopRepeat, Infinity);
+      action.clampWhenFinished = false;
+      action.reset();
+      action.play();
+      rec.held = action;
+      return;
+    }
     action.setLoop(LoopOnce, 1);
     action.clampWhenFinished = true;
     action.reset();
     action.play();
     rec.emote = action;
     rec.emoteTime = action.getClip().duration;
+  }
+
+  /** Release a held pose (e.g. standing up from a bench) → back to idle/walk. */
+  private clearHeld(id: string): void {
+    const rec = this.recs.get(id);
+    if (!rec?.held) return;
+    rec.held.stop();
+    rec.held = null;
   }
 
   /** Raycast agent meshes at a screen point → the roster id under the cursor (or null). */
@@ -178,6 +208,12 @@ export class AgentRenderer {
 
   get count(): number {
     return this.recs.size;
+  }
+
+  /** Debug (headless verify): the rendered root Y of an agent — proves the seat lift
+   *  is applied to the mesh (a seated avatar sits higher than it stands). */
+  debugMeshY(id: string): number | null {
+    return this.recs.get(id)?.root.position.y ?? null;
   }
 }
 

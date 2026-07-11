@@ -673,6 +673,10 @@ export class App {
         museumView: () => state.museum.view(),
         openMuseum: () => bus.emit('cmd:openMuseum', undefined),
         donate: (species: string) => bus.emit('cmd:donate', { species }),
+        islanderUsage: () => state.islanders.debugUsage(),
+        sitNow: (pid?: string) => state.islanders.debugSitNow(pid),
+        endUse: (id: string) => state.islanders.debugEndUse(id),
+        agentMeshY: (id: string) => agents.debugMeshY(id),
         ripen: (id: string, frac = 1) => state.economy.debugRipen(id, frac),
         placementsOf: (def: string) =>
           island.allPlacements().filter((p) => p.def === def).map((p) => p.id),
