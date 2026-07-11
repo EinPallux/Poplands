@@ -7,7 +7,7 @@ import { bus } from '@/core/events';
 const zero = (): AchievementStats => ({
   level: 1, chunks: 0, itemsPlaced: 0, popsCollected: 0, questsDone: 0, secretsFound: 0,
   ownedItems: 0, homes: 0, incomes: 0, fishSpecies: 0, fishTotal: 0, museumDonated: 0,
-  islanders: 0, pals: 0, giftClaims: 0, hasWonder: false,
+  islanders: 0, pals: 0, giftClaims: 0, cropsHarvested: 0, hasWonder: false,
 });
 
 const offs: Array<() => void> = [];

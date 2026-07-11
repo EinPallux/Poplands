@@ -238,6 +238,10 @@ export class BuildSession {
       bus.emit('cmd:openMuseum', undefined); // open the Collections Hall panel
       return;
     }
+    if (itemDef(occupant.def)?.garden) {
+      bus.emit('cmd:openGarden', { placementId: occupant.id }); // plant / harvest a Garden Patch
+      return;
+    }
     if (this.economy.ripeAmount(occupant.id) >= 1) {
       bus.emit('cmd:collect', { placementId: occupant.id });
     }

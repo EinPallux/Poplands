@@ -82,6 +82,13 @@ export interface SaveAchievements {
   earned: string[];
 }
 
+/** Persisted Garden plots (post-1.0): what's planted where (by placement id, with an
+ *  absolute plant timestamp so growth continues offline) + a lifetime harvest tally. */
+export interface SaveGarden {
+  plots: Record<string, { crop: string; plantedAt: number }>;
+  harvested: number;
+}
+
 /** Persisted quest state (S15). Cumulative predicates keep per-quest counters in `progress`. */
 export interface SaveQuests {
   tutorial: { activeId: string | null; done: string[] };
@@ -166,9 +173,15 @@ export interface SaveV8 extends Omit<SaveV7, 'v'> {
   achievements: SaveAchievements;
 }
 
+/** v9 (post-1.0): the garden (Crop Patch) slice. */
+export interface SaveV9 extends Omit<SaveV8, 'v'> {
+  v: 9;
+  garden: SaveGarden;
+}
+
 /** The current schema. Bump this alias (not scattered `SaveVn`s) each version. */
-export type Save = SaveV8;
-export const SAVE_VERSION = 8;
+export type Save = SaveV9;
+export const SAVE_VERSION = 9;
 
 export const DEFAULT_SETTINGS: SaveSettings = {
   volume: 0.8,
@@ -207,6 +220,10 @@ export function freshMuseum(): SaveMuseum {
 
 export function freshAchievements(): SaveAchievements {
   return { earned: [] };
+}
+
+export function freshGarden(): SaveGarden {
+  return { plots: {}, harvested: 0 };
 }
 
 /**
@@ -287,11 +304,16 @@ const migrations: Record<number, (s: AnySave) => AnySave> = {
     // stamps the returning player has already earned on first evaluation.
     return { ...v7, v: 8, achievements: freshAchievements() } as unknown as AnySave;
   },
+  8: (s) => {
+    const v8 = s as unknown as SaveV8;
+    // No plots planted yet — the garden starts bare.
+    return { ...v8, v: 9, garden: freshGarden() } as unknown as AnySave;
+  },
 };
 
 export function freshSave(seed: number, now: number): Save {
   return {
-    v: 8,
+    v: 9,
     createdAt: now,
     lastSeenAt: now,
     seed,
@@ -313,6 +335,7 @@ export function freshSave(seed: number, now: number): Save {
     dailyGift: freshDailyGift(), // un-claimed; the first gift is ready on day one
     museum: freshMuseum(), // empty Collections Hall
     achievements: freshAchievements(), // empty Stamp Book
+    garden: freshGarden(), // no crops planted yet
     attic: [],
     settings: { ...DEFAULT_SETTINGS },
   };
@@ -379,6 +402,9 @@ function normalize(v2: Save): Save {
   v2.museum.donated ??= [];
   v2.achievements ??= freshAchievements();
   v2.achievements.earned ??= [];
+  v2.garden ??= freshGarden();
+  v2.garden.plots ??= {};
+  v2.garden.harvested ??= 0;
   v2.settings = { ...DEFAULT_SETTINGS, ...v2.settings };
   v2.island.placements ??= [];
   v2.player.level ??= 1;

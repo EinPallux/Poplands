@@ -30,6 +30,7 @@ export interface AchievementStats {
   islanders: number; // neighbours moved in
   pals: number; // Pals adopted
   giftClaims: number; // daily gifts claimed
+  cropsHarvested: number; // crops harvested from Garden Patches
   hasWonder: boolean; // The Wonder is built
 }
 
@@ -84,6 +85,8 @@ export const ACHIEVEMENTS: readonly AchievementDef[] = [
   a('continent', '🌍', 'explore', (s) => s.chunks >= 24),
   a('treasure-hunter', '💎', 'explore', (s) => s.secretsFound >= 1),
   a('secret-seeker', '🔍', 'explore', (s) => s.secretsFound >= 10),
+  a('first-harvest', '🌾', 'explore', (s) => s.cropsHarvested >= 1),
+  a('green-thumb', '🧑‍🌾', 'explore', (s) => s.cropsHarvested >= 25),
   // — fishing —
   a('first-fish', '🎣', 'fishing', (s) => s.fishTotal >= 1),
   a('angler', '🐟', 'fishing', (s) => s.fishSpecies >= 5),

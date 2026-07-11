@@ -21,6 +21,7 @@ import { FishingSystem } from '@/sim/FishingSystem';
 import { DailyGiftSystem } from '@/sim/DailyGiftSystem';
 import { MuseumSystem } from '@/sim/MuseumSystem';
 import { AchievementSystem } from '@/sim/AchievementSystem';
+import { GardenSystem } from '@/sim/GardenSystem';
 import { itemDef } from '@/content/catalog';
 import { STARTER_PLACEMENTS } from '@/content/starterIsland';
 
@@ -39,6 +40,7 @@ export class GameState {
   readonly dailyGift: DailyGiftSystem;
   readonly museum: MuseumSystem;
   readonly achievements: AchievementSystem;
+  readonly garden: GardenSystem;
   readonly isFresh: boolean;
   /** Supplies the item held in Move mode so the snapshot never drops it. */
   private carriedProvider: (() => Placement | null) | null = null;
@@ -89,6 +91,8 @@ export class GameState {
     this.dailyGift = new DailyGiftSystem(this.save.dailyGift);
     // the museum donates caught fish onto display (reads the fishing collection)
     this.museum = new MuseumSystem(this.save.museum, () => Object.keys(this.fishing.collection().caught));
+    // the garden grows crops on placed Garden Patches (time-based, offline-safe)
+    this.garden = new GardenSystem(this.island, this.save.garden);
     // the Stamp Book awards lifetime milestone stamps (reads a live cross-system snapshot)
     this.achievements = new AchievementSystem(this.save.achievements, () => this.achievementStats());
 
@@ -118,6 +122,8 @@ export class GameState {
       'gift:claimed', // opened the daily present → persist the claim
       'museum:donated', // put a fish on display → persist the donation
       'achievement:earned', // a new stamp → persist the Stamp Book
+      'garden:planted', // a seed went in → persist the plot
+      'garden:harvested', // a crop came out → persist the empty plot + tally
       'settings:changed',
     ] as const) {
       bus.on(ev, () => this.manager.requestSave());
@@ -139,6 +145,7 @@ export class GameState {
     this.islanders.wire();
     this.pals.wire();
     this.fishing.wire();
+    this.garden.wire();
     this.economy.resolveOffline();
     this.quests.announce();
     this.expansion.announce();
@@ -180,6 +187,7 @@ export class GameState {
       islanders: this.islanders.snapshot().residents.length,
       pals: this.pals.snapshot().pals.length,
       giftClaims: this.save.dailyGift.claims,
+      cropsHarvested: this.garden.harvested,
       hasWonder,
     };
   }
@@ -222,6 +230,7 @@ export class GameState {
     this.save.fishing = this.fishing.snapshot();
     this.save.museum = this.museum.snapshot();
     this.save.achievements = this.achievements.snapshot();
+    this.save.garden = this.garden.snapshot();
     this.save.settings = snapshotSettings();
     return this.save;
   }
