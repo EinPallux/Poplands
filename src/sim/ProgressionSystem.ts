@@ -41,6 +41,9 @@ export class ProgressionSystem {
       bus.on('quest:completed', (e) => {
         if (e.rewards.xp) this.grantXp(e.rewards.xp, 'quest');
       }),
+      bus.on('secret:found', (e) => {
+        if (e.rewards.xp) this.grantXp(e.rewards.xp, 'discovery');
+      }),
     );
   }
 

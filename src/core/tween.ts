@@ -43,6 +43,22 @@ export const easings = {
   sineInOut: ((t) => -(Math.cos(Math.PI * t) - 1) / 2) as Ease,
 } as const;
 
+/**
+ * Damped-spring step response 0→1 with decaying overshoots — the chunk dock-bounce
+ * (ART §7.2, ζ≈0.55, ~2 visible bounces). Returns a fresh easing; NOT added to the
+ * `easings` table (it's a factory, and its residual settle means f(1)≈1 not ==1;
+ * callers snap the final value in onComplete). ζ in (0,1); higher ω = faster settle.
+ */
+export function dampedStep(zeta: number, omega: number): Ease {
+  const wd = omega * Math.sqrt(1 - zeta * zeta);
+  const k = zeta / Math.sqrt(1 - zeta * zeta);
+  return ((t) => {
+    if (t <= 0) return 0;
+    if (t >= 1) return 1;
+    return 1 - Math.exp(-zeta * omega * t) * (Math.cos(wd * t) + k * Math.sin(wd * t));
+  }) as Ease;
+}
+
 export interface TweenOptions {
   /** Seconds. */
   duration: number;

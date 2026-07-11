@@ -84,6 +84,7 @@ export const POSTCARDS: readonly QuestDef[] = [
   { id: 'pc.farmlife', kind: 'postcard', titleKey: 'quest.pc.farmlife.t', descKey: 'quest.pc.farmlife.d', predicate: { kind: 'own', sel: { defs: ['income.pumpkin-patch', 'income.wheat-field'] }, n: 1 }, rewards: { pops: 60, xp: 20 }, minLevel: 3, order: 8 },
   { id: 'pc.tidysum', kind: 'postcard', titleKey: 'quest.pc.tidysum.t', descKey: 'quest.pc.tidysum.d', predicate: { kind: 'collectPops', n: 500 }, rewards: { pops: 80, xp: 30 }, minLevel: 4, order: 9 },
   { id: 'pc.village', kind: 'postcard', titleKey: 'quest.pc.village.t', descKey: 'quest.pc.village.d', predicate: { kind: 'all', of: [{ kind: 'own', sel: { cat: 'home' }, n: 3 }, { kind: 'own', sel: { cat: 'income' }, n: 3 }] }, rewards: { pops: 120, stardust: 3 }, minLevel: 5, order: 10 },
+  { id: 'pc.treasure', kind: 'postcard', titleKey: 'quest.pc.treasure.t', descKey: 'quest.pc.treasure.d', predicate: { kind: 'findSecret', n: 1 }, rewards: { pops: 60, stardust: 1, xp: 20 }, minLevel: 4, order: 11 },
 ];
 
 /** Lifetime milestones — counters persist in v0.3; the Album UI arrives in v0.6. */

@@ -5,6 +5,7 @@
  *
  * core-layer purity: no three.js, no world imports; schema types are structural.
  */
+import type { SecretKind } from './events';
 
 export interface SavePlacement {
   id: string;
@@ -25,8 +26,20 @@ export interface SaveEconomy {
   accrual: Array<{ id: string; storedPops: number; lastCollectAt: number }>;
 }
 
-/** Lifetime counters that drive milestones (v0.3 subset). */
-export type CounterId = 'itemsPlaced' | 'popsCollected' | 'questsDone' | 'levelsGained';
+/** Lifetime counters that drive milestones. */
+export type CounterId = 'itemsPlaced' | 'popsCollected' | 'questsDone' | 'levelsGained' | 'secretsFound';
+
+/** A per-chunk secret (S19): seeded on chunk arrival, `found` latches on discovery. */
+export interface SaveSecret {
+  cx: number;
+  cz: number;
+  kind: SecretKind;
+  wx: number; // marker cell
+  wz: number;
+  clicks: number; // dig progress, 0..clicksToOpen
+  found: boolean; // latches true, never un-latches
+  reward: { pops: number; stardust: number; xp: number };
+}
 
 /** Persisted quest state (S15). Cumulative predicates keep per-quest counters in `progress`. */
 export interface SaveQuests {
@@ -76,9 +89,15 @@ export interface SaveV2 {
   settings: SaveSettings;
 }
 
-/** The current schema. Bump this alias (not scattered `SaveV1`s) each version. */
-export type Save = SaveV2;
-export const SAVE_VERSION = 2;
+/** v3 (v0.4): per-chunk secrets (S19) + the secretsFound milestone counter. */
+export interface SaveV3 extends Omit<SaveV2, 'v'> {
+  v: 3;
+  secrets: SaveSecret[];
+}
+
+/** The current schema. Bump this alias (not scattered `SaveVn`s) each version. */
+export type Save = SaveV3;
+export const SAVE_VERSION = 3;
 
 export const DEFAULT_SETTINGS: SaveSettings = { volume: 0.8, quality: 'auto', reducedMotion: false };
 
@@ -107,7 +126,7 @@ export function freshQuests(itemsPlaced = 0): SaveQuests {
     tutorial: { activeId: null, done: [] },
     postcards: { active: [], done: [], skipped: [], cooldownUntil: 0 },
     progress: {},
-    milestones: { itemsPlaced, popsCollected: 0, questsDone: 0, levelsGained: 0 },
+    milestones: { itemsPlaced, popsCollected: 0, questsDone: 0, levelsGained: 0, secretsFound: 0 },
     milestoneTier: {},
     freePlayUnlocked: false,
   };
@@ -127,11 +146,25 @@ const migrations: Record<number, (s: AnySave) => AnySave> = {
       quests: freshQuests(placements.length),
     } as unknown as AnySave;
   },
+  2: (s) => {
+    const v2 = s as unknown as SaveV2;
+    // Secrets are seeded per-chunk by the sim (SecretSystem, which owns the content
+    // roll) on first start — the migration just adds the empty slice + counter.
+    return {
+      ...v2,
+      v: 3,
+      secrets: [],
+      quests: {
+        ...v2.quests,
+        milestones: { ...v2.quests.milestones, secretsFound: v2.quests.milestones?.secretsFound ?? 0 },
+      },
+    } as unknown as AnySave;
+  },
 };
 
 export function freshSave(seed: number, now: number): Save {
   return {
-    v: 2,
+    v: 3,
     createdAt: now,
     lastSeenAt: now,
     seed,
@@ -147,6 +180,7 @@ export function freshSave(seed: number, now: number): Save {
     },
     economy: freshEconomy(),
     quests: freshQuests(0),
+    secrets: [], // SecretSystem seeds the starter chunks' secrets on first start
     attic: [],
     settings: { ...DEFAULT_SETTINGS },
   };
@@ -183,7 +217,7 @@ export function parseSave(json: string): Save | null {
       save = migrations[save.v]!(save);
     }
     if (save.v !== SAVE_VERSION) return null;
-    return normalizeV2(save as unknown as Save);
+    return normalize(save as unknown as Save);
   } catch {
     // any surprise (hand-edited / partially-corrupt slice) → treat as unusable so
     // load() falls through to the backup slots or a fresh save (no fail states).
@@ -191,7 +225,7 @@ export function parseSave(json: string): Save | null {
   }
 }
 
-function normalizeV2(v2: Save): Save {
+function normalize(v2: Save): Save {
   // normalize gently (older exports / hand-edited files / partial slices). Default
   // NESTED fields too, not just top-level slices: a present-but-partial object must
   // never survive parse and then throw in the sim at boot. (A `postcards` missing
@@ -199,6 +233,7 @@ function normalizeV2(v2: Save): Save {
   // the no-fail-states covenant forbids; a `player` missing `level`/`xp` would NaN
   // the HUD.) A wrong-TYPED slice still throws here and is caught by parseSave → backup.
   v2.attic ??= [];
+  v2.secrets ??= [];
   v2.settings = { ...DEFAULT_SETTINGS, ...v2.settings };
   v2.island.placements ??= [];
   v2.player.level ??= 1;
@@ -211,7 +246,8 @@ function normalizeV2(v2: Save): Save {
   v2.quests ??= freshQuests(v2.island.placements.length);
   v2.quests.freePlayUnlocked ??= false;
   v2.quests.progress ??= {};
-  v2.quests.milestones ??= { itemsPlaced: 0, popsCollected: 0, questsDone: 0, levelsGained: 0 };
+  v2.quests.milestones ??= { itemsPlaced: 0, popsCollected: 0, questsDone: 0, levelsGained: 0, secretsFound: 0 };
+  v2.quests.milestones.secretsFound ??= 0;
   v2.quests.milestoneTier ??= {};
   v2.quests.postcards ??= { active: [], done: [], skipped: [], cooldownUntil: 0 };
   v2.quests.postcards.active ??= [];

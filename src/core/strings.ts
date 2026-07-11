@@ -32,6 +32,10 @@ const en = {
   'build.locked': 'Unlocks at Level {level}',
   'toast.levelUp': 'Level {level}! ✨ New things to build',
   'toast.questDone': 'Postcard complete! 💌',
+  'toast.secretFound': 'A discovery! ✨',
+
+  // expansion (S8) — survey markers on the island's free edges
+  'survey.call': 'Call this chunk',
 
   // mailbox
   'mailbox.title': 'Postcards',
@@ -87,6 +91,8 @@ const en = {
   'quest.pc.tidysum.d': 'Collect 500 Pops.',
   'quest.pc.village.t': 'A proper village',
   'quest.pc.village.d': 'Have 3 homes and 3 income buildings.',
+  'quest.pc.treasure.t': 'X marks the spot',
+  'quest.pc.treasure.d': 'Uncover a secret hidden on one of your chunks.',
 
   // — milestones (Album labels, surfaced in v0.6)
   'quest.ms.placed': 'Things placed',

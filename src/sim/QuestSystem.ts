@@ -47,6 +47,7 @@ export class QuestSystem {
       bus.on('item:removed', (e) => this.onRemoved(e)),
       bus.on('income:collected', (e) => this.onCollected(e.amount)),
       bus.on('level:up', (e) => this.onLevel(e.level)),
+      bus.on('secret:found', () => this.onSecretFound()),
       bus.on('cmd:skipPostcard', (e) => this.onSkip(e.id)),
     );
   }
@@ -84,7 +85,7 @@ export class QuestSystem {
       counter: this.state.progress[questId] ?? 0,
       island: this.island,
       level: this.level,
-      secrets: 0,
+      secrets: this.state.milestones.secretsFound ?? 0,
     };
   }
 
@@ -114,6 +115,17 @@ export class QuestSystem {
       const q = questDef(id);
       if (q && q.predicate.kind === 'collectPops') {
         this.state.progress[id] = (this.state.progress[id] ?? 0) + amount;
+      }
+    }
+    this.reevalActive();
+  }
+
+  private onSecretFound(): void {
+    this.bumpMilestone('secretsFound', 1);
+    for (const id of this.activeIds()) {
+      const q = questDef(id);
+      if (q && q.predicate.kind === 'findSecret') {
+        this.state.progress[id] = (this.state.progress[id] ?? 0) + 1;
       }
     }
     this.reevalActive();
@@ -269,7 +281,6 @@ export class QuestSystem {
     return POSTCARDS.filter((p) => {
       if (this.level < (p.minLevel ?? 1) || this.level > (p.maxLevel ?? Infinity)) return false;
       if (done.includes(p.id) || active.some((a) => a.id === p.id)) return false;
-      if (p.predicate.kind === 'findSecret') return false; // v0.4
       return predicateSelectors(p.predicate).every(selectorItemsExist);
     }).sort((a, b) => {
       // deprioritize skipped cards — a skip defers a card behind the fresh pool
