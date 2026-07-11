@@ -68,7 +68,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 - User-confirmed (2026-07-11): perspective camera · English-first with i18n-ready string table · desktop-first (touch post-1.0) · pause-for-review after each milestone. Implementation of **v0.1 "First Light"** green-lit.
 
 ### Notes
-- ⚠️ Open action item: asset **license audit** (`ATTRIBUTIONS.md`) before any public release — see CONTENT_PLAN §1.1.
+- ⚠️ Asset **license audit** — first pass done (2026-07-11): the structured ledger now exists (`ATTRIBUTIONS.md`) with per-pack status/evidence/hypotheses. **Key finding: the packs ship no license files, so the audit can't be closed from the repo — it needs the downloader to confirm each pack's source.** 🔴 priority is **Fantasy RTS Assets** (already shipping since v0.3, non-Kenney naming → likely GDevelop's free "3D Fantasy RTS", license unconfirmed). Still blocks public release + the Tier 7+ catalog.
 
 ## Planned milestones
 `0.1` First Light · `0.2` Builder's Joy · `0.3` Pops & Purpose · `0.4` New Horizons · `0.5` Little Neighbors · `0.6` Living Canvas · `0.7→1.0` Grand Opening — scope and exit criteria in [ROADMAP.md](ROADMAP.md).

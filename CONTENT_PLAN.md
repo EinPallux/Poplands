@@ -41,8 +41,12 @@ Audited 2026-07-10. **~2,100 GLB models** across 17 packs; all packs provide GLB
 **Coverage verdict:** every v1.0 content tier is fully coverable from existing packs. Gaps are only VFX sprites, UI, audio, fonts (see §7–8).
 
 ### ⚠️ 1.1 License audit — REQUIRED before public release
-The repo contains **no license files**. Most packs are Kenney (CC0), but several use poly.pizza-style export names (hash suffixes like `House-RSwoYSLblu.glb` — typically Quaternius CC0 or Google Poly CC-BY, **attribution may be required**). Action items (tracked in ROADMAP v0.2):
-1. Identify origin of each pack (Kenney page / poly.pizza entry / itch page).
+The repo contains **no license files** (confirmed by the 2026-07-11 audit pass — a full scan finds zero LICENSE/README/txt files across all 17 packs). Most packs are Kenney (CC0) by filename convention, but several use poly.pizza-style export names (hash suffixes like `House-RSwoYSLblu.glb` — typically Quaternius CC0 or Google Poly CC-BY, **attribution may be required**). **The structured ledger now lives in [`ATTRIBUTIONS.md`](ATTRIBUTIONS.md)** — every pack, its runtime status, filename/variant evidence, and a source hypothesis.
+- **Key finding:** the audit **can't be closed from the repo** (no license files); it needs the downloader to confirm each pack's source + license.
+- **🔴 Priority:** **Fantasy RTS Assets** is *already shipping* (Hut/Farm/Bakery/village-house) yet its `Title Case With Spaces` naming is **not Kenney** — it matches GDevelop's free "3D Fantasy RTS" pack, license unconfirmed. Confirm it first.
+
+Action items (tracked in ROADMAP v0.2 → carried to v0.4):
+1. Identify origin of each pack (Kenney page / poly.pizza entry / itch / GDevelop) — `ATTRIBUTIONS.md` has the hypotheses.
 2. Record per-pack license + author in `ATTRIBUTIONS.md` (shipped in the game's credits panel).
 3. Any pack that can't be license-confirmed gets quarantined out of the build manifest.
 
