@@ -20,6 +20,8 @@ export interface InputCallbacks {
   onToolMove: () => void; // M
   onToolRemove: () => void; // X
   onToggleDebug: () => void; // `
+  onToggleAlbum: () => void; // J — Island Album
+  onTogglePhoto: () => void; // P — Photo mode
   /** A clean left-click; return true to consume it (e.g. an Islander was tapped)
    *  so it never falls through to a cell click/placement. */
   onPrimaryClick?: (clientX: number, clientY: number) => boolean;
@@ -124,6 +126,12 @@ export class InputController {
       case 'KeyX':
       case 'Delete':
         this.callbacks.onToolRemove();
+        return;
+      case 'KeyJ':
+        this.callbacks.onToggleAlbum();
+        return;
+      case 'KeyP':
+        this.callbacks.onTogglePhoto();
         return;
       case 'Backquote':
         this.callbacks.onToggleDebug();

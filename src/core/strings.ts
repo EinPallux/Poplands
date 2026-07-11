@@ -149,6 +149,21 @@ const en = {
   'quest.ms.pops': 'Pops collected',
   'quest.ms.quests': 'Postcards completed',
 
+  // island album (S21, v0.6)
+  'album.title': 'Island Album',
+  'album.milestones': 'Milestones',
+  'album.neighbours': 'Neighbours',
+  'album.pals': 'Pals',
+  'album.biomes': 'Biomes',
+  'album.empty': 'Nobody yet — build a home!',
+
+  // photo mode (S23, v0.6)
+  'photo.hint': 'Photo Mode — drag to frame your island',
+  'photo.save': 'Save PNG',
+  'photo.exit': 'Exit',
+  'photo.saved': 'Saved a snapshot! 📸',
+  'photo.failed': 'Couldn’t save the photo.',
+
   // settings
   'settings.title': 'Settings',
   'settings.quality': 'Quality',

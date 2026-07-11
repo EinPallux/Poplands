@@ -32,6 +32,8 @@ import { BuildBar } from '@/ui/BuildBar';
 import { SettingsPanel } from '@/ui/SettingsPanel';
 import { Hud } from '@/ui/Hud';
 import { Mailbox } from '@/ui/Mailbox';
+import { Album } from '@/ui/Album';
+import { PhotoMode } from '@/ui/PhotoMode';
 import { WorldFx } from '@/ui/WorldFx';
 import { SurveyLayer } from '@/ui/SurveyLayer';
 import { SecretLayer } from '@/ui/SecretLayer';
@@ -326,6 +328,16 @@ export class App {
     const secretLayer = new SecretLayer(uiRoot, (x, y, z) => rig.projectToScreen(x, y, z));
     const speechLayer = new SpeechLayer(uiRoot, (x, y, z) => rig.projectToScreen(x, y, z));
     new ChunkPopup(uiRoot); // self-wires to chunk:unlocked
+    const album = new Album(uiRoot, () => ({
+      milestones: state.save.quests.milestones,
+      residents: state.islanders.snapshot().residents,
+      pals: state.pals.snapshot().pals,
+      themes: island.allChunks().map((c) => island.themeAt(c.cx, c.cz)),
+    }));
+    const photo = new PhotoMode(uiRoot, () => {
+      rm.render(scene, rig.camera); // one fresh frame, then read it back
+      return rm.renderer.domElement.toDataURL('image/png');
+    });
     const buildBar = new BuildBar(uiRoot);
     setTimeout(() => buildBar.setThumbnails(renderThumbnails(assets)), 80);
     const settings = new SettingsPanel(
@@ -366,13 +378,17 @@ export class App {
         else rig.reset();
       },
       onEscape: () => {
-        if (settings.open) settings.toggle(false);
+        if (photo.active) photo.toggle(false);
+        else if (album.open) album.toggle(false);
+        else if (settings.open) settings.toggle(false);
         else if (session.isActive) session.cancel();
       },
       onToggleCatalog: () => catalogOpenSignal.update((v) => !v),
       onToolMove: () => bus.emit('cmd:setTool', { tool: 'move' }),
       onToolRemove: () => bus.emit('cmd:setTool', { tool: 'remove' }),
       onToggleDebug: () => debugHud.toggle(),
+      onToggleAlbum: () => album.toggle(),
+      onTogglePhoto: () => photo.toggle(),
       // tap an Islander to greet / a Pal to pet (when not mid-build) — consumes the click
       onPrimaryClick: (x, y) => {
         if (session.isActive) return false;

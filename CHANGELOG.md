@@ -6,6 +6,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 ## [Unreleased]
 
 ### Added — v0.6 "Living Canvas" (in progress)
+- **Island Album (S21):** a cozy scrapbook (📖 button / **J**) that surfaces the lifetime **milestone counters** with tier progress, the **Neighbours** who've moved in, the **Pals** who visit, and a **biome tally** of your districts. Read-only, pulls a fresh snapshot on open, all text via the string table.
+- **Photo mode (S23):** press **P** (or the button) to **hide all UI**, drop a soft "diorama" **vignette**, and **export the current frame as a PNG**. Esc exits. The capture renders one fresh frame and reads the canvas back, so it works without a preserved drawing buffer — the marketing shot takes itself.
 - **Themed chunks (S7):** grown districts now come in four biomes — **Meadow · Sandbar · Spooky · Snowcap** — each with its own lawn + grass-lip palette. A deterministic `themeFor(seed, chunk)` rolls the biome (≈58% meadow, the rest sprinkled) so the world is reproducible and a **Survey chip previews the biome** (🌱🏖️🌙❄️) before you buy. Theme threads cleanly: stored per-chunk in `IslandModel` + the save, `GroundBuilder` tints each chunk's lawn, and `SlabBuilder` re-tints the grass lip **per outline point** so biome boundaries read crisply. `chunk:offered`/`chunk:unlocked` carry the theme. (Theme-specific secrets & ambient emitters, and themed slab *rock*, are follow-ups.)
 
 ### Added — v0.5 "Little Neighbours" (feature-complete — awaiting milestone review)
