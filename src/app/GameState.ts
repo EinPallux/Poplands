@@ -20,6 +20,7 @@ import { PalSystem } from '@/sim/PalSystem';
 import { FishingSystem } from '@/sim/FishingSystem';
 import { DailyGiftSystem } from '@/sim/DailyGiftSystem';
 import { MuseumSystem } from '@/sim/MuseumSystem';
+import { AchievementSystem } from '@/sim/AchievementSystem';
 import { itemDef } from '@/content/catalog';
 import { STARTER_PLACEMENTS } from '@/content/starterIsland';
 
@@ -37,6 +38,7 @@ export class GameState {
   readonly fishing: FishingSystem;
   readonly dailyGift: DailyGiftSystem;
   readonly museum: MuseumSystem;
+  readonly achievements: AchievementSystem;
   readonly isFresh: boolean;
   /** Supplies the item held in Move mode so the snapshot never drops it. */
   private carriedProvider: (() => Placement | null) | null = null;
@@ -87,6 +89,8 @@ export class GameState {
     this.dailyGift = new DailyGiftSystem(this.save.dailyGift);
     // the museum donates caught fish onto display (reads the fishing collection)
     this.museum = new MuseumSystem(this.save.museum, () => Object.keys(this.fishing.collection().caught));
+    // the Stamp Book awards lifetime milestone stamps (reads a live cross-system snapshot)
+    this.achievements = new AchievementSystem(this.save.achievements, () => this.achievementStats());
 
     // a bought chunk is appended to the persisted chunk set (only ExpansionSystem
     // grows the model, so save.chunks and the model stay in lock-step — themes stay
@@ -113,6 +117,7 @@ export class GameState {
       'fishing:caught', // reeled in a fish → persist the collection
       'gift:claimed', // opened the daily present → persist the claim
       'museum:donated', // put a fish on display → persist the donation
+      'achievement:earned', // a new stamp → persist the Stamp Book
       'settings:changed',
     ] as const) {
       bus.on(ev, () => this.manager.requestSave());
@@ -128,6 +133,7 @@ export class GameState {
     this.economy.wireRewards();
     this.progression.wire();
     this.quests.wire();
+    this.achievements.wire(); // AFTER quests so its milestone bumps land before we read them
     this.expansion.wire();
     this.secrets.wire();
     this.islanders.wire();
@@ -140,6 +146,42 @@ export class GameState {
     this.islanders.announce();
     this.pals.announce();
     this.dailyGift.announce(); // surface today's present if it's ready
+    this.achievements.announce(); // silently grant any stamps already earned (no spam)
+  }
+
+  /** Live cross-system snapshot the Stamp Book evaluates its predicates against. */
+  private achievementStats() {
+    const placements = this.island.allPlacements();
+    let homes = 0;
+    let incomes = 0;
+    let hasWonder = false;
+    for (const p of placements) {
+      const def = itemDef(p.def);
+      if (!def) continue;
+      if (def.category === 'home') homes++;
+      else if (def.category === 'income') incomes++;
+      if (p.def === 'decor.the-wonder') hasWonder = true;
+    }
+    const m = this.save.quests.milestones;
+    const fish = this.fishing.collection();
+    return {
+      level: this.save.player.level,
+      chunks: this.island.chunkCount,
+      itemsPlaced: m.itemsPlaced,
+      popsCollected: m.popsCollected,
+      questsDone: m.questsDone,
+      secretsFound: m.secretsFound,
+      ownedItems: placements.length,
+      homes,
+      incomes,
+      fishSpecies: Object.keys(fish.caught).length,
+      fishTotal: fish.total,
+      museumDonated: this.museum.snapshot().donated.length,
+      islanders: this.islanders.snapshot().residents.length,
+      pals: this.pals.snapshot().pals.length,
+      giftClaims: this.save.dailyGift.claims,
+      hasWonder,
+    };
   }
 
   private static makeFreshSave(): Save {
@@ -179,6 +221,7 @@ export class GameState {
     this.save.economy = this.economy.snapshot();
     this.save.fishing = this.fishing.snapshot();
     this.save.museum = this.museum.snapshot();
+    this.save.achievements = this.achievements.snapshot();
     this.save.settings = snapshotSettings();
     return this.save;
   }

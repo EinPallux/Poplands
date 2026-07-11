@@ -158,7 +158,8 @@ export interface AppEvents extends Record<string, unknown> {
   'npc:arrived': { id: string; nameKey: StringKey }; // a resident moved in — juice + persist
   'cmd:clickNpc': { id: string }; // player tapped an Islander → greet
   'npc:spoke': { id: string; textKey: StringKey }; // show a speech bubble + chatter blip
-  'agent:playClip': { id: string; clip: string }; // one-shot emote over the idle/walk blend
+  'agent:playClip': { id: string; clip: string; hold?: boolean }; // emote over idle/walk (hold: sustain until cleared — e.g. sitting)
+  'agent:clearClip': { id: string }; // release a held clip → back to the idle/walk blend
 
   // pals (S18, v0.5): animals that scamper in as the island gets lively
   'pal:adopted': { id: string; nameKey: StringKey }; // a Pal came to visit — juice + persist
@@ -197,6 +198,9 @@ export interface AppEvents extends Record<string, unknown> {
     rewards: QuestReward;
   };
   'museum:completed': void; // every fish is on display — a one-time celebration
+
+  // achievements / stamp book (post-1.0): a lifetime milestone stamp is earned
+  'achievement:earned': { id: string; nameKey: StringKey; descKey: StringKey; icon: string };
 
   // ambient events (S19, v0.5): night sky life
   'event:shootingStar': void; // a star streaks by — make a wish ✨

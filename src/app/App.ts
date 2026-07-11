@@ -42,6 +42,7 @@ import { FishJournal } from '@/ui/FishJournal';
 import { FishingLayer } from '@/ui/FishingLayer';
 import { DailyGiftUI } from '@/ui/DailyGiftUI';
 import { MuseumPanel } from '@/ui/MuseumPanel';
+import { AchievementsWall } from '@/ui/AchievementsWall';
 import { PhotoMode } from '@/ui/PhotoMode';
 import { WorldFx } from '@/ui/WorldFx';
 import { SurveyLayer } from '@/ui/SurveyLayer';
@@ -281,6 +282,7 @@ export class App {
     bus.on('gift:claimed', () => audio.reel()); // a cheerful open-the-present flourish
     bus.on('cmd:donate', ({ species }) => state.museum.donate(species)); // hall → put a fish on display
     bus.on('museum:donated', () => audio.chime()); // a bright donation chime (reward credited by Economy)
+    bus.on('achievement:earned', () => audio.reel()); // a cheerful flourish for a new stamp
     bus.on('income:collected', () => audio.chime()); // coin-arc handled by WorldFx
     bus.on('income:ripe', (e) => {
       const p = island.placement(e.placementId);
@@ -408,6 +410,7 @@ export class App {
       themes: island.allChunks().map((c) => island.themeAt(c.cx, c.cz)),
     }));
     const journal = new FishJournal(uiRoot, () => state.fishing.collection());
+    const stamps = new AchievementsWall(uiRoot, () => state.achievements.view()); // Stamp Book (K)
     new DailyGiftUI(uiRoot); // the once-a-day present (self-wires to gift:* events)
     const museumPanel = new MuseumPanel(uiRoot, () => {
       const v = state.museum.view();
@@ -495,6 +498,7 @@ export class App {
         else if (museumPanel.open) museumPanel.close();
         else if (album.open) album.toggle(false);
         else if (journal.open) journal.toggle(false);
+        else if (stamps.open) stamps.toggle(false);
         else if (settings.open) settings.toggle(false);
         else if (session.isActive) session.cancel();
       },
@@ -505,6 +509,7 @@ export class App {
       onToggleAlbum: () => album.toggle(),
       onTogglePhoto: () => photo.toggle(),
       onToggleJournal: () => journal.toggle(),
+      onToggleStamps: () => stamps.toggle(),
       // tap an Islander to greet / a Pal to pet (when not mid-build) — consumes the click
       onPrimaryClick: (x, y) => {
         if (session.isActive) return false;
@@ -673,6 +678,11 @@ export class App {
         museumView: () => state.museum.view(),
         openMuseum: () => bus.emit('cmd:openMuseum', undefined),
         donate: (species: string) => bus.emit('cmd:donate', { species }),
+        islanderUsage: () => state.islanders.debugUsage(),
+        sitNow: (pid?: string) => state.islanders.debugSitNow(pid),
+        endUse: (id: string) => state.islanders.debugEndUse(id),
+        agentMeshY: (id: string) => agents.debugMeshY(id),
+        achievementsView: () => state.achievements.view(),
         ripen: (id: string, frac = 1) => state.economy.debugRipen(id, frac),
         placementsOf: (def: string) =>
           island.allPlacements().filter((p) => p.def === def).map((p) => p.id),
