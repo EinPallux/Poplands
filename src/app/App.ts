@@ -52,7 +52,7 @@ import { palette } from '@/render/palette';
 import { tweens } from '@/core/tween';
 import { t } from '@/core/strings';
 import { bus } from '@/core/events';
-import { qualitySignal, timeOfDaySignal, fpsCapSignal } from '@/core/settingsStore';
+import { qualitySignal, timeOfDaySignal, fpsCapSignal, uiScaleSignal } from '@/core/settingsStore';
 import { popsSignal, stardustSignal, levelSignal, xpSignal } from '@/core/playerStore';
 import { effect } from '@/core/signals';
 import { footprintCenter } from '@/core/grid';
@@ -370,6 +370,13 @@ export class App {
         probe = null;
         applyQuality(QUALITY_PRESETS[pref]);
       }
+    });
+
+    // — UI scale (S23): drive one CSS custom property; chrome widgets opt in via
+    // scale(var(--ui-scale)) around their own anchor edge (never uiRoot itself, so
+    // world-anchored layers stay pixel-locked to their 3D anchors).
+    effect(() => {
+      document.documentElement.style.setProperty('--ui-scale', String(uiScaleSignal.get()));
     });
 
     // — loop

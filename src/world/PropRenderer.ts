@@ -12,12 +12,16 @@
 import type {
   Object3D} from 'three';
 import {
+  Box3,
+  CanvasTexture,
   Group,
   InstancedMesh,
   Matrix4,
   Mesh,
   MeshStandardMaterial,
   Quaternion,
+  Sprite,
+  SpriteMaterial,
   Vector3,
   type BufferGeometry,
   type Material,
@@ -35,6 +39,28 @@ const tmpMatrix = new Matrix4();
 const tmpPos = new Vector3();
 const tmpQuat = new Quaternion();
 const tmpScale = new Vector3();
+const tmpBox = new Box3();
+
+/** A small round badge canvas for the ghost validity cue — icon, not colour alone
+ *  (GDD §11 colour-blind support). Built once per glyph and cached on the renderer. */
+function makeGlyphTexture(glyph: string, ink: string): CanvasTexture {
+  const size = 64;
+  const canvas = document.createElement('canvas');
+  canvas.width = canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.fillStyle = 'rgba(255,255,255,0.92)';
+    ctx.beginPath();
+    ctx.arc(size / 2, size / 2, size / 2 - 3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = ink;
+    ctx.font = `800 ${size * 0.6}px system-ui, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(glyph, size / 2, size / 2 + 2);
+  }
+  return new CanvasTexture(canvas);
+}
 
 /** Merge a model's meshes into one geometry (groups preserved) + material list. */
 function mergeModel(scene: Group): { geometry: BufferGeometry; materials: Material[] } {
@@ -144,6 +170,8 @@ export class PropRenderer {
 
   private readonly ghostValid: MeshStandardMaterial;
   private readonly ghostInvalid: MeshStandardMaterial;
+  private readonly validIconTex: CanvasTexture;
+  private readonly invalidIconTex: CanvasTexture;
 
   constructor(
     private readonly assets: AssetRegistry,
@@ -159,6 +187,8 @@ export class PropRenderer {
     };
     this.ghostValid = new MeshStandardMaterial({ ...ghostBase, color: palette.accentMint });
     this.ghostInvalid = new MeshStandardMaterial({ ...ghostBase, color: palette.accentCoral });
+    this.validIconTex = makeGlyphTexture('✓', '#2f9e5c');
+    this.invalidIconTex = makeGlyphTexture('✕', '#c0392b');
   }
 
   /** World transform for a placement (origin: footprint center on the ground). */
@@ -281,11 +311,28 @@ export class PropRenderer {
     if (!def) return null;
     const object = this.assets.cloneModel(def.model, { castShadow: false, receiveShadow: false });
     object.scale.setScalar(def.scale);
+
+    // Non-colour validity cue (GDD §11): a check/cross badge floating above the
+    // ghost, so the valid/invalid state reads without relying on the mint/coral
+    // tint. Sizes are divided by def.scale so the badge is a constant world size
+    // regardless of the model it sits on. One-time alloc on ghost creation only.
+    tmpBox.setFromObject(object);
+    const topLocalY = tmpBox.isEmpty() ? 1 : tmpBox.max.y / def.scale;
+    const icon = new Sprite(
+      new SpriteMaterial({ map: this.validIconTex, transparent: true, depthWrite: false, fog: false }),
+    );
+    icon.position.set(0, topLocalY + 0.35 / def.scale, 0);
+    icon.scale.setScalar(0.6 / def.scale);
+    object.add(icon);
+
     const setValid = (valid: boolean) => {
       const mat = valid ? this.ghostValid : this.ghostInvalid;
       object.traverse((o) => {
         if (o instanceof Mesh) o.material = mat;
       });
+      const iconMat = icon.material as SpriteMaterial;
+      iconMat.map = valid ? this.validIconTex : this.invalidIconTex;
+      iconMat.needsUpdate = true;
     };
     setValid(true);
     return { object, setValid };

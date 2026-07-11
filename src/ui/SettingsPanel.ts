@@ -10,6 +10,7 @@ import {
   reducedMotionSignal,
   timeOfDaySignal,
   fpsCapSignal,
+  uiScaleSignal,
 } from '@/core/settingsStore';
 import { bus } from '@/core/events';
 import type { SaveSettings } from '@/core/save';
@@ -73,6 +74,15 @@ export class SettingsPanel {
           <option value="60">${t('settings.fps.60')}</option>
         </select>
       </label>
+      <label class="settings-row">
+        <span>${t('settings.uiScale')}</span>
+        <select class="s-uiscale">
+          <option value="0.85">${t('settings.uiScale.small')}</option>
+          <option value="1">${t('settings.uiScale.normal')}</option>
+          <option value="1.15">${t('settings.uiScale.large')}</option>
+          <option value="1.3">${t('settings.uiScale.xlarge')}</option>
+        </select>
+      </label>
       <label class="settings-row settings-check">
         <input class="s-motion" type="checkbox">
         <span>${t('settings.reducedMotion')}</span>
@@ -88,6 +98,7 @@ export class SettingsPanel {
     const quality = this.panel.querySelector('.s-quality') as HTMLSelectElement;
     const time = this.panel.querySelector('.s-time') as HTMLSelectElement;
     const fps = this.panel.querySelector('.s-fps') as HTMLSelectElement;
+    const uiScale = this.panel.querySelector('.s-uiscale') as HTMLSelectElement;
     const volume = this.panel.querySelector('.s-volume') as HTMLInputElement;
     const motion = this.panel.querySelector('.s-motion') as HTMLInputElement;
     const file = this.panel.querySelector('.s-file') as HTMLInputElement;
@@ -95,11 +106,16 @@ export class SettingsPanel {
     effect(() => (quality.value = qualitySignal.get()));
     effect(() => (time.value = timeOfDaySignal.get()));
     effect(() => (fps.value = fpsCapSignal.get()));
+    effect(() => (uiScale.value = String(uiScaleSignal.get())));
     effect(() => (volume.value = String(volumeSignal.get())));
     effect(() => (motion.checked = reducedMotionSignal.get()));
 
     fps.addEventListener('change', () => {
       fpsCapSignal.set(fps.value as SaveSettings['fpsCap']);
+      bus.emit('settings:changed', undefined);
+    });
+    uiScale.addEventListener('change', () => {
+      uiScaleSignal.set(Number(uiScale.value));
       bus.emit('settings:changed', undefined);
     });
 

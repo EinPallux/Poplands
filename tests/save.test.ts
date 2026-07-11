@@ -142,6 +142,20 @@ describe('parseSave', () => {
     expect(parsed).not.toBeNull();
     expect(parsed!.islanders.residents).toEqual([]);
   });
+
+  it('back-fills a new settings field (uiScale) on a save that predates it', () => {
+    // The uiScale accessibility setting (S23) shipped without a version bump —
+    // normalize()'s `{ ...DEFAULT_SETTINGS, ...settings }` must default any older
+    // save's settings blob (which never persisted uiScale) to 1.
+    const save = makeSave();
+    const settings = save.settings as unknown as Record<string, unknown>;
+    delete settings['uiScale'];
+    const parsed = parseSave(JSON.stringify(save));
+    expect(parsed).not.toBeNull();
+    expect(parsed!.settings.uiScale).toBe(1);
+    // pre-existing settings values still survive the merge
+    expect(parsed!.settings.volume).toBe(save.settings.volume);
+  });
 });
 
 describe('SaveManager', () => {

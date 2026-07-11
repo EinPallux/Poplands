@@ -22,6 +22,7 @@ export interface SaveSettings {
   reducedMotion: boolean;
   timeOfDay: 'auto' | 'day' | 'dusk' | 'night'; // 'auto' = cycle; others freeze the sky
   fpsCap: 'off' | '30' | '60'; // frame-rate cap (S23)
+  uiScale: number; // 0.85 | 1 | 1.15 | 1.3 — UI zoom (S23 accessibility)
 }
 
 /** Per-income-building banked Pops + collection timestamp (S13). */
@@ -122,6 +123,7 @@ export const DEFAULT_SETTINGS: SaveSettings = {
   reducedMotion: false,
   timeOfDay: 'auto',
   fpsCap: 'off',
+  uiScale: 1,
 };
 
 const KEY = 'poplands.save';

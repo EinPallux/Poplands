@@ -3,7 +3,7 @@
  * Move/Remove tools. Pure DOM + signals; emits cmd:* events only — never
  * touches sim state directly (TECH §3 seam).
  */
-import { bus } from '@/core/events';
+import { bus, type BlockReasonUi } from '@/core/events';
 import { t, type StringKey } from '@/core/strings';
 import { effect } from '@/core/signals';
 import { CATALOG, CATEGORIES, type Category } from '@/content/catalog';
@@ -17,6 +17,7 @@ import {
   carryingSignal,
   catalogOpenSignal,
   catalogRevealSignal,
+  ghostBlockedSignal,
 } from './uiState';
 
 const TAB_KEYS: Record<Category | 'all', StringKey> = {
@@ -26,6 +27,14 @@ const TAB_KEYS: Record<Category | 'all', StringKey> = {
   home: 'build.tab.home',
   income: 'build.tab.income',
   ground: 'build.tab.ground',
+};
+
+/** Ghost-invalid reason → its localized hint (S23 colour-blind cue: text, not colour). */
+const BLOCK_KEY: Record<BlockReasonUi, StringKey> = {
+  'off-island': 'build.blocked.island',
+  occupied: 'build.blocked.occupied',
+  unaffordable: 'build.blocked.afford',
+  'needs-edge': 'build.blocked.edge',
 };
 
 export class BuildBar {
@@ -116,7 +125,7 @@ export class BuildBar {
     for (const def of CATALOG) {
       const card = document.createElement('button');
       card.className = 'build-card';
-      const costHtml = `<span class="card-cost">● ${def.cost}</span>${
+      const costHtml = `<span class="card-cost">● ${def.cost}<span class="afford-flag" aria-hidden="true"> ✕</span></span>${
         def.costStardust ? `<span class="card-cost-sd">✦ ${def.costStardust}</span>` : ''
       }`;
       card.innerHTML = `
@@ -186,15 +195,19 @@ export class BuildBar {
       this.root.classList.toggle('collapsed', !catalogOpenSignal.get());
     });
 
-    // contextual hint pill
+    // contextual hint pill — in place mode, a blocked ghost surfaces its reason as
+    // text (S23 colour-blind cue), else the neutral how-to hint.
     effect(() => {
       const tool = toolSignal.get();
       const carrying = carryingSignal.get();
+      const blocked = ghostBlockedSignal.get();
       let text = '';
-      if (tool === 'place') text = t('build.hint.place');
+      if (tool === 'place' && blocked) text = `✕ ${t(BLOCK_KEY[blocked])}`;
+      else if (tool === 'place') text = t('build.hint.place');
       else if (tool === 'move') text = carrying ? t('build.hint.carrying') : t('build.hint.move');
       else if (tool === 'remove') text = t('build.hint.remove');
       this.hintEl.textContent = text;
+      this.hintEl.classList.toggle('blocked', tool === 'place' && !!blocked);
       this.hintEl.style.display = text ? '' : 'none';
     });
   }

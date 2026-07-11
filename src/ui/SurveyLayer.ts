@@ -66,7 +66,7 @@ export class SurveyLayer {
       c.el.innerHTML =
         `<span class="survey-balloon">${THEME_EMOJI[s.theme]}</span>` +
         `<span class="survey-label">${t('survey.call')}</span>` +
-        `<span class="survey-price">● ${s.pops}${s.stardust ? ` <span class="sd">✦ ${s.stardust}</span>` : ''}</span>`;
+        `<span class="survey-price">● ${s.pops}<span class="afford-flag" aria-hidden="true"> ✕</span>${s.stardust ? ` <span class="sd">✦ ${s.stardust}</span>` : ''}</span>`;
     }
   }
 
