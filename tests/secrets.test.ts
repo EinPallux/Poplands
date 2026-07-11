@@ -25,12 +25,34 @@ describe('rollSecret distribution (S19 DoD, GDD §10)', () => {
 
   it('is deterministic per (seed, chunk) and a forced kind overrides the roll', () => {
     expect(rollSecret(42, 3, 7)).toBe(rollSecret(42, 3, 7));
-    expect(rollSecret(42, 3, 7, 'chest')).toBe('chest');
+    expect(rollSecret(42, 3, 7, 'meadow', 'chest')).toBe('chest');
     // a different seed can change the outcome (not asserting which)
     const a = rollSecret(1, 5, 5);
     const b = rollSecret(2, 5, 5);
     expect(typeof (a ?? 'none')).toBe('string');
     expect(typeof (b ?? 'none')).toBe('string');
+  });
+
+  it('biome tables reshuffle the kind but hold "nothing" at ~50% (economy-safe)', () => {
+    const tally = (theme: 'meadow' | 'sandbar' | 'spooky' | 'snowcap') => {
+      const c: Record<string, number> = { dig: 0, chest: 0, flora: 0, none: 0 };
+      let n = 0;
+      for (let cx = 0; cx < 200; cx++)
+        for (let cz = 0; cz < 100; cz++) {
+          c[rollSecret(1337, cx, cz, theme) ?? 'none']!++;
+          n++;
+        }
+      return { c, n };
+    };
+    // every biome keeps the ~50% nothing slice → island-wide secret rate is unchanged
+    for (const th of ['sandbar', 'spooky', 'snowcap'] as const) {
+      const { c, n } = tally(th);
+      expect(Math.abs(c.none! / n - 0.5)).toBeLessThan(0.02);
+    }
+    // …but the winning kind shifts by biome (flavor)
+    expect(Math.abs(tally('sandbar').c.dig! / 20000 - 0.42)).toBeLessThan(0.02); // beachcombing
+    expect(Math.abs(tally('spooky').c.chest! / 20000 - 0.25)).toBeLessThan(0.02); // haunted chests
+    expect(Math.abs(tally('snowcap').c.flora! / 20000 - 0.2)).toBeLessThan(0.02); // rare flora
   });
 
   it('secretInstance places the marker on an interior cell and is deterministic', () => {

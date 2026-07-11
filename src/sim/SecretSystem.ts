@@ -60,7 +60,8 @@ export class SecretSystem {
   /** Roll + record a chunk's secret (once). `generous` uses the tutorial override. */
   private spawnFor(cx: number, cz: number, forced: SecretKind | undefined, generous: boolean): void {
     if (this.at(cx, cz)) return; // already rolled — deterministic outcome persists
-    const kind = rollSecret(this.seed, cx, cz, forced);
+    const kind = rollSecret(this.seed, cx, cz, this.island.themeAt(cx, cz), forced); // biome-flavored
+
     if (!kind) return; // 50% of chunks have nothing (may host fireflies later)
     const inst = secretInstance(this.seed, cx, cz, kind, generous ? { ...FIRST_SECRET_OVERRIDE } : undefined);
     this.secrets.push({ cx, cz, kind, wx: inst.wx, wz: inst.wz, clicks: 0, found: false, reward: inst.reward });

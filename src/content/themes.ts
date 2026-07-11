@@ -12,13 +12,18 @@ export interface ThemePalette {
   grassTop: number;
   grassLight: number;
   grassSide: number;
+  /** Slab rock band tones (v0.6): the shoulder + deep bands re-tint per biome so the
+   *  skirt reads as part of the same world as its lawn. Meadow keeps the neutral
+   *  terracotta (slabColors.rock/rockDeep) so meadow chunks are pixel-identical. */
+  rockShoulder: number;
+  rockDeep: number;
 }
 
 export const THEMES: Record<ChunkTheme, ThemePalette> = {
-  meadow: { grassTop: 0x7fd63f, grassLight: 0x99e558, grassSide: 0x67c433 },
-  sandbar: { grassTop: 0xe6d39a, grassLight: 0xf2e6bc, grassSide: 0xd2b877 },
-  spooky: { grassTop: 0x4c4568, grassLight: 0x625a82, grassSide: 0x3a3450 },
-  snowcap: { grassTop: 0xe9f3ff, grassLight: 0xffffff, grassSide: 0xccdcef },
+  meadow: { grassTop: 0x7fd63f, grassLight: 0x99e558, grassSide: 0x67c433, rockShoulder: 0xc06f45, rockDeep: 0x8e5132 },
+  sandbar: { grassTop: 0xe6d39a, grassLight: 0xf2e6bc, grassSide: 0xd2b877, rockShoulder: 0xd9a35f, rockDeep: 0xa8763f }, // warmer sandy terracotta
+  spooky: { grassTop: 0x4c4568, grassLight: 0x625a82, grassSide: 0x3a3450, rockShoulder: 0x453b52, rockDeep: 0x2b2536 }, // darker, desaturated
+  snowcap: { grassTop: 0xe9f3ff, grassLight: 0xffffff, grassSide: 0xccdcef, rockShoulder: 0x8fa9c2, rockDeep: 0x5f7891 }, // icy blue-grey
 };
 
 /** Emoji hint shown on a Survey chip so you know what biome you're calling up. */

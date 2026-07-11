@@ -20,6 +20,7 @@ import { PropRenderer } from '@/world/PropRenderer';
 import { AgentRenderer } from '@/world/AgentRenderer';
 import { GlowLayer } from '@/world/GlowLayer';
 import { AmbientLife } from '@/world/AmbientLife';
+import { ThemeAmbience } from '@/world/ThemeAmbience';
 import { ChunkArrival } from '@/world/ChunkArrival';
 import { LivelinessSystem } from '@/sim/LivelinessSystem';
 import { disposeObject } from '@/world/dispose';
@@ -132,6 +133,8 @@ export class App {
     scene.add(glow.group);
     const ambient = new AmbientLife(); // fireflies, shooting stars, balloons (S19)
     scene.add(ambient.group);
+    const themeAmbience = new ThemeAmbience(island); // per-biome mist/bats, snow, sand (S20)
+    scene.add(themeAmbience.group);
     // a lively island quietly pays a little extra (S13 liveliness dividend)
     const liveliness = new LivelinessSystem(
       state.economy,
@@ -435,6 +438,7 @@ export class App {
       timeOfDay.update(dt); // advance dawn→day→dusk→night, tint lights/sky/fog
       glow.update(timeOfDay.nightFactor); // lantern halos fade in with the dark
       ambient.update(dt, timeOfDay.nightFactor); // fireflies, shooting stars, balloons
+      themeAmbience.update(dt, timeOfDay.nightFactor); // per-biome mist/bats/snow/sand
       liveliness.update(dt); // periodic Pops dividend from the island's residents
     });
     // ambient audio bed (S22): a single spaced chirp/cricket — never a machine-gun
@@ -505,6 +509,7 @@ export class App {
         setTime: (mode: 'auto' | 'day' | 'dusk' | 'night') => timeOfDaySignal.set(mode),
         nightFactor: () => timeOfDay.nightFactor,
         glowCount: () => glow.count,
+        themeAmbience: () => themeAmbience.counts,
         /** Debug soak (non-persistent): grow the lattice to N chunks + rebuild once,
          *  skipping economy/arrival — for the draw/tri budget measurement only. */
         growTo: (n: number) => {
@@ -535,6 +540,7 @@ export class App {
             island.addChunk(best.cx, best.cz, themeFor(state.save.seed, best.cx, best.cz));
           }
           rebuildIsland();
+          themeAmbience.rescan(); // debug growth bypasses chunk:unlocked
           const b = island.bounds();
           lights.fitShadowsTo(b);
           rig.frameIsland(b);

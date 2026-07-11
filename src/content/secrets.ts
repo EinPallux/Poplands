@@ -7,6 +7,7 @@
  */
 import { mulberry32 } from '@/core/math';
 import type { SecretKind } from '@/core/events';
+import type { ChunkTheme } from '@/core/grid';
 
 export interface SecretDef {
   clicksToOpen: number; // dig 3 (escalating poofs), chest/flora 1
@@ -23,19 +24,48 @@ export const SECRETS: Readonly<Record<SecretKind, SecretDef>> = {
 /** The tutorial's first bought chunk always yields a (more generous) dig. */
 export const FIRST_SECRET_OVERRIDE = { pops: 100, stardust: 2, xp: 30 } as const;
 
-// cumulative weights out of 100 (GDD §10)
-const ROLL: ReadonlyArray<{ kind: SecretKind; upTo: number }> = [
-  { kind: 'dig', upTo: 35 },
-  { kind: 'chest', upTo: 45 },
-  { kind: 'flora', upTo: 50 },
-];
+/**
+ * Cumulative weights out of 100, per biome (GDD §10 baseline = meadow). Every
+ * table holds "nothing" at 50%, so a themed chunk's overall secret *rate* — and
+ * therefore economy pacing / the no-grind covenant — never diverges; only which
+ * kind wins reshuffles to match each biome's flavor (GDD §5.4): Sandbar favors
+ * beachcombing digs, Spooky Grove favors haunted chests, Snowcap favors rare flora.
+ */
+const ROLL_BY_THEME: Record<ChunkTheme, ReadonlyArray<{ kind: SecretKind; upTo: number }>> = {
+  meadow: [
+    { kind: 'dig', upTo: 35 },
+    { kind: 'chest', upTo: 45 },
+    { kind: 'flora', upTo: 50 },
+  ],
+  sandbar: [
+    { kind: 'dig', upTo: 42 },
+    { kind: 'chest', upTo: 48 },
+    { kind: 'flora', upTo: 50 },
+  ],
+  spooky: [
+    { kind: 'dig', upTo: 20 },
+    { kind: 'chest', upTo: 45 },
+    { kind: 'flora', upTo: 50 },
+  ],
+  snowcap: [
+    { kind: 'dig', upTo: 25 },
+    { kind: 'chest', upTo: 30 },
+    { kind: 'flora', upTo: 50 },
+  ],
+};
 
-/** Deterministic per (saveSeed, chunk). Returns null for a chunk with no secret. */
-export function rollSecret(seed: number, cx: number, cz: number, forced?: SecretKind): SecretKind | null {
+/** Deterministic per (saveSeed, chunk, theme). Returns null for a chunk with no secret. */
+export function rollSecret(
+  seed: number,
+  cx: number,
+  cz: number,
+  theme: ChunkTheme = 'meadow',
+  forced?: SecretKind,
+): SecretKind | null {
   if (forced) return forced;
   const rng = mulberry32((seed ^ (cx * 374761393) ^ (cz * 668265263)) >>> 0);
   const r = rng() * 100;
-  for (const b of ROLL) if (r < b.upTo) return b.kind;
+  for (const b of ROLL_BY_THEME[theme]) if (r < b.upTo) return b.kind;
   return null;
 }
 
