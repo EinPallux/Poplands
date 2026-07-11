@@ -1,12 +1,21 @@
 /**
- * World-anchored HUD (S21/S11): ripen bubbles floating over income buildings and
- * the coin-arc that flies collected Pops to the wallet counter. DOM projected
- * each frame from 3D positions (≤30 anchors, TECH §10). Reduced-motion collapses
- * the coin-arc to an instant tick (the counter already updates via signals).
+ * World-anchored HUD (S21/S11): ripen bubbles over income buildings and the
+ * coin-arc that flies collected Pops to the wallet counter.
+ *
+ * Ripen bubbles are DERIVED from economy state every frame (not event-synced) —
+ * this is what makes the returning-player "island greets you" cascade work on
+ * load and keeps a bubble correct across moves/collects with no event-ordering
+ * bugs. The coin-arc stays event-driven (income:collected). DOM is projected
+ * from 3D each frame (≤30 anchors, TECH §10). Reduced-motion collapses the
+ * coin-arc to an instant tick (the counter already updates via signals).
  */
 import { bus } from '@/core/events';
 import { tweens, easings } from '@/core/tween';
+import { footprintCenter } from '@/core/grid';
+import { itemDef } from '@/content/catalog';
 import { isReducedMotion } from '@/core/settingsStore';
+import type { EconomySystem } from '@/sim/EconomySystem';
+import type { IslandModel } from '@/world/IslandModel';
 
 type Project = (x: number, y: number, z: number) => { x: number; y: number; behind: boolean };
 
@@ -17,6 +26,8 @@ interface Bubble {
   z: number;
 }
 
+const SHOW_THRESHOLD = 0.02; // hide the bubble on an empty (just-collected) building
+
 export class WorldFx {
   private root: HTMLDivElement;
   private bubbles = new Map<string, Bubble>();
@@ -25,21 +36,17 @@ export class WorldFx {
     parent: HTMLElement,
     private readonly project: Project,
     private readonly popsAnchor: HTMLElement,
+    private readonly economy: EconomySystem,
+    private readonly island: IslandModel,
   ) {
     this.root = document.createElement('div');
     this.root.className = 'worldfx';
     parent.appendChild(this.root);
 
-    bus.on('income:progress', (e) => this.setBubble(e.placementId, e.wx, e.wz, e.fill));
-    bus.on('income:ripe', (e) => this.ripe(e.placementId));
-    bus.on('income:collected', (e) => {
-      if (e.placementId) this.removeBubble(e.placementId);
-      this.coinArc(e.wx, e.wz, Math.min(e.amount, 6));
-    });
-    bus.on('item:removed', (e) => this.removeBubble(e.id));
+    bus.on('income:collected', (e) => this.coinArc(e.wx, e.wz, Math.min(e.amount, 6)));
   }
 
-  private setBubble(id: string, wx: number, wz: number, fill: number): void {
+  private ensureBubble(id: string, wx: number, wz: number, frac: number): void {
     let b = this.bubbles.get(id);
     if (!b) {
       const el = document.createElement('div');
@@ -51,16 +58,9 @@ export class WorldFx {
     }
     b.x = wx;
     b.z = wz;
-    // grow through three steps; not-yet-ripe bubbles read small & pale
-    const scale = 0.5 + fill * 0.5;
-    b.el.style.setProperty('--fill', String(fill));
-    b.el.style.setProperty('--scale', String(scale));
-    b.el.classList.toggle('ripe', fill >= 1);
-  }
-
-  private ripe(id: string): void {
-    const b = this.bubbles.get(id);
-    if (b) b.el.classList.add('ripe');
+    b.el.style.setProperty('--fill', String(frac));
+    b.el.style.setProperty('--scale', String(0.5 + Math.min(frac, 1) * 0.5));
+    b.el.classList.toggle('ripe', frac >= 1);
   }
 
   private removeBubble(id: string): void {
@@ -83,7 +83,6 @@ export class WorldFx {
       coin.className = 'fly-coin';
       coin.textContent = '●';
       this.root.appendChild(coin);
-      // control point for a gentle arc, jittered per coin
       const cx = (from.x + tx) / 2 + (Math.random() - 0.5) * 120;
       const cy = Math.min(from.y, ty) - 60 - Math.random() * 60;
       tweens.start({
@@ -102,16 +101,32 @@ export class WorldFx {
     }
   }
 
-  /** Reposition bubbles from their world anchors — called each frame by App. */
+  /**
+   * Rebuild bubbles from live economy state + reposition. Called each frame by
+   * App. Deriving from state (not events) fixes the load-greet and move cases.
+   */
   update(): void {
+    const live = new Set<string>();
+    for (const p of this.island.allPlacements()) {
+      const def = itemDef(p.def);
+      if (!def?.income) continue;
+      const frac = this.economy.ripeFraction(p.id);
+      if (frac < SHOW_THRESHOLD) continue;
+      live.add(p.id);
+      const c = footprintCenter(p.wx, p.wz, def.footprint, p.rot);
+      this.ensureBubble(p.id, c.x, c.z, frac);
+    }
+    // drop bubbles for buildings that are gone or emptied
+    for (const id of [...this.bubbles.keys()]) if (!live.has(id)) this.removeBubble(id);
+    // project the survivors
     for (const b of this.bubbles.values()) {
-      const p = this.project(b.x, b.y, b.z);
-      if (p.behind) {
+      const proj = this.project(b.x, b.y, b.z);
+      if (proj.behind) {
         b.el.style.display = 'none';
         continue;
       }
       b.el.style.display = '';
-      b.el.style.transform = `translate(${p.x}px, ${p.y}px) translate(-50%, -50%) scale(var(--scale, 1))`;
+      b.el.style.transform = `translate(${proj.x}px, ${proj.y}px) translate(-50%, -50%) scale(var(--scale, 1))`;
     }
   }
 }

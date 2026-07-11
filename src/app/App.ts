@@ -112,6 +112,7 @@ export class App {
     // — build mode + audio
     const session = new BuildSession(island, props, state.economy);
     scene.add(session.group);
+    state.setCarriedProvider(() => session.carriedPlacement); // carried item survives a mid-move save
     const audio = new AudioSystem();
 
     // — presentation reactions to domain events (the F1 flow)
@@ -208,7 +209,13 @@ export class App {
     initToasts(uiRoot);
     const hud = new Hud(uiRoot);
     new Mailbox(uiRoot);
-    const worldFx = new WorldFx(uiRoot, (x, y, z) => rig.projectToScreen(x, y, z), hud.popsAnchor);
+    const worldFx = new WorldFx(
+      uiRoot,
+      (x, y, z) => rig.projectToScreen(x, y, z),
+      hud.popsAnchor,
+      state.economy,
+      island,
+    );
     const buildBar = new BuildBar(uiRoot);
     setTimeout(() => buildBar.setThumbnails(renderThumbnails(assets)), 80);
     const settings = new SettingsPanel(

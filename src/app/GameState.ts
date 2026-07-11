@@ -5,10 +5,10 @@
  * and drives autosave + export/import.
  */
 import { bus } from '@/core/events';
-import { freshSave, SaveManager, type Save, type SavePlacement } from '@/core/save';
+import { freshSave, SaveManager, withCarried, type Save, type SavePlacement } from '@/core/save';
 import { loadSettings, snapshotSettings } from '@/core/settingsStore';
 import { loadWallet, snapshotWallet, loadPlayer } from '@/core/playerStore';
-import { IslandModel } from '@/world/IslandModel';
+import { IslandModel, type Placement } from '@/world/IslandModel';
 import { EconomySystem } from '@/sim/EconomySystem';
 import { ProgressionSystem } from '@/sim/ProgressionSystem';
 import { QuestSystem } from '@/sim/QuestSystem';
@@ -23,6 +23,8 @@ export class GameState {
   readonly progression: ProgressionSystem;
   readonly quests: QuestSystem;
   readonly isFresh: boolean;
+  /** Supplies the item held in Move mode so the snapshot never drops it. */
+  private carriedProvider: (() => Placement | null) | null = null;
 
   constructor() {
     this.manager = new SaveManager(() => this.collect());
@@ -64,6 +66,7 @@ export class GameState {
       'wallet:changed',
       'xp:gained',
       'quest:completed',
+      'cmd:skipPostcard', // mutates persisted quest state → must autosave
       'settings:changed',
     ] as const) {
       bus.on(ev, () => this.manager.requestSave());
@@ -98,10 +101,18 @@ export class GameState {
     return save;
   }
 
+  /** Register the Move-mode carried-item provider (App wires the BuildSession). */
+  setCarriedProvider(fn: () => Placement | null): void {
+    this.carriedProvider = fn;
+  }
+
   /** Snapshot live state back into the save shell (called by the manager).
    *  Object.assign preserves player.xp/level/xpGranted written in place by progression. */
   collect(): Save {
-    this.save.island.placements = this.island.snapshotPlacements();
+    // Fold a Move-mode carried building back into the snapshot at its home so a
+    // mid-carry autosave can never lose it (no fail states).
+    const carried = this.carriedProvider?.() ?? null;
+    this.save.island.placements = withCarried(this.island.snapshotPlacements(), carried);
     Object.assign(this.save.player, snapshotWallet());
     this.save.economy = this.economy.snapshot();
     this.save.settings = snapshotSettings();

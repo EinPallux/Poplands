@@ -49,7 +49,6 @@ const check = (label: string, ok: boolean, detail = '') => {
   if (!ok) failures++;
 };
 
-const P = () => (window as never as { __poplands: Poplands }).__poplands;
 interface Poplands {
   wallet: () => { pops: number; stardust: number; level: number; xp: number };
   quests: () => { tutorial: { activeId: string | null; done: string[] } };
@@ -182,6 +181,9 @@ async function main(): Promise<void> {
   check('wallet persists across reload', w3.pops === 44, `${w3.pops}●`);
   check('placements persist across reload', countAfter === countBefore, `${countAfter} vs ${countBefore}`);
   check('tutorial progress persists', (await activeTutorial(page)) !== 'tut.flowers');
+
+  // (the mid-move data-loss regression is covered by a pure unit test of
+  //  withCarried() in tests/save.test.ts — reliable, no flaky headless pickup)
 
   await browser.close();
   close();

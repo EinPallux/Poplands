@@ -60,6 +60,13 @@ export class BuildSession {
     return this.ghost?.object ?? null;
   }
 
+  /** The item currently held in Move mode (at its ORIGINAL home), or null. The
+   *  save snapshot includes this so a carried building is never lost if a write
+   *  lands mid-carry (e.g. tab-switch → immediate autosave). */
+  get carriedPlacement(): Placement | null {
+    return this.carried;
+  }
+
   /** R key — rotate the ghost (App routes R here only while a ghost exists). */
   rotate(): void {
     if (!this.ghost) return;
@@ -201,8 +208,8 @@ export class BuildSession {
   }
 
   private denyReason(def: ItemDef): 'pops' | 'stardust' {
-    // report whichever wallet is short (Stardust first — it's the rarer blocker)
-    return def.costStardust ? 'stardust' : 'pops';
+    // report whichever wallet is ACTUALLY short (a dual-cost item may fail on Pops)
+    return this.economy.shortWallet(def);
   }
 
   /** Clicking a ripe income building with no tool active collects its Pops (F1). */

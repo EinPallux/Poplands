@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { parseSave, freshSave, SaveManager, type Save } from '@/core/save';
+import { parseSave, freshSave, SaveManager, withCarried, type Save, type SavePlacement } from '@/core/save';
 
 // minimal in-memory localStorage for node
 class MemoryStorage implements Storage {
@@ -51,6 +51,12 @@ describe('parseSave', () => {
     expect(parseSave('{"hello":true}')).toBeNull();
   });
 
+  it('rejects corrupt saves (null island/player) instead of throwing', () => {
+    // typeof null === 'object' — these must be rejected so load() falls to backups
+    expect(parseSave('{"v":2,"island":null,"player":{"pops":1}}')).toBeNull();
+    expect(parseSave('{"v":2,"island":{"placements":[]},"player":null}')).toBeNull();
+  });
+
   it('normalizes missing optional fields', () => {
     const save = makeSave() as unknown as Record<string, unknown>;
     delete save['attic'];
@@ -58,6 +64,18 @@ describe('parseSave', () => {
     const parsed = parseSave(JSON.stringify(save));
     expect(parsed!.attic).toEqual([]);
     expect(parsed!.settings.volume).toBeGreaterThan(0);
+  });
+
+  it('withCarried folds a Move-mode item back into the snapshot (no data loss)', () => {
+    const placements: SavePlacement[] = [{ id: 'p1', def: 'nature.tree', wx: 1, wz: 1, rot: 0 }];
+    const carried: SavePlacement = { id: 'p2', def: 'income.stall', wx: 5, wz: 5, rot: 0 };
+    const folded = withCarried(placements, carried);
+    expect(folded).toHaveLength(2);
+    expect(folded.some((p) => p.id === 'p2')).toBe(true);
+    // idempotent: never duplicates an already-present item
+    expect(withCarried(folded, carried)).toHaveLength(2);
+    // null carried is a no-op
+    expect(withCarried(placements, null)).toBe(placements);
   });
 
   it('migrates a v1 save to v2, seeding economy + quests + xpGranted', () => {

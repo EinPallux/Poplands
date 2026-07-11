@@ -35,6 +35,18 @@ export class BuildBar {
   private activeTab = signal<Category | 'all'>('all');
   private thumbEls = new Map<string, HTMLElement>();
 
+  /** Clear "New!" badges for items in a tab (called on tab click, NOT inside an
+   *  effect — else a level-up that adds reveals would self-clear them, bug #2). */
+  private clearRevealForTab(tab: Category | 'all'): void {
+    const reveal = catalogRevealSignal.get();
+    if (!reveal.size) return;
+    const next = new Set(reveal);
+    for (const def of CATALOG) {
+      if ((tab === 'all' || def.category === tab) && next.has(def.id)) next.delete(def.id);
+    }
+    if (next.size !== reveal.size) catalogRevealSignal.set(next);
+  }
+
   /** Thumbnails render after boot (they're expensive on slow GPUs) — patch in. */
   setThumbnails(thumbnails: Map<string, string>): void {
     for (const [id, holder] of this.thumbEls) {
@@ -71,7 +83,10 @@ export class BuildBar {
       const tab = document.createElement('button');
       tab.className = 'build-tab';
       tab.textContent = t(TAB_KEYS[cat]);
-      tab.addEventListener('click', () => this.activeTab.set(cat));
+      tab.addEventListener('click', () => {
+        this.activeTab.set(cat);
+        this.clearRevealForTab(cat); // viewing a tab clears its "New!" badges
+      });
       effect(() => tab.classList.toggle('active', this.activeTab.get() === cat));
       tabs.appendChild(tab);
     }
@@ -162,18 +177,7 @@ export class BuildBar {
         el.classList.add('card-enter');
         visibleIndex++;
       }
-      if (!firstFilter) {
-        this.cardsEl.scrollLeft = 0; // reset scroll when switching tabs
-        // viewing a tab clears the "New!" badges for the items now on screen
-        const reveal = catalogRevealSignal.get();
-        if (reveal.size) {
-          const next = new Set(reveal);
-          for (const def of CATALOG) {
-            if ((tab === 'all' || def.category === tab) && next.has(def.id)) next.delete(def.id);
-          }
-          if (next.size !== reveal.size) catalogRevealSignal.set(next);
-        }
-      }
+      if (!firstFilter) this.cardsEl.scrollLeft = 0; // reset scroll when switching tabs
       firstFilter = false;
     });
 

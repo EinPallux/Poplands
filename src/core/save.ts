@@ -90,6 +90,16 @@ export function freshEconomy(): SaveEconomy {
   return { accrual: [] };
 }
 
+/**
+ * Fold a Move-mode carried placement back into the snapshot at its home, so a
+ * building held mid-move is never lost if a save lands before the drop (the
+ * no-fail-state covenant). Pure — GameState.collect() uses it.
+ */
+export function withCarried(placements: SavePlacement[], carried: SavePlacement | null): SavePlacement[] {
+  if (!carried || placements.some((p) => p.id === carried.id)) return placements;
+  return [...placements, carried];
+}
+
 /** Fresh quest state. `activeId: null` — QuestSystem.announce() seeds the first
  * tutorial step on a genuinely-fresh save, so this stays content-free (core layer). */
 export function freshQuests(itemsPlaced = 0): SaveQuests {
@@ -142,12 +152,19 @@ export function freshSave(seed: number, now: number): Save {
   };
 }
 
+function isObject(v: unknown): v is Record<string, unknown> {
+  return typeof v === 'object' && v !== null;
+}
+
 function isPlausibleSave(data: unknown): data is AnySave {
+  // NB: `typeof null === 'object'`, so null-check island/player explicitly —
+  // otherwise a corrupt {island:null} save passes the guard and later throws
+  // in the normalizers, bricking boot instead of falling through to backups.
   return (
-    typeof data === 'object' &&
-    data !== null &&
-    typeof (data as AnySave).v === 'number' &&
-    typeof (data as { island?: unknown }).island === 'object'
+    isObject(data) &&
+    typeof data['v'] === 'number' &&
+    isObject(data['island']) &&
+    isObject(data['player'])
   );
 }
 
@@ -159,13 +176,22 @@ export function parseSave(json: string): Save | null {
     return null;
   }
   if (!isPlausibleSave(data)) return null;
-  let save = data;
-  if (save.v < 1) return null;
-  while (migrations[save.v]) {
-    save = migrations[save.v]!(save);
+  try {
+    let save = data;
+    if (save.v < 1) return null;
+    while (migrations[save.v]) {
+      save = migrations[save.v]!(save);
+    }
+    if (save.v !== SAVE_VERSION) return null;
+    return normalizeV2(save as unknown as Save);
+  } catch {
+    // any surprise (hand-edited / partially-corrupt slice) → treat as unusable so
+    // load() falls through to the backup slots or a fresh save (no fail states).
+    return null;
   }
-  if (save.v !== SAVE_VERSION) return null;
-  const v2 = save as unknown as Save;
+}
+
+function normalizeV2(v2: Save): Save {
   // normalize gently (older exports / hand-edited files / partial slices)
   v2.attic ??= [];
   v2.settings = { ...DEFAULT_SETTINGS, ...v2.settings };

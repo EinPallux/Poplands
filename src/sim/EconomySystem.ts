@@ -58,6 +58,11 @@ export class EconomySystem {
     return popsSignal.get() >= def.cost && stardustSignal.get() >= (def.costStardust ?? 0);
   }
 
+  /** Which wallet blocks a purchase (Pops checked first) — for the denial message. */
+  shortWallet(def: ItemDef): 'pops' | 'stardust' {
+    return popsSignal.get() < def.cost ? 'pops' : 'stardust';
+  }
+
   charge(def: ItemDef): void {
     popsSignal.update((p) => p - def.cost);
     if (def.costStardust) stardustSignal.update((s) => s - (def.costStardust ?? 0));
