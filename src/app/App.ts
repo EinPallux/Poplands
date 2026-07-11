@@ -10,7 +10,8 @@ import { Sky } from '@/render/Sky';
 import { QualityProbe, QUALITY_PRESETS, type QualityConfig } from '@/render/Quality';
 import { AssetRegistry } from '@/assets/AssetRegistry';
 import { IslandModel } from '@/world/IslandModel';
-import { buildGround, buildSkirt } from '@/world/GroundBuilder';
+import { buildGround } from '@/world/GroundBuilder';
+import { buildIslandBase } from '@/world/SlabBuilder';
 import { buildStarterIsland } from '@/world/StarterIsland';
 import { buildIslet } from '@/world/IsletBuilder';
 import { HoverHighlight } from '@/world/HoverHighlight';
@@ -73,7 +74,7 @@ export class App {
     const world = new Group();
     world.name = 'island';
     world.add(buildGround(island));
-    world.add(buildSkirt(island, assets));
+    world.add(buildIslandBase(island));
     const starter = buildStarterIsland(assets);
     world.add(starter.group);
     scene.add(world);

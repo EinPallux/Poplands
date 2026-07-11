@@ -10,7 +10,8 @@ Guidance for Claude Code (and humans) working in this repository.
 
 **v0.1 "First Light" built — awaiting user milestone review before starting v0.2.**
 Implemented: Vite/TS scaffold, core modules (grid/tween/spring/events/signals/strings) with 26 passing tests, asset pipeline v1 (31 curated models → `public/assets`), renderer + lighting + sky/cloud-sea/clouds/islets, damped camera rig + input + hover picking, starter island (face-culled vertex-colored ground, crag skirt, prop layout, spinning composed windmill), loading screen, debug HUD (`?debug=1`), CI. Dev tools: `scripts/screenshot.mts` (headless beauty shots), `scripts/inspect-model.mts`.
-Known polish items for v0.2: backlit foliage reads too dark from low north angles; hanging-moss models render as black shards (cut, needs DoubleSide); windmill is a hardcoded composition (replace via prefab pipeline).
+User review (2026-07-11) approved the scenery; island base reworked to the **layered slab** look per user reference (see ART §5) — traced outline + ring-profile extrusion in `world/SlabBuilder.ts`, colors in `render/palette.ts slabColors`.
+Known polish items: backlit foliage reads too dark from low north angles; windmill is a hardcoded composition (replace via prefab pipeline).
 `/assets` contains 17 raw low-poly packs (~2,100 GLB models) — the content library (never loaded at runtime).
 
 ## Document map (read before working)

@@ -5,7 +5,11 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 
 ## [Unreleased]
 
-### Added — v0.1 "First Light" implementation (pending user milestone review)
+### Changed — island base rework (user review feedback, 2026-07-11)
+- Replaced the crag-skirt underside with a **layered slab base** matching the user's reference: overhanging grass lip, sand band, terracotta rock band tapering to a rounded bottom; organic wobbly silhouette from a traced block outline (new `core/outline.ts` with 7 tests + `world/SlabBuilder.ts`), deterministic and growth-ready for chunk expansion.
+- Saturation pass: vivid lime lawn + saturated strata colors (`slabColors` in the palette; ART §3.1/§5 updated). Distant islets rebuilt as miniature slabs.
+
+### Added — v0.1 "First Light" implementation (user-approved 2026-07-11)
 - Project scaffold: Vite + strict TypeScript + ESLint (with three.js-free layering rule for `core`/`content`/`sim`) + Prettier + Vitest + GitHub Actions CI.
 - Core modules with 26 unit tests: grid/chunk math, tween engine + springs (`backOut` pop easing), typed event bus, signals, i18n string table, seeded RNG.
 - Asset pipeline v1: manifest-driven optimize (gltf-transform dedup/prune/weld) + per-model AABB/clip metadata lint; 31 curated models → `public/assets` (0.47 MB). Dev tools: `inspect-model`, headless `screenshot` capture.
