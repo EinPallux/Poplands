@@ -10,6 +10,7 @@ import {
   qualitySignal,
   reducedMotionSignal,
   timeOfDaySignal,
+  seasonSignal,
   fpsCapSignal,
   uiScaleSignal,
 } from '@/core/settingsStore';
@@ -64,6 +65,16 @@ export class SettingsPanel {
         </select>
       </label>
       <label class="settings-row">
+        <span>${t('settings.season')}</span>
+        <select class="s-season">
+          <option value="auto">${t('settings.season.auto')}</option>
+          <option value="spring">${t('settings.season.spring')}</option>
+          <option value="summer">${t('settings.season.summer')}</option>
+          <option value="autumn">${t('settings.season.autumn')}</option>
+          <option value="winter">${t('settings.season.winter')}</option>
+        </select>
+      </label>
+      <label class="settings-row">
         <span>${t('settings.volume')}</span>
         <input class="s-volume" type="range" min="0" max="1" step="0.05">
       </label>
@@ -102,6 +113,7 @@ export class SettingsPanel {
 
     const quality = this.panel.querySelector('.s-quality') as HTMLSelectElement;
     const time = this.panel.querySelector('.s-time') as HTMLSelectElement;
+    const season = this.panel.querySelector('.s-season') as HTMLSelectElement;
     const fps = this.panel.querySelector('.s-fps') as HTMLSelectElement;
     const uiScale = this.panel.querySelector('.s-uiscale') as HTMLSelectElement;
     const volume = this.panel.querySelector('.s-volume') as HTMLInputElement;
@@ -111,6 +123,7 @@ export class SettingsPanel {
 
     effect(() => (quality.value = qualitySignal.get()));
     effect(() => (time.value = timeOfDaySignal.get()));
+    effect(() => (season.value = seasonSignal.get()));
     effect(() => (fps.value = fpsCapSignal.get()));
     effect(() => (uiScale.value = String(uiScaleSignal.get())));
     effect(() => (volume.value = String(volumeSignal.get())));
@@ -132,6 +145,10 @@ export class SettingsPanel {
     });
     time.addEventListener('change', () => {
       timeOfDaySignal.set(time.value as SaveSettings['timeOfDay']);
+      bus.emit('settings:changed', undefined);
+    });
+    season.addEventListener('change', () => {
+      seasonSignal.set(season.value as SaveSettings['season']);
       bus.emit('settings:changed', undefined);
     });
     volume.addEventListener('input', () => {

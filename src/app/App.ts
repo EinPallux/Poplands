@@ -9,6 +9,7 @@ import { CameraRig } from '@/render/CameraRig';
 import { Lights } from '@/render/Lights';
 import { Sky } from '@/render/Sky';
 import { TimeOfDay } from '@/render/TimeOfDay';
+import { SeasonSystem } from '@/render/SeasonSystem';
 import { QualityProbe, QUALITY_PRESETS, type QualityConfig } from '@/render/Quality';
 import { AssetRegistry } from '@/assets/AssetRegistry';
 import { buildGround } from '@/world/GroundBuilder';
@@ -21,6 +22,7 @@ import { AgentRenderer } from '@/world/AgentRenderer';
 import { GlowLayer } from '@/world/GlowLayer';
 import { AmbientLife } from '@/world/AmbientLife';
 import { ThemeAmbience } from '@/world/ThemeAmbience';
+import { SeasonAmbience } from '@/world/SeasonAmbience';
 import { WeatherSystem } from '@/world/WeatherSystem';
 import { AuroraLayer } from '@/world/AuroraLayer';
 import { ChunkArrival } from '@/world/ChunkArrival';
@@ -57,7 +59,7 @@ import { palette } from '@/render/palette';
 import { tweens } from '@/core/tween';
 import { t } from '@/core/strings';
 import { bus } from '@/core/events';
-import { qualitySignal, timeOfDaySignal, fpsCapSignal, uiScaleSignal } from '@/core/settingsStore';
+import { qualitySignal, timeOfDaySignal, seasonSignal, fpsCapSignal, uiScaleSignal } from '@/core/settingsStore';
 import { popsSignal, stardustSignal, levelSignal, xpSignal } from '@/core/playerStore';
 import { effect } from '@/core/signals';
 import { footprintCenter, type ChunkTheme } from '@/core/grid';
@@ -99,6 +101,7 @@ export class App {
     const sky = new Sky(lights.sunDirection);
     scene.add(sky.group);
     const timeOfDay = new TimeOfDay(lights, sky, fog); // day-night cycle (S7)
+    const season = new SeasonSystem(lights, sky, fog); // seasonal tint layered on top (post-1.0)
     const rig = new CameraRig(rm.aspect);
 
     // — assets, then state
@@ -155,6 +158,8 @@ export class App {
     scene.add(themeAmbience.group);
     const weather = new WeatherSystem(island); // passing showers + a rainbow (post-1.0)
     scene.add(weather.group);
+    const seasonAmbience = new SeasonAmbience(island); // petals/leaves/snow per season (post-1.0)
+    scene.add(seasonAmbience.group);
     const aurora = new AuroraLayer(island); // The Wonder's permanent aurora (S20 capstone)
     scene.add(aurora.group);
     // a lively island quietly pays a little extra (S13 liveliness dividend), lifted
@@ -520,10 +525,12 @@ export class App {
     loop.add((dt) => tweens.update(dt));
     loop.add((dt) => {
       timeOfDay.update(dt); // advance dawn→day→dusk→night, tint lights/sky/fog
+      season.update(); // multiply the seasonal tint on top (must run after TimeOfDay)
       glow.update(timeOfDay.nightFactor); // lantern halos fade in with the dark
       ambient.update(dt, timeOfDay.nightFactor); // fireflies, shooting stars, balloons
       themeAmbience.update(dt, timeOfDay.nightFactor); // per-biome mist/bats/snow/sand
       weather.update(dt, timeOfDay.nightFactor, rig.camera); // passing showers + rainbow
+      seasonAmbience.update(dt); // spring petals / autumn leaves / winter snow
       aurora.update(dt, timeOfDay.nightFactor); // The Wonder's aurora shimmer (S20)
       liveliness.update(dt); // periodic Pops dividend from the island's residents
     });
@@ -610,6 +617,9 @@ export class App {
             .filter((p) => itemDef(p.def)?.tileKit)
             .map((p) => ({ wx: p.wx, wz: p.wz, shape: props.shapeOf(p.id) })),
         setTime: (mode: 'auto' | 'day' | 'dusk' | 'night') => timeOfDaySignal.set(mode),
+        setSeason: (mode: 'auto' | 'spring' | 'summer' | 'autumn' | 'winter') => seasonSignal.set(mode),
+        season: () => season.current,
+        sunColor: () => lights.sun.color.getHexString(),
         nightFactor: () => timeOfDay.nightFactor,
         glowCount: () => glow.count,
         auroraCount: () => aurora.count,
