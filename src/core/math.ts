@@ -40,3 +40,18 @@ export function hash2(x: number, z: number): number {
   h = Math.imul(h, 1274126177);
   return (h ^ (h >>> 16)) >>> 0;
 }
+
+/** Smooth 2D value noise in [0, 1] — deterministic, cheap, for shape wobbles. */
+export function valueNoise2(x: number, z: number): number {
+  const xi = Math.floor(x);
+  const zi = Math.floor(z);
+  const fx = x - xi;
+  const fz = z - zi;
+  const sx = fx * fx * (3 - 2 * fx);
+  const sz = fz * fz * (3 - 2 * fz);
+  const v00 = hash2(xi, zi) / 4294967295;
+  const v10 = hash2(xi + 1, zi) / 4294967295;
+  const v01 = hash2(xi, zi + 1) / 4294967295;
+  const v11 = hash2(xi + 1, zi + 1) / 4294967295;
+  return lerp(lerp(v00, v10, sx), lerp(v01, v11, sx), sz);
+}

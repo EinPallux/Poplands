@@ -1,0 +1,219 @@
+/**
+ * Build mode (S9): tools (place / move / remove), ghost preview with validity,
+ * rotation, and transactional mutations against the IslandModel. Emits domain
+ * events; presentation (PropRenderer/juice/audio/UI) reacts. Selection works
+ * by occupancy lookup — on a grid, the hovered cell IS the picker (TECH §9).
+ */
+import { Group, type Object3D } from 'three';
+import { bus } from '@/core/events';
+import { footprintCenter, rotYaw, type Rot } from '@/core/grid';
+import { itemDef, type ItemDef } from '@/content/catalog';
+import type { IslandModel, Placement } from '@/world/IslandModel';
+import type { PropRenderer } from '@/world/PropRenderer';
+import { carryBob } from '@/vfx/presets';
+
+export type BuildTool = 'none' | 'place' | 'move' | 'remove';
+
+interface GhostState {
+  def: ItemDef;
+  object: Object3D;
+  setValid: (valid: boolean) => void;
+  rot: Rot;
+  cell: { wx: number; wz: number } | null;
+  valid: boolean;
+  bob: ((dt: number) => void) | null;
+}
+
+export class BuildSession {
+  readonly group = new Group(); // ghost lives here
+  private tool: BuildTool = 'none';
+  private ghost: GhostState | null = null;
+  /** In move mode: the picked-up placement (freed from occupancy while carried). */
+  private carried: Placement | null = null;
+  private hoverCell: { wx: number; wz: number } | null = null;
+
+  constructor(
+    private readonly island: IslandModel,
+    private readonly props: PropRenderer,
+  ) {
+    this.group.name = 'build-session';
+    bus.on('cmd:selectItem', ({ defId }) => {
+      if (defId === null) this.setTool('none');
+      else this.startPlacing(defId);
+    });
+    bus.on('cmd:setTool', ({ tool }) => this.setTool(tool));
+    bus.on('input:cellHover', (cell) => this.onHover(cell));
+    bus.on('input:cellClick', (cell) => this.onClick(cell));
+  }
+
+  get activeTool(): BuildTool {
+    return this.tool;
+  }
+
+  get isActive(): boolean {
+    return this.tool !== 'none';
+  }
+
+  get ghostObject(): Object3D | null {
+    return this.ghost?.object ?? null;
+  }
+
+  /** R key — rotate the ghost (App routes R here only while a ghost exists). */
+  rotate(): void {
+    if (!this.ghost) return;
+    this.ghost.rot = ((this.ghost.rot + 1) % 4) as Rot;
+    this.refreshGhost();
+  }
+
+  /** Esc — cancel: carried items glide home, tools deselect. */
+  cancel(): void {
+    this.returnCarried();
+    this.setTool('none');
+  }
+
+  private returnCarried(): void {
+    if (!this.carried) return;
+    const home = this.carried;
+    this.carried = null;
+    this.island.place(home.def, home.wx, home.wz, home.rot, home.id);
+    bus.emit('item:placed', { ...home, silent: true }); // App's presentation shows it
+  }
+
+  update(dt: number): void {
+    if (this.ghost?.bob) this.ghost.bob(dt);
+  }
+
+  // ——— internals ———
+
+  private startPlacing(defId: string): void {
+    const def = itemDef(defId);
+    if (!def) return;
+    this.teardownGhost();
+    this.tool = 'place';
+    this.makeGhost(def, 0);
+    bus.emit('build:modeChanged', { tool: 'place' });
+  }
+
+  private setTool(tool: BuildTool): void {
+    this.returnCarried(); // switching tools while carrying = polite cancel first
+    this.teardownGhost();
+    this.tool = tool;
+    bus.emit('build:modeChanged', { tool });
+    if (tool === 'none') bus.emit('build:ghostChanged', null);
+  }
+
+  private makeGhost(def: ItemDef, rot: Rot): void {
+    const ghost = this.props.makeGhost(def.id);
+    if (!ghost) return;
+    this.ghost = {
+      def,
+      object: ghost.object,
+      setValid: ghost.setValid,
+      rot,
+      cell: this.hoverCell,
+      valid: false,
+      bob: null,
+    };
+    this.group.add(ghost.object);
+    this.refreshGhost();
+  }
+
+  private teardownGhost(): void {
+    if (this.ghost) {
+      this.group.remove(this.ghost.object);
+      this.ghost = null;
+    }
+  }
+
+  private onHover(cell: { wx: number; wz: number } | null): void {
+    this.hoverCell = cell;
+    if (this.ghost) {
+      this.ghost.cell = cell;
+      this.refreshGhost();
+    }
+  }
+
+  private refreshGhost(): void {
+    const g = this.ghost;
+    if (!g) return;
+    if (!g.cell) {
+      g.object.visible = false;
+      bus.emit('build:ghostChanged', null);
+      return;
+    }
+    g.object.visible = true;
+    const check = this.island.canPlace(g.def, g.cell.wx, g.cell.wz, g.rot);
+    g.valid = check.ok;
+    g.setValid(check.ok);
+    const c = footprintCenter(g.cell.wx, g.cell.wz, g.def.footprint, g.rot);
+    g.object.position.set(c.x, (g.def.yOffset ?? 0) + 0.02, c.z);
+    g.object.rotation.y = rotYaw(g.rot);
+    if (this.carried && !g.bob) g.bob = carryBob(g.object, g.def.yOffset ?? 0);
+    bus.emit('build:ghostChanged', check.ok ? { valid: true } : { valid: false, reason: check.reason });
+  }
+
+  private onClick(cell: { wx: number; wz: number }): void {
+    switch (this.tool) {
+      case 'place':
+        this.tryPlace(cell);
+        return;
+      case 'move':
+        if (this.carried) this.tryDrop(cell);
+        else this.tryPickup(cell);
+        return;
+      case 'remove':
+        this.tryRemove(cell);
+        return;
+      case 'none':
+        return;
+    }
+  }
+
+  private tryPlace(cell: { wx: number; wz: number }): void {
+    const g = this.ghost;
+    if (!g) return;
+    const check = this.island.canPlace(g.def, cell.wx, cell.wz, g.rot);
+    if (!check.ok) {
+      bus.emit('build:rejected', { reason: check.reason });
+      return;
+    }
+    const placement = this.island.place(g.def.id, cell.wx, cell.wz, g.rot);
+    bus.emit('item:placed', { ...placement });
+    // stay in place mode for joyful chaining (GDD §6.2)
+  }
+
+  private tryPickup(cell: { wx: number; wz: number }): void {
+    const occupant = this.island.occupantAt(cell.wx, cell.wz);
+    if (!occupant) return;
+    const def = itemDef(occupant.def);
+    if (!def) return;
+    this.island.remove(occupant.id);
+    bus.emit('item:removed', { ...occupant, silent: true }); // App hides the visual
+    this.carried = occupant;
+    this.makeGhost(def, occupant.rot);
+    bus.emit('build:modeChanged', { tool: 'move', carrying: true });
+  }
+
+  private tryDrop(cell: { wx: number; wz: number }): void {
+    const g = this.ghost;
+    const carried = this.carried;
+    if (!g || !carried) return;
+    const check = this.island.canPlace(g.def, cell.wx, cell.wz, g.rot);
+    if (!check.ok) {
+      bus.emit('build:rejected', { reason: check.reason });
+      return;
+    }
+    const placement = this.island.place(carried.def, cell.wx, cell.wz, g.rot, carried.id);
+    this.carried = null;
+    this.teardownGhost();
+    bus.emit('item:placed', { ...placement });
+    bus.emit('build:modeChanged', { tool: 'move', carrying: false });
+  }
+
+  private tryRemove(cell: { wx: number; wz: number }): void {
+    const occupant = this.island.occupantAt(cell.wx, cell.wz);
+    if (!occupant) return;
+    this.island.remove(occupant.id);
+    bus.emit('item:removed', { ...occupant });
+  }
+}

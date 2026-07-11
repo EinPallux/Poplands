@@ -13,6 +13,15 @@ const DRAG_THRESHOLD_PX = 5;
 const ORBIT_SPEED = 0.006;
 const KEY_PAN_SPEED = 0.85; // × distance per second
 
+export interface InputCallbacks {
+  onRotate: () => void; // R — session decides: rotate ghost vs reset camera
+  onEscape: () => void;
+  onToggleCatalog: () => void; // B
+  onToolMove: () => void; // M
+  onToolRemove: () => void; // X
+  onToggleDebug: () => void; // `
+}
+
 export class InputController {
   private dragging: { pointerId: number; button: number; lastX: number; lastY: number; movedPx: number } | null =
     null;
@@ -24,7 +33,7 @@ export class InputController {
     private readonly canvas: HTMLCanvasElement,
     private readonly rig: CameraRig,
     private readonly island: IslandModel,
-    private readonly onToggleDebug: () => void,
+    private readonly callbacks: InputCallbacks,
   ) {
     canvas.addEventListener('pointerdown', this.onPointerDown);
     canvas.addEventListener('pointermove', this.onPointerMove);
@@ -83,6 +92,9 @@ export class InputController {
 
   private onKeyDown = (e: KeyboardEvent): void => {
     if (e.repeat) return;
+    // never steal keys from form fields (settings panel inputs)
+    const target = e.target as HTMLElement | null;
+    if (target && (target.tagName === 'INPUT' || target.tagName === 'SELECT')) return;
     switch (e.code) {
       case 'KeyQ':
         this.rig.snapAzimuth(1);
@@ -91,11 +103,26 @@ export class InputController {
         this.rig.snapAzimuth(-1);
         return;
       case 'KeyR':
+        this.callbacks.onRotate();
+        return;
       case 'Home':
         this.rig.reset();
         return;
+      case 'Escape':
+        this.callbacks.onEscape();
+        return;
+      case 'KeyB':
+        this.callbacks.onToggleCatalog();
+        return;
+      case 'KeyM':
+        this.callbacks.onToolMove();
+        return;
+      case 'KeyX':
+      case 'Delete':
+        this.callbacks.onToolRemove();
+        return;
       case 'Backquote':
-        this.onToggleDebug();
+        this.callbacks.onToggleDebug();
         return;
       default:
         this.keys.add(e.code);

@@ -32,11 +32,11 @@ export interface TweenOptions {
   /** Seconds. */
   duration: number;
   /** Seconds before starting. */
-  delay?: number;
-  ease?: Ease;
+  delay?: number | undefined;
+  ease?: Ease | undefined;
   /** Receives eased t in [0,1]. Drive any target — three.js props, DOM styles, audio params. */
   onUpdate: (t: number) => void;
-  onComplete?: () => void;
+  onComplete?: (() => void) | undefined;
 }
 
 export interface TweenHandle {

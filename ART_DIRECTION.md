@@ -43,8 +43,10 @@ Style rules for using them:
 | Cloud sea / clouds | `#FFFFFF` → shadow `#D9E8F5` | never grey |
 | Sunlight | `#FFF3D6` @ ~3.2 intensity | warm but not orange |
 | Ambient/sky fill | `#BFDFFF` (hemi sky) / `#8C7A6B` (ground bounce) | keeps shadows lively blue-warm |
-| Grass top | `#7ECC5B` base, `#95D96E` highlight | reads "lush lawn" |
-| Island skirt rock | `#8A7B6E` → deeper `#6B5D52` at tip | warm stone, roots + hanging vines accents `#5FA352` |
+| Grass top | `#7FD63F` base, `#99E558` highlight (jitter checker) | vivid, happy lawn *(saturation confirmed by user review 2026-07-11)* |
+| Grass lip side | `#67C433` | the overhanging fringe band |
+| Base: sand band | `#E3BD85` | light, warm |
+| Base: rock band | `#C06F45` → `#8E5132` toward the bottom | saturated terracotta |
 | Water (later) | `#5FC9E8`, foam `#EAFBFF` | flat with sparkle |
 | UI cream | `#FFF6E8` | panels |
 | UI ink | `#4A3F5E` | text — soft plum, never black |
@@ -83,7 +85,7 @@ The island never floats in a void:
 - **Drifting clouds:** 8–14 low-poly puffball clusters (merged icosphere blobs, flat white, slight vertical bob) drifting on two depth layers — some *below* the island (crucial altitude cue), an occasional one above casting a soft moving shadow patch (fake: a blurred dark decal, not a shadowcaster).
 - **Distant islets:** 3–5 tiny non-interactive rock islets with a single tree, parallax-orbiting far away — the world feels bigger than your island.
 - **Birds** (v0.4+): tiny 2-triangle flappers in occasional V-formations. **Falling leaves / pollen motes** drift over lush areas; **fireflies** at night; **snow motes** on Snowcap chunks.
-- **The skirt:** each chunk auto-generates a rocky underside (cliff pieces from the nature packs, mirrored & tapered, with roots/vines) so the island bottom is *beautiful* — players WILL orbit low to look. The skirt is part of the brand silhouette.
+- **The base slab** *(user-approved direction, 2026-07-11 — supersedes the earlier "crag skirt" idea)*: the island underside is a chunky layered slab — overhanging grass lip → light sand band → tall saturated terracotta rock band tapering to a rounded bottom — with an organically wobbling silhouette (procedural, from the traced block outline, deterministic as chunks are added). Reads like a slice of cake you could pick up; players WILL orbit low to look. The slab is part of the brand silhouette; distant islets reuse it in miniature.
 
 ## 6. Scale, Composition & Grid Readability
 
