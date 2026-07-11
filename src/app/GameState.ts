@@ -15,6 +15,7 @@ import { QuestSystem } from '@/sim/QuestSystem';
 import { ExpansionSystem } from '@/sim/ExpansionSystem';
 import { SecretSystem } from '@/sim/SecretSystem';
 import { IslanderSystem } from '@/sim/IslanderSystem';
+import { PalSystem } from '@/sim/PalSystem';
 import { itemDef } from '@/content/catalog';
 import { STARTER_PLACEMENTS } from '@/content/starterIsland';
 
@@ -28,6 +29,7 @@ export class GameState {
   readonly expansion: ExpansionSystem;
   readonly secrets: SecretSystem;
   readonly islanders: IslanderSystem;
+  readonly pals: PalSystem;
   readonly isFresh: boolean;
   /** Supplies the item held in Move mode so the snapshot never drops it. */
   private carriedProvider: (() => Placement | null) | null = null;
@@ -41,7 +43,9 @@ export class GameState {
     loadWallet(this.save.player);
     loadPlayer(this.save.player);
 
-    this.island = new IslandModel(this.save.island.chunks.map(({ cx, cz }) => ({ cx, cz })));
+    this.island = new IslandModel(
+      this.save.island.chunks.map(({ cx, cz, theme }) => ({ cx, cz, theme })),
+    );
     const attic: SavePlacement[] = [...this.save.attic];
     for (const p of this.save.island.placements) {
       const def = itemDef(p.def);
@@ -67,14 +71,15 @@ export class GameState {
     this.expansion = new ExpansionSystem(this.island, this.economy, this.save.seed);
     // secrets own the per-chunk discovery roll + dig/chest state (mutates save.secrets)
     this.secrets = new SecretSystem(this.island, this.save.secrets, this.save.seed);
-    // islanders own the roster + wander AI (mutates save.islanders in place)
+    // islanders + pals own their rosters + wander AI (mutate save.islanders in place)
     this.islanders = new IslanderSystem(this.island, this.save.islanders, this.save.seed);
+    this.pals = new PalSystem(this.island, this.save.islanders, this.save.seed);
 
     // a bought chunk is appended to the persisted chunk set (only ExpansionSystem
     // grows the model, so save.chunks and the model stay in lock-step — themes stay
     // 'meadow' in v0.4). Kept out of collect() so existing chunk themes survive.
     bus.on('chunk:unlocked', (e) => {
-      this.save.island.chunks.push({ cx: e.cx, cz: e.cz, theme: 'meadow' });
+      this.save.island.chunks.push({ cx: e.cx, cz: e.cz, theme: e.theme });
     });
 
     // autosave on every mutation (debounced inside the manager)
@@ -91,6 +96,7 @@ export class GameState {
       'secret:progress', // partial dig → persist the click count
       'secret:found', // discovered → persist + reward flows credited
       'npc:arrived', // a neighbour moved in → persist the roster
+      'pal:adopted', // a Pal came to visit → persist the roster
       'settings:changed',
     ] as const) {
       bus.on(ev, () => this.manager.requestSave());
@@ -109,11 +115,13 @@ export class GameState {
     this.expansion.wire();
     this.secrets.wire();
     this.islanders.wire();
+    this.pals.wire();
     this.economy.resolveOffline();
     this.quests.announce();
     this.expansion.announce();
     this.secrets.announce();
     this.islanders.announce();
+    this.pals.announce();
   }
 
   private static makeFreshSave(): Save {

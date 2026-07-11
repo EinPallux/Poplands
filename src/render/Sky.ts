@@ -94,7 +94,7 @@ function makeSunSprite(direction: Vector3): Sprite {
 }
 
 /** Two slowly-scrolling noise planes far below the island = infinite cloud ocean. */
-function makeCloudSea(): { group: Group; update: (dt: number) => void } {
+function makeCloudSea(): { group: Group; update: (dt: number) => void; mats: ShaderMaterial[] } {
   const group = new Group();
   const mats: ShaderMaterial[] = [];
   const layers = [
@@ -181,6 +181,7 @@ function makeCloudSea(): { group: Group; update: (dt: number) => void } {
   const speeds = layers.map((l) => l.speed);
   return {
     group,
+    mats,
     update: (dt) => {
       mats.forEach((m, i) => {
         const u = m.uniforms['uTime'];
@@ -189,6 +190,14 @@ function makeCloudSea(): { group: Group; update: (dt: number) => void } {
     },
   };
 }
+
+// Day base cloud-sea colours (lerped toward night blues by the day-night factor).
+const SEA_CLOUD_DAY = new Color(palette.cloud);
+const SEA_SHADE_DAY = new Color('#c9dcf0');
+const SEA_CREAM_DAY = new Color(palette.skyCream);
+const SEA_CLOUD_NIGHT = new Color('#3b4a78');
+const SEA_SHADE_NIGHT = new Color('#232c52');
+const SEA_CREAM_NIGHT = new Color('#46589a');
 
 /** Low-poly puffball cloud: a handful of merged, squashed spheres, flat white. */
 function makePuffGeometry(rng: () => number) {
@@ -218,17 +227,45 @@ interface Drifter {
 
 export class Sky {
   readonly group = new Group();
-  private readonly cloudSea: { group: Group; update: (dt: number) => void };
+  private readonly cloudSea: { group: Group; update: (dt: number) => void; mats: ShaderMaterial[] };
+  private readonly domeMat: ShaderMaterial;
+  private readonly sunSprite: Sprite;
+  private puffMat: MeshStandardMaterial | null = null;
+  private readonly scratch = new Color();
   private drifters: Drifter[] = [];
   private clouds: Drifter[] = [];
   private time = 0;
   private center = new Vector3(8, 0, 8);
 
   constructor(sunDirection: Vector3) {
-    this.group.add(makeDome());
-    this.group.add(makeSunSprite(sunDirection));
+    const dome = makeDome();
+    this.domeMat = dome.material as ShaderMaterial;
+    this.group.add(dome);
+    this.sunSprite = makeSunSprite(sunDirection);
+    this.group.add(this.sunSprite);
     this.cloudSea = makeCloudSea();
     this.group.add(this.cloudSea.group);
+  }
+
+  /** Re-tint the dome gradient, cloud sea, puff clouds, and sun glow for the time
+   *  of day (S7). Colors are copied into the live uniforms/materials — no per-frame
+   *  allocation. `night` (0 day … 1 night) darkens the cloud sea + clouds so the
+   *  whole frame reads as dusk/night, not just the island. */
+  setSky(top: Color, horizon: Color, cream: Color, sunOpacity: number, night: number): void {
+    (this.domeMat.uniforms['topColor']!.value as Color).copy(top);
+    (this.domeMat.uniforms['horizonColor']!.value as Color).copy(horizon);
+    (this.domeMat.uniforms['creamColor']!.value as Color).copy(cream);
+    this.sunSprite.material.opacity = sunOpacity;
+
+    for (const m of this.cloudSea.mats) {
+      (m.uniforms['uCloud']!.value as Color).copy(SEA_CLOUD_DAY).lerp(SEA_CLOUD_NIGHT, night);
+      (m.uniforms['uShade']!.value as Color).copy(SEA_SHADE_DAY).lerp(SEA_SHADE_NIGHT, night);
+      (m.uniforms['uCream']!.value as Color).copy(SEA_CREAM_DAY).lerp(SEA_CREAM_NIGHT, night);
+    }
+    if (this.puffMat) {
+      this.puffMat.emissiveIntensity = 0.62 * (1 - 0.72 * night);
+      this.puffMat.emissive.copy(this.scratch.setHex(0xffffff)).lerp(SEA_CLOUD_NIGHT, night);
+    }
   }
 
   /** Puffball clouds around the island; count is quality-gated (re-callable). */
@@ -245,6 +282,7 @@ export class Sky {
       roughness: 1,
       metalness: 0,
     });
+    this.puffMat = puffMat; // day-night dims this at dusk
     for (let i = 0; i < count; i++) {
       const mesh = new Mesh(makePuffGeometry(rng), puffMat);
       mesh.castShadow = false;

@@ -10,6 +10,7 @@ import {
   footprintCells,
   worldToChunk,
   type ChunkCoord,
+  type ChunkTheme,
   type Rot,
 } from '@/core/grid';
 import { itemDef, type ItemDef } from '@/content/catalog';
@@ -35,14 +36,30 @@ const cellKey = (wx: number, wz: number): string => `${wx},${wz}`;
 
 export class IslandModel {
   private chunks = new Map<string, ChunkCoord>();
+  private themes = new Map<string, ChunkTheme>();
   private cells = new Map<string, CellOccupancy>();
   private placements = new Map<PlacementId, Placement>();
   /** Cells claimed by landmarks (the old windmill) — blocked but not placements. */
   private blocked = new Set<string>();
   private nextId = 1;
 
-  constructor(initial: ChunkCoord[]) {
-    for (const c of initial) this.chunks.set(chunkKey(c.cx, c.cz), c);
+  constructor(initial: Array<ChunkCoord & { theme?: ChunkTheme }>) {
+    for (const c of initial) {
+      const k = chunkKey(c.cx, c.cz);
+      this.chunks.set(k, { cx: c.cx, cz: c.cz });
+      this.themes.set(k, c.theme ?? 'meadow');
+    }
+  }
+
+  /** A chunk's biome (S7/v0.6), defaulting to meadow. */
+  themeAt(cx: number, cz: number): ChunkTheme {
+    return this.themes.get(chunkKey(cx, cz)) ?? 'meadow';
+  }
+
+  /** The biome of the chunk a world block belongs to. */
+  themeAtBlock(wx: number, wz: number): ChunkTheme {
+    const c = worldToChunk(wx, wz);
+    return this.themeAt(c.cx, c.cz);
   }
 
   // ——— chunks ———
@@ -58,10 +75,11 @@ export class IslandModel {
   /** Add a chunk to the lattice (S7 expansion). Idempotent; returns false if it
    *  already existed. Blocks/bounds/outline all derive from the chunk set, so the
    *  world visuals just rebuild from the new shape. */
-  addChunk(cx: number, cz: number): boolean {
+  addChunk(cx: number, cz: number, theme: ChunkTheme = 'meadow'): boolean {
     const k = chunkKey(cx, cz);
     if (this.chunks.has(k)) return false;
     this.chunks.set(k, { cx, cz });
+    this.themes.set(k, theme);
     return true;
   }
 

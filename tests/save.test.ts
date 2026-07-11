@@ -130,8 +130,9 @@ describe('parseSave', () => {
     // v3: empty secrets slice + the secretsFound counter (SecretSystem seeds on start)
     expect(parsed!.secrets).toEqual([]);
     expect(parsed!.quests.milestones.secretsFound).toBe(0);
-    // v4: empty Islander roster slice (IslanderSystem welcomes residents on start)
+    // v4: empty living-things roster slice (Islanders + Pals arrive on start)
     expect(parsed!.islanders.residents).toEqual([]);
+    expect(parsed!.islanders.pals).toEqual([]);
   });
 
   it('a v4 save missing the islanders slice normalizes to an empty roster', () => {

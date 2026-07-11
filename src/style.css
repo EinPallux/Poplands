@@ -856,6 +856,57 @@ body {
   }
 }
 
+/* Islander speech bubbles (S16) — world-anchored cozy bubble over a tapped
+   neighbour. Positioned inline per frame; the .in class springs it in. */
+.speech-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.speech-bubble {
+  position: absolute;
+  top: 0;
+  left: 0;
+  max-width: 190px;
+  padding: 7px 11px;
+  border-radius: 14px;
+  background: var(--ui-cream);
+  color: var(--ui-ink);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.25;
+  text-align: center;
+  white-space: normal;
+  box-shadow: 0 4px 14px rgba(74, 63, 94, 0.28);
+  opacity: 0;
+  transform-origin: 50% 100%;
+  transition:
+    opacity 0.18s ease,
+    scale 0.24s cubic-bezier(0.34, 1.56, 0.64, 1);
+  scale: 0.6;
+  will-change: transform, scale, opacity;
+}
+
+.speech-bubble.in {
+  opacity: 1;
+  scale: 1;
+}
+
+.speech-bubble::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  width: 12px;
+  height: 12px;
+  background: var(--ui-cream);
+  border-radius: 0 0 3px 0;
+  transform: translateX(-50%) rotate(45deg);
+  box-shadow: 3px 3px 6px rgba(74, 63, 94, 0.14);
+}
+
 /* Chunk-arrival celebration popup (S21) — springs in, wiggles, auto-dismisses.
    Non-modal (pointer-events: none). The card's transform does the spring; the
    emoji child wiggles on its own transform. */
@@ -959,6 +1010,120 @@ body {
   color: var(--accent-gold);
   will-change: transform, opacity;
   filter: drop-shadow(0 1px 2px rgba(120, 90, 0, 0.4));
+}
+
+/* — Island Album (v0.6) — */
+.album-root {
+  position: absolute;
+  top: 60px;
+  right: 12px;
+  pointer-events: auto;
+  z-index: 6;
+}
+.album-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: var(--ui-cream);
+  color: var(--ui-ink);
+  font-size: 20px;
+  cursor: pointer;
+  box-shadow: 0 3px 10px rgba(74, 63, 94, 0.25);
+}
+.album-panel {
+  position: absolute;
+  top: 48px;
+  right: 0;
+  width: 268px;
+  max-height: 70vh;
+  overflow-y: auto;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: var(--ui-cream);
+  color: var(--ui-ink);
+  box-shadow: 0 8px 26px rgba(74, 63, 94, 0.3);
+}
+.album-panel h2 {
+  margin: 0 0 8px;
+  font-size: 17px;
+}
+.album-panel h3 {
+  margin: 12px 0 6px;
+  font-size: 13px;
+  opacity: 0.75;
+}
+.album-ms {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.album-ms li {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  padding: 3px 0;
+}
+.album-ms b {
+  color: var(--accent-gold);
+}
+.album-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.album-chip {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 9px;
+  border-radius: 12px;
+  background: rgba(127, 220, 164, 0.22);
+}
+.album-empty {
+  font-size: 12px;
+  opacity: 0.6;
+}
+
+/* — Photo mode (v0.6) — */
+.photo-mode > *:not(.photo-ui) {
+  display: none !important;
+}
+.photo-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  box-shadow: inset 0 0 220px 60px rgba(30, 26, 44, 0.55);
+}
+.photo-toolbar {
+  position: absolute;
+  bottom: 22px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 14px;
+  background: rgba(30, 26, 44, 0.72);
+  color: #fff;
+  pointer-events: auto;
+}
+.photo-hint {
+  font-size: 12px;
+  opacity: 0.85;
+}
+.photo-toolbar button {
+  border: none;
+  border-radius: 10px;
+  padding: 7px 12px;
+  font-weight: 700;
+  cursor: pointer;
+  background: var(--accent-mint);
+  color: var(--ui-ink);
+}
+.photo-toolbar .photo-exit {
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
 }
 
 /* — debug HUD — */

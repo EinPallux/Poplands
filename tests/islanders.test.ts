@@ -157,6 +157,53 @@ describe('IslanderSystem wander (S16)', () => {
   });
 });
 
+describe('IslanderSystem interactions (S16)', () => {
+  it('tapping an Islander makes them speak + emote and pause to chat', () => {
+    place('home.hut', 8, 8, 'home');
+    sys.announce();
+    const a = sys.agents[0]!;
+    const spoke: Array<{ id: string; textKey: string }> = [];
+    const clips: Array<{ id: string; clip: string }> = [];
+    const o1 = bus.on('npc:spoke', (e) => spoke.push(e));
+    const o2 = bus.on('agent:playClip', (e) => clips.push(e));
+
+    bus.emit('cmd:clickNpc', { id: a.id });
+    expect(spoke).toHaveLength(1);
+    expect(spoke[0]!.id).toBe(a.id);
+    expect(spoke[0]!.textKey).toMatch(/^npc\.say\./);
+    expect(clips).toHaveLength(1);
+    expect(clips[0]!.id).toBe(a.id);
+
+    // paused to chat → stands still for the chat window
+    const from = { x: a.x, z: a.z };
+    for (let i = 0; i < 30; i++) sys.update(1 / 30); // ~1s < 3s chat
+    expect(a.moving).toBe(false);
+    expect(Math.hypot(a.x - from.x, a.z - from.z)).toBe(0);
+
+    // after the chat window they resume wandering
+    for (let i = 0; i < 120; i++) sys.update(1 / 30); // ~4s more
+    let moved = 0;
+    for (let i = 0; i < 300; i++) {
+      sys.update(1 / 30);
+      moved = Math.max(moved, Math.hypot(a.x - from.x, a.z - from.z));
+    }
+    expect(moved).toBeGreaterThan(0.3);
+
+    o1();
+    o2();
+  });
+
+  it('tapping an unknown id is a no-op', () => {
+    place('home.hut', 8, 8, 'home');
+    sys.announce();
+    let spoke = 0;
+    const off = bus.on('npc:spoke', () => spoke++);
+    bus.emit('cmd:clickNpc', { id: 'nobody' });
+    expect(spoke).toBe(0);
+    off();
+  });
+});
+
 describe('roster (S16)', () => {
   it('assigns a real model to every Islander and starts with Mo', () => {
     expect(ISLANDERS.length).toBeGreaterThanOrEqual(MAX_ISLANDERS);

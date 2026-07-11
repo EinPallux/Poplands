@@ -20,6 +20,9 @@ export interface ChunkCoord {
 /** Rotation in 90° steps: 0=0°, 1=90°, 2=180°, 3=270° (counter-clockwise around +Y). */
 export type Rot = 0 | 1 | 2 | 3;
 
+/** A chunk's biome (S7/v0.6): drives ground/lip colours and (later) theme secrets. */
+export type ChunkTheme = 'meadow' | 'sandbar' | 'spooky' | 'snowcap';
+
 export interface Footprint {
   w: number; // blocks along +X at rot 0
   d: number; // blocks along +Z at rot 0

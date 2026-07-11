@@ -37,6 +37,7 @@ const DUST = new Color('#efe3c4');
 const POOF = new Color('#ffffff');
 const GOLD = new Color('#ffc94b');
 const STAR = new Color('#fff3c4');
+const HEART = new Color('#ff8fb1');
 
 export class Particles {
   readonly mesh: InstancedMesh;
@@ -138,6 +139,27 @@ export class Particles {
           size: 0.1 + Math.random() * 0.06,
         },
         STAR,
+      );
+    }
+  }
+
+  /** Little pink puffs floating up when a Pal is petted (S18). */
+  hearts(x: number, y: number, z: number): void {
+    if (isReducedMotion()) return;
+    for (let i = 0; i < 5; i++) {
+      this.spawn(
+        {
+          x: x + (Math.random() - 0.5) * 0.4,
+          y: y + Math.random() * 0.2,
+          z: z + (Math.random() - 0.5) * 0.4,
+          vx: (Math.random() - 0.5) * 0.5,
+          vy: 1.1 + Math.random() * 0.6,
+          vz: (Math.random() - 0.5) * 0.5,
+          life: 0,
+          maxLife: 0.6 + Math.random() * 0.25,
+          size: 0.12 + Math.random() * 0.07,
+        },
+        HEART,
       );
     }
   }

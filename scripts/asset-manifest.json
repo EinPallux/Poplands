@@ -82,6 +82,13 @@
     "npc.i": "assets/NPCS/Cube NPC Models 2/GLB format/character-male-c.glb",
     "npc.j": "assets/NPCS/Cube NPC Models 2/GLB format/character-male-d.glb",
     "npc.k": "assets/NPCS/Cube NPC Models 2/GLB format/character-male-e.glb",
-    "npc.l": "assets/NPCS/Cube NPC Models 2/GLB format/character-male-f.glb"
+    "npc.l": "assets/NPCS/Cube NPC Models 2/GLB format/character-male-f.glb",
+
+    "pal.cat": "assets/Cube Pets/Models/GLB format/animal-cat.glb",
+    "pal.dog": "assets/Cube Pets/Models/GLB format/animal-dog.glb",
+    "pal.bunny": "assets/Cube Pets/Models/GLB format/animal-bunny.glb",
+    "pal.chick": "assets/Cube Pets/Models/GLB format/animal-chick.glb",
+    "pal.pig": "assets/Cube Pets/Models/GLB format/animal-pig.glb",
+    "pal.cow": "assets/Cube Pets/Models/GLB format/animal-cow.glb"
   }
 }

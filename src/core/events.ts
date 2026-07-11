@@ -4,6 +4,7 @@
  */
 
 import type { StringKey } from './strings';
+import type { ChunkTheme } from './grid';
 
 export type Handler<P> = (payload: P) => void;
 
@@ -137,8 +138,8 @@ export interface AppEvents extends Record<string, unknown> {
   'quest:dismissed': { id: string }; // a postcard was skipped — HUD removes its card
 
   // expansion (S7/S8, v0.4): the F2 flow — survey → buy → land rises → new surveys
-  'chunk:offered': { slots: Array<{ cx: number; cz: number; pops: number; stardust: number }> };
-  'chunk:unlocked': { cx: number; cz: number; index: number }; // index = chunk count AFTER add
+  'chunk:offered': { slots: Array<{ cx: number; cz: number; pops: number; stardust: number; theme: ChunkTheme }> };
+  'chunk:unlocked': { cx: number; cz: number; index: number; theme: ChunkTheme }; // index = chunk count AFTER add
   'island:grew': void; // world visuals must rebuild for the new chunk shape (base/ground/outline)
 
   // secrets & discoveries (S19, v0.4): seeded per-chunk hidden things
@@ -154,7 +155,18 @@ export interface AppEvents extends Record<string, unknown> {
   };
 
   // islanders (S16, v0.5): little neighbours who move in as the island gains homes
-  'npc:arrived': { id: string }; // a resident moved in (roster id) — juice + persist
+  'npc:arrived': { id: string; nameKey: StringKey }; // a resident moved in — juice + persist
+  'cmd:clickNpc': { id: string }; // player tapped an Islander → greet
+  'npc:spoke': { id: string; textKey: StringKey }; // show a speech bubble + chatter blip
+  'agent:playClip': { id: string; clip: string }; // one-shot emote over the idle/walk blend
+
+  // pals (S18, v0.5): animals that scamper in as the island gets lively
+  'pal:adopted': { id: string; nameKey: StringKey }; // a Pal came to visit — juice + persist
+  'cmd:clickPal': { id: string }; // player tapped a Pal → pet it
+  'pal:petted': { id: string }; // a Pal was petted → hearts + happy sound
+
+  // ambient events (S19, v0.5): night sky life
+  'event:shootingStar': void; // a star streaks by — make a wish ✨
 
   // juice set-piece framing (S11): the chunk-arrival soft input-lock window
   'juice:setPieceStarted': { kind: 'chunk-arrival' };

@@ -17,6 +17,7 @@
 import { bus } from '@/core/events';
 import { mulberry32 } from '@/core/math';
 import { itemDef } from '@/content/catalog';
+import { CHATTER_LINES, CHATTER_EMOTES } from '@/content/chatter';
 import { ISLANDERS, MAX_ISLANDERS, islanderDef, type IslanderDef } from '@/content/roster';
 import type { SaveIslanders } from '@/core/save';
 import type { IslandModel } from '@/world/IslandModel';
@@ -42,6 +43,7 @@ interface Agent extends AgentView {
   tx: number; // current wander target
   tz: number;
   timer: number; // seconds until the next decision (idle dwell / walk safety cap)
+  chat: number; // >0 while paused to greet the player (seconds remaining)
 }
 
 const SPEED = 1.5; // blocks/second — an unhurried stroll
@@ -74,6 +76,7 @@ export class IslanderSystem {
     this.unsubs.push(
       bus.on('item:placed', () => this.reconcile()),
       bus.on('item:removed', () => this.reconcile()),
+      bus.on('cmd:clickNpc', (e) => this.onClick(e.id)),
     );
   }
 
@@ -92,6 +95,12 @@ export class IslanderSystem {
     this.reconcile();
   }
 
+  /** A live agent's world position (for the arrival popup anchor). */
+  positionOf(id: string): { x: number; z: number } | null {
+    const a = this.list.find((x) => x.id === id);
+    return a ? { x: a.x, z: a.z } : null;
+  }
+
   /** The renderer reads this each frame (stable array, mutated in place — no alloc). */
   get agents(): readonly AgentView[] {
     return this.list;
@@ -104,6 +113,11 @@ export class IslanderSystem {
   /** Per-frame kinematics + timer-gated decisions. */
   update(dt: number): void {
     for (const a of this.list) {
+      if (a.chat > 0) {
+        a.chat -= dt; // paused mid-island to greet the player — stand and chat
+        a.moving = false;
+        continue;
+      }
       a.timer -= dt;
       if (a.moving) this.stepWalk(a, dt);
       else if (a.timer <= 0) this.pickTarget(a);
@@ -112,19 +126,31 @@ export class IslanderSystem {
 
   // ——— internals ———
 
+  /** Tap-to-greet: pause, say a cute line, play a matching emote (S16 interactions). */
+  private onClick(id: string): void {
+    const a = this.list.find((x) => x.id === id);
+    if (!a) return;
+    a.chat = 3;
+    a.moving = false;
+    const line = CHATTER_LINES[Math.floor(this.rng() * CHATTER_LINES.length)]!;
+    const emote = CHATTER_EMOTES[Math.floor(this.rng() * CHATTER_EMOTES.length)]!;
+    bus.emit('npc:spoke', { id, textKey: line });
+    bus.emit('agent:playClip', { id, clip: emote });
+  }
+
   private reconcile(): void {
     const target = Math.min(houseCapacity(this.island), MAX_ISLANDERS, ISLANDERS.length);
     while (this.state.residents.length < target) {
       const def = ISLANDERS[this.state.residents.length]!;
       this.state.residents.push(def.id);
-      this.spawn(def);
-      bus.emit('npc:arrived', { id: def.id });
+      this.spawn(def, true); // a genuine move-in: walk in from the cloud edge
+      bus.emit('npc:arrived', { id: def.id, nameKey: def.nameKey });
     }
   }
 
-  private spawn(def: IslanderDef): void {
-    const cell = this.randomWalkableCell();
-    this.list.push({
+  private spawn(def: IslanderDef, arrival = false): void {
+    const cell = arrival ? this.randomWalkableEdge() : this.randomWalkableCell();
+    const agent: Agent = {
       id: def.id,
       model: def.model,
       x: cell.x,
@@ -134,7 +160,27 @@ export class IslanderSystem {
       tx: cell.x,
       tz: cell.z,
       timer: this.rng() * DWELL_SPAN, // stagger first steps so nobody marches in sync
-    });
+      chat: 0,
+    };
+    if (arrival) {
+      // enter from the edge and stroll toward the island's heart (the move-in beat)
+      const c = this.island.center();
+      agent.tx = c.x;
+      agent.tz = c.z;
+      agent.moving = true;
+      agent.timer = WALK_TIMEOUT;
+      agent.yaw = Math.atan2(c.x - cell.x, c.z - cell.z);
+    }
+    this.list.push(agent);
+  }
+
+  private randomWalkableEdge(): { x: number; z: number } {
+    const edges = this.island.edgeCells().filter((e) => this.island.walkable(e.wx, e.wz));
+    if (edges.length) {
+      const e = edges[Math.floor(this.rng() * edges.length)]!;
+      return { x: e.wx + 0.5, z: e.wz + 0.5 };
+    }
+    return this.randomWalkableCell();
   }
 
   private stepWalk(a: Agent, dt: number): void {

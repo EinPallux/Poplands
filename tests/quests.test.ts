@@ -99,7 +99,7 @@ describe('QuestSystem tutorial chain', () => {
     qs.announce();
     // buying a chunk grows the lattice to 5; chunk:unlocked re-evals the `chunks` predicate
     island.addChunk(2, 0);
-    bus.emit('chunk:unlocked', { cx: 2, cz: 0, index: 5 });
+    bus.emit('chunk:unlocked', { cx: 2, cz: 0, index: 5, theme: 'meadow' });
     expect(completed).toContain('tut.callchunk');
     expect(state.tutorial.activeId).toBe('tut.secret');
     expect(state.freePlayUnlocked).toBe(false);

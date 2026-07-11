@@ -8,6 +8,8 @@ import {
   volumeSignal,
   qualitySignal,
   reducedMotionSignal,
+  timeOfDaySignal,
+  fpsCapSignal,
 } from '@/core/settingsStore';
 import { bus } from '@/core/events';
 import type { SaveSettings } from '@/core/save';
@@ -51,8 +53,25 @@ export class SettingsPanel {
         </select>
       </label>
       <label class="settings-row">
+        <span>${t('settings.time')}</span>
+        <select class="s-time">
+          <option value="auto">${t('settings.time.auto')}</option>
+          <option value="day">${t('settings.time.day')}</option>
+          <option value="dusk">${t('settings.time.dusk')}</option>
+          <option value="night">${t('settings.time.night')}</option>
+        </select>
+      </label>
+      <label class="settings-row">
         <span>${t('settings.volume')}</span>
         <input class="s-volume" type="range" min="0" max="1" step="0.05">
+      </label>
+      <label class="settings-row">
+        <span>${t('settings.fps')}</span>
+        <select class="s-fps">
+          <option value="off">${t('settings.fps.off')}</option>
+          <option value="30">${t('settings.fps.30')}</option>
+          <option value="60">${t('settings.fps.60')}</option>
+        </select>
       </label>
       <label class="settings-row settings-check">
         <input class="s-motion" type="checkbox">
@@ -67,16 +86,29 @@ export class SettingsPanel {
     this.root.appendChild(this.panel);
 
     const quality = this.panel.querySelector('.s-quality') as HTMLSelectElement;
+    const time = this.panel.querySelector('.s-time') as HTMLSelectElement;
+    const fps = this.panel.querySelector('.s-fps') as HTMLSelectElement;
     const volume = this.panel.querySelector('.s-volume') as HTMLInputElement;
     const motion = this.panel.querySelector('.s-motion') as HTMLInputElement;
     const file = this.panel.querySelector('.s-file') as HTMLInputElement;
 
     effect(() => (quality.value = qualitySignal.get()));
+    effect(() => (time.value = timeOfDaySignal.get()));
+    effect(() => (fps.value = fpsCapSignal.get()));
     effect(() => (volume.value = String(volumeSignal.get())));
     effect(() => (motion.checked = reducedMotionSignal.get()));
 
+    fps.addEventListener('change', () => {
+      fpsCapSignal.set(fps.value as SaveSettings['fpsCap']);
+      bus.emit('settings:changed', undefined);
+    });
+
     quality.addEventListener('change', () => {
       qualitySignal.set(quality.value as SaveSettings['quality']);
+      bus.emit('settings:changed', undefined);
+    });
+    time.addEventListener('change', () => {
+      timeOfDaySignal.set(time.value as SaveSettings['timeOfDay']);
       bus.emit('settings:changed', undefined);
     });
     volume.addEventListener('input', () => {

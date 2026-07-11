@@ -114,7 +114,7 @@ describe('SecretSystem (S19 runtime)', () => {
   it('the first bought chunk (index 5) always spawns a dig', () => {
     sys.announce();
     island.addChunk(2, 0);
-    bus.emit('chunk:unlocked', { cx: 2, cz: 0, index: 5 });
+    bus.emit('chunk:unlocked', { cx: 2, cz: 0, index: 5, theme: 'meadow' });
     const s = secrets.find((x) => x.cx === 2 && x.cz === 0);
     expect(s).toBeDefined();
     expect(s!.kind).toBe('dig');

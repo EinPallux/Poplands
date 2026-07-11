@@ -33,11 +33,37 @@ const en = {
   'toast.levelUp': 'Level {level}! ✨ New things to build',
   'toast.questDone': 'Postcard complete! 💌',
   'toast.secretFound': 'A discovery! ✨',
+  'toast.npcArrived': '{name} moved in! 🏡',
+  'toast.palAdopted': 'A {pal} came to visit! 🐾',
 
   // expansion (S8) — survey markers on the island's free edges
   'survey.call': 'Call this chunk',
   'chunk.popup.title': 'New chunk!',
   'chunk.popup.sub': 'Chunk {n} floated up to join your island 🌱',
+
+  // islander chatter (S16) — cute one-liners shown in a speech bubble on tap
+  'npc.say.1': 'Best little island in the sky!',
+  'npc.say.2': 'Is that cloud shaped like a bun? 🥐',
+  'npc.say.3': 'I could nap here forever…',
+  'npc.say.4': 'Ooh, what are you building next?',
+  'npc.say.5': 'The flowers smell amazing today.',
+  'npc.say.6': 'Morning stroll = the best stroll.',
+  'npc.say.7': 'Did you hear? A new chunk floated up!',
+  'npc.say.8': 'I found a shiny pebble. It’s my favorite now.',
+  'npc.say.9': 'Wave hello to the Pals for me! 🐾',
+  'npc.say.10': 'So cozy up here. Thank you.',
+  'npc.say.11': 'Wanna watch the stars later?',
+  'npc.say.12': 'I’m just vibing, honestly.',
+  'npc.say.13': 'You’re doing a wonderful job. ✨',
+  'npc.say.14': 'Careful near the edge — big drop! 😅',
+
+  // pals (S18) — species names, lower-case for "A {pal} came to visit!"
+  'pal.cat.name': 'cat',
+  'pal.dog.name': 'dog',
+  'pal.bunny.name': 'bunny',
+  'pal.chick.name': 'chick',
+  'pal.pig.name': 'pig',
+  'pal.cow.name': 'cow',
 
   // islanders (S16) — proper names; localized tables may transliterate
   'npc.mo.name': 'Mo',
@@ -123,6 +149,21 @@ const en = {
   'quest.ms.pops': 'Pops collected',
   'quest.ms.quests': 'Postcards completed',
 
+  // island album (S21, v0.6)
+  'album.title': 'Island Album',
+  'album.milestones': 'Milestones',
+  'album.neighbours': 'Neighbours',
+  'album.pals': 'Pals',
+  'album.biomes': 'Biomes',
+  'album.empty': 'Nobody yet — build a home!',
+
+  // photo mode (S23, v0.6)
+  'photo.hint': 'Photo Mode — drag to frame your island',
+  'photo.save': 'Save PNG',
+  'photo.exit': 'Exit',
+  'photo.saved': 'Saved a snapshot! 📸',
+  'photo.failed': 'Couldn’t save the photo.',
+
   // settings
   'settings.title': 'Settings',
   'settings.quality': 'Quality',
@@ -131,7 +172,16 @@ const en = {
   'settings.quality.medium': 'Medium',
   'settings.quality.low': 'Low',
   'settings.volume': 'Sound',
+  'settings.time': 'Time of day',
+  'settings.time.auto': 'Cycle',
+  'settings.time.day': 'Day',
+  'settings.time.dusk': 'Dusk',
+  'settings.time.night': 'Night',
   'settings.reducedMotion': 'Reduce motion',
+  'settings.fps': 'Frame cap',
+  'settings.fps.off': 'Off',
+  'settings.fps.30': '30 fps',
+  'settings.fps.60': '60 fps',
   'settings.export': 'Export save',
   'settings.import': 'Import save',
   'settings.exported': 'Save copied — keep it somewhere cozy.',

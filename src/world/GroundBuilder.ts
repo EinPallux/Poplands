@@ -14,30 +14,32 @@ import {
 } from 'three';
 import { CHUNK_SIZE } from '@/core/grid';
 import { hash2 } from '@/core/math';
-import { slabColors } from '@/render/palette';
+import { THEMES } from '@/content/themes';
 import type { IslandModel } from './IslandModel';
-
-const GRASS_TOP = new Color(slabColors.grassTop);
-const GRASS_LIGHT = new Color(slabColors.grassLight);
 
 export function buildGround(island: IslandModel): Group {
   const group = new Group();
   group.name = 'ground';
   const material = new MeshStandardMaterial({ vertexColors: true, roughness: 0.95, metalness: 0 });
   const c = new Color();
+  const top = new Color();
+  const light = new Color();
 
   for (const chunk of island.allChunks()) {
     const positions: number[] = [];
     const normals: number[] = [];
     const colors: number[] = [];
     const indices: number[] = [];
+    const palette = THEMES[island.themeAt(chunk.cx, chunk.cz)]; // biome tint (S7/v0.6)
+    top.setHex(palette.grassTop);
+    light.setHex(palette.grassLight);
 
     for (let bx = 0; bx < CHUNK_SIZE; bx++) {
       for (let bz = 0; bz < CHUNK_SIZE; bz++) {
         const wx = chunk.cx * CHUNK_SIZE + bx;
         const wz = chunk.cz * CHUNK_SIZE + bz;
         const jitter = ((hash2(wx, wz) % 1000) / 1000) * 0.5;
-        c.copy(GRASS_TOP).lerp(GRASS_LIGHT, jitter);
+        c.copy(top).lerp(light, jitter);
         const base = positions.length / 3;
         positions.push(wx, 0, wz, wx, 0, wz + 1, wx + 1, 0, wz + 1, wx + 1, 0, wz);
         for (let i = 0; i < 4; i++) {

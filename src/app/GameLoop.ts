@@ -14,6 +14,7 @@ export class GameLoop {
   private lastTime = 0;
   private hiddenAt = 0;
   private fpsEma = 60;
+  private minFrameMs = 0; // 0 = uncapped; else the frame-cap interval (S23)
 
   constructor() {
     document.addEventListener('visibilitychange', () => {
@@ -42,6 +43,11 @@ export class GameLoop {
     return this.fpsEma;
   }
 
+  /** Cap the frame rate (S23 accessibility/perf). 0 = uncapped. */
+  setFpsCap(fps: number): void {
+    this.minFrameMs = fps > 0 ? (1000 / fps) * 0.9 : 0;
+  }
+
   private pause(): void {
     this.running = false;
     cancelAnimationFrame(this.rafId);
@@ -54,11 +60,13 @@ export class GameLoop {
 
   private tick = (now: number): void => {
     if (!this.running) return;
-    const rawDt = (now - this.lastTime) / 1000;
+    this.rafId = requestAnimationFrame(this.tick); // keep the loop alive even if we skip
+    const elapsed = now - this.lastTime;
+    if (this.minFrameMs > 0 && elapsed < this.minFrameMs) return; // frame-cap: drop this frame
     this.lastTime = now;
+    const rawDt = elapsed / 1000;
     const dt = Math.min(rawDt, MAX_DT);
     if (rawDt > 0) this.fpsEma += (1 / Math.max(rawDt, 1e-4) - this.fpsEma) * 0.05;
     for (const update of this.updates) update(dt);
-    this.rafId = requestAnimationFrame(this.tick);
   };
 }

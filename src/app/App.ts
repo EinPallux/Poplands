@@ -8,6 +8,7 @@ import { RendererManager } from '@/render/RendererManager';
 import { CameraRig } from '@/render/CameraRig';
 import { Lights } from '@/render/Lights';
 import { Sky } from '@/render/Sky';
+import { TimeOfDay } from '@/render/TimeOfDay';
 import { QualityProbe, QUALITY_PRESETS, type QualityConfig } from '@/render/Quality';
 import { AssetRegistry } from '@/assets/AssetRegistry';
 import { buildGround } from '@/world/GroundBuilder';
@@ -17,7 +18,10 @@ import { buildIslet } from '@/world/IsletBuilder';
 import { HoverHighlight } from '@/world/HoverHighlight';
 import { PropRenderer } from '@/world/PropRenderer';
 import { AgentRenderer } from '@/world/AgentRenderer';
+import { GlowLayer } from '@/world/GlowLayer';
+import { AmbientLife } from '@/world/AmbientLife';
 import { ChunkArrival } from '@/world/ChunkArrival';
+import { LivelinessSystem } from '@/sim/LivelinessSystem';
 import { disposeObject } from '@/world/dispose';
 import { BuildSession } from '@/build/BuildSession';
 import { GameState } from '@/app/GameState';
@@ -28,9 +32,12 @@ import { BuildBar } from '@/ui/BuildBar';
 import { SettingsPanel } from '@/ui/SettingsPanel';
 import { Hud } from '@/ui/Hud';
 import { Mailbox } from '@/ui/Mailbox';
+import { Album } from '@/ui/Album';
+import { PhotoMode } from '@/ui/PhotoMode';
 import { WorldFx } from '@/ui/WorldFx';
 import { SurveyLayer } from '@/ui/SurveyLayer';
 import { SecretLayer } from '@/ui/SecretLayer';
+import { SpeechLayer } from '@/ui/SpeechLayer';
 import { ChunkPopup } from '@/ui/ChunkPopup';
 import '@/ui/questState'; // side-effect: registers quest signal subscriptions
 import { initToasts, showToast } from '@/ui/Toasts';
@@ -44,11 +51,12 @@ import { palette } from '@/render/palette';
 import { tweens } from '@/core/tween';
 import { t } from '@/core/strings';
 import { bus } from '@/core/events';
-import { qualitySignal } from '@/core/settingsStore';
+import { qualitySignal, timeOfDaySignal, fpsCapSignal } from '@/core/settingsStore';
 import { popsSignal, stardustSignal, levelSignal, xpSignal } from '@/core/playerStore';
 import { effect } from '@/core/signals';
 import { footprintCenter } from '@/core/grid';
 import { itemDef } from '@/content/catalog';
+import { themeFor } from '@/content/themes';
 
 const VERSION = '0.2.0';
 
@@ -76,12 +84,14 @@ export class App {
     loading: LoadingScreen,
   ): Promise<void> {
     const scene = new Scene();
-    scene.fog = new Fog(palette.fog, 150, 420);
+    const fog = new Fog(palette.fog, 150, 420);
+    scene.fog = fog;
 
     const lights = new Lights();
     scene.add(lights.group);
     const sky = new Sky(lights.sunDirection);
     scene.add(sky.group);
+    const timeOfDay = new TimeOfDay(lights, sky, fog); // day-night cycle (S7)
     const rig = new CameraRig(rm.aspect);
 
     // — assets, then state
@@ -116,6 +126,21 @@ export class App {
 
     const agents = new AgentRenderer(assets); // Tier C: animated Islanders (S16)
     scene.add(agents.group);
+    const palAgents = new AgentRenderer(assets, { targetHeight: 0.7 }); // Pals (S18) — smaller
+    scene.add(palAgents.group);
+    const glow = new GlowLayer(island); // lantern/lamp halos at night (S7/S20)
+    scene.add(glow.group);
+    const ambient = new AmbientLife(); // fireflies, shooting stars, balloons (S19)
+    scene.add(ambient.group);
+    // a lively island quietly pays a little extra (S13 liveliness dividend)
+    const liveliness = new LivelinessSystem(
+      state.economy,
+      () => state.islanders.snapshot().residents.length + state.pals.snapshot().pals.length,
+    );
+    {
+      const c = island.center();
+      ambient.setCenter(c.x, c.z);
+    }
 
     const hover = new HoverHighlight();
     scene.add(hover.mesh);
@@ -236,6 +261,14 @@ export class App {
       rig.frameIsland(b);
       const c = island.center();
       sky.setCenter(c.x, c.z);
+      ambient.setCenter(c.x, c.z);
+    });
+
+    // — a shooting star: a soft wish chime + a sparkle high in the sky
+    bus.on('event:shootingStar', () => {
+      audio.chime();
+      const c = island.center();
+      particles.sparkle(c.x, 6, c.z);
     });
 
     // — secrets (S19): escalating dig poofs, then the discovery payoff
@@ -254,8 +287,30 @@ export class App {
     // full walk-in-from-the-edge move-in moment lands in a later v0.5 slice).
     bus.on('npc:arrived', (e) => {
       const a = state.islanders.agents.find((ag) => ag.id === e.id);
-      if (a) particles.sparkle(a.x, 0.9, a.z);
+      if (a) {
+        particles.sparkle(a.x, 0.9, a.z);
+        particles.coinBurst(a.x, 1.2, a.z);
+      }
       audio.chime();
+      showToast(t('toast.npcArrived').replace('{name}', t(e.nameKey)));
+    });
+    // tap-to-greet: a cute babble when an Islander speaks (bubble handled by SpeechLayer)
+    bus.on('npc:spoke', () => audio.chatter());
+
+    // — pals (S18): adoption welcome + petting hearts
+    bus.on('pal:adopted', (e) => {
+      const p = state.pals.positionOf(e.id);
+      if (p) {
+        particles.sparkle(p.x, 0.5, p.z);
+        particles.hearts(p.x, 0.7, p.z);
+      }
+      audio.chime();
+      showToast(t('toast.palAdopted').replace('{pal}', t(e.nameKey)));
+    });
+    bus.on('pal:petted', (e) => {
+      const p = state.pals.positionOf(e.id);
+      if (p) particles.hearts(p.x, 0.8, p.z);
+      audio.pet();
     });
 
     // — UI (thumbnails render post-boot; they'd otherwise delay first frame)
@@ -271,7 +326,18 @@ export class App {
     );
     const surveyLayer = new SurveyLayer(uiRoot, (x, y, z) => rig.projectToScreen(x, y, z));
     const secretLayer = new SecretLayer(uiRoot, (x, y, z) => rig.projectToScreen(x, y, z));
+    const speechLayer = new SpeechLayer(uiRoot, (x, y, z) => rig.projectToScreen(x, y, z));
     new ChunkPopup(uiRoot); // self-wires to chunk:unlocked
+    const album = new Album(uiRoot, () => ({
+      milestones: state.save.quests.milestones,
+      residents: state.islanders.snapshot().residents,
+      pals: state.pals.snapshot().pals,
+      themes: island.allChunks().map((c) => island.themeAt(c.cx, c.cz)),
+    }));
+    const photo = new PhotoMode(uiRoot, () => {
+      rm.render(scene, rig.camera); // one fresh frame, then read it back
+      return rm.renderer.domElement.toDataURL('image/png');
+    });
     const buildBar = new BuildBar(uiRoot);
     setTimeout(() => buildBar.setThumbnails(renderThumbnails(assets)), 80);
     const settings = new SettingsPanel(
@@ -305,6 +371,10 @@ export class App {
 
     // — loop
     const loop = new GameLoop();
+    effect(() => {
+      const cap = fpsCapSignal.get();
+      loop.setFpsCap(cap === 'off' ? 0 : Number(cap)); // S23 frame cap
+    });
     const debugHud = new DebugHud(uiRoot, rm.renderer, loop, rig, props);
     const input = new InputController(rm.canvas, rig, island, {
       onRotate: () => {
@@ -312,13 +382,32 @@ export class App {
         else rig.reset();
       },
       onEscape: () => {
-        if (settings.open) settings.toggle(false);
+        if (photo.active) photo.toggle(false);
+        else if (album.open) album.toggle(false);
+        else if (settings.open) settings.toggle(false);
         else if (session.isActive) session.cancel();
       },
       onToggleCatalog: () => catalogOpenSignal.update((v) => !v),
       onToolMove: () => bus.emit('cmd:setTool', { tool: 'move' }),
       onToolRemove: () => bus.emit('cmd:setTool', { tool: 'remove' }),
       onToggleDebug: () => debugHud.toggle(),
+      onToggleAlbum: () => album.toggle(),
+      onTogglePhoto: () => photo.toggle(),
+      // tap an Islander to greet / a Pal to pet (when not mid-build) — consumes the click
+      onPrimaryClick: (x, y) => {
+        if (session.isActive) return false;
+        const npc = agents.pickAt(x, y, rig.camera);
+        if (npc) {
+          bus.emit('cmd:clickNpc', { id: npc });
+          return true;
+        }
+        const pal = palAgents.pickAt(x, y, rig.camera);
+        if (pal) {
+          bus.emit('cmd:clickPal', { id: pal });
+          return true;
+        }
+        return false;
+      },
     });
 
     // soft input-lock during the chunk-arrival set piece (first 0.8 s): the camera
@@ -336,9 +425,27 @@ export class App {
     loop.add((dt) => {
       state.islanders.update(dt); // sim integrates kinematics (three.js-free)…
       agents.sync(state.islanders.agents, dt); // …then Tier C projects + animates
+      speechLayer.update(state.islanders.agents, dt); // bubbles track their speaker
+      state.pals.update(dt);
+      palAgents.sync(state.pals.agents, dt);
     });
     loop.add((dt) => rig.update(dt));
     loop.add((dt) => tweens.update(dt));
+    loop.add((dt) => {
+      timeOfDay.update(dt); // advance dawn→day→dusk→night, tint lights/sky/fog
+      glow.update(timeOfDay.nightFactor); // lantern halos fade in with the dark
+      ambient.update(dt, timeOfDay.nightFactor); // fireflies, shooting stars, balloons
+      liveliness.update(dt); // periodic Pops dividend from the island's residents
+    });
+    // ambient audio bed (S22): a single spaced chirp/cricket — never a machine-gun
+    let ambientSoundIn = 3 + Math.random() * 4;
+    loop.add((dt) => {
+      ambientSoundIn -= dt;
+      if (ambientSoundIn > 0) return;
+      ambientSoundIn = 4 + Math.random() * 6;
+      if (timeOfDay.nightFactor > 0.5) audio.cricket();
+      else audio.chirp();
+    });
     loop.add((dt) => sky.update(dt));
     loop.add((dt) => landmarks.update(dt));
     loop.add((dt) => particles.update(dt));
@@ -387,9 +494,17 @@ export class App {
         clickSecret: (cx: number, cz: number) => bus.emit('cmd:clickSecret', { cx, cz }),
         milestones: () => state.save.quests.milestones,
         islanders: () =>
-          state.islanders.agents.map((a) => ({ id: a.id, x: a.x, z: a.z, moving: a.moving })),
+          state.islanders.agents.map((a) => ({ id: a.id, x: a.x, z: a.z, yaw: a.yaw, moving: a.moving })),
         residents: () => state.islanders.snapshot().residents.slice(),
         agentMeshes: () => agents.count,
+        clickNpc: (id: string) => bus.emit('cmd:clickNpc', { id }),
+        pals: () => state.pals.agents.map((a) => ({ id: a.id, x: a.x, z: a.z, moving: a.moving })),
+        palRoster: () => state.pals.snapshot().pals.slice(),
+        palMeshes: () => palAgents.count,
+        clickPal: (id: string) => bus.emit('cmd:clickPal', { id }),
+        setTime: (mode: 'auto' | 'day' | 'dusk' | 'night') => timeOfDaySignal.set(mode),
+        nightFactor: () => timeOfDay.nightFactor,
+        glowCount: () => glow.count,
         /** Debug soak (non-persistent): grow the lattice to N chunks + rebuild once,
          *  skipping economy/arrival — for the draw/tri budget measurement only. */
         growTo: (n: number) => {
@@ -417,7 +532,7 @@ export class App {
                 best = s;
               }
             }
-            island.addChunk(best.cx, best.cz);
+            island.addChunk(best.cx, best.cz, themeFor(state.save.seed, best.cx, best.cz));
           }
           rebuildIsland();
           const b = island.bounds();
