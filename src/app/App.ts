@@ -637,6 +637,14 @@ export class App {
           bus.emit('item:placed', { id: p.id, def, wx, wz, rot });
           return true;
         },
+        /** Silent place via the LOAD path (props.show → pooled instantly, no pop-in
+         *  tween or events) — for the perf soak's steady-state draw measurement. */
+        placeSilent: (def: string, wx: number, wz: number, rot: 0 | 1 | 2 | 3 = 0) => {
+          const d = itemDef(def);
+          if (!d || !island.canPlace(d, wx, wz, rot).ok) return false;
+          props.show(island.place(def, wx, wz, rot));
+          return true;
+        },
         /** Screen pixel position of a block center (headless click targeting). */
         projectCell: (wx: number, wz: number) => {
           const v = new Vector3(wx + 0.5, 0, wz + 0.5).project(rig.camera);

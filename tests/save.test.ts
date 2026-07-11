@@ -179,6 +179,46 @@ describe('SaveManager', () => {
     expect(mgr.load()).toBeNull();
   });
 
+  it('keeps the main save when storage is nearly full (sacrifices backups)', () => {
+    // A storage that rejects any write pushing total size over a tight budget —
+    // simulating a near-full localStorage. The main save must survive by dropping
+    // the recovery backups rather than being lost.
+    class QuotaStorage extends MemoryStorage {
+      constructor(private readonly budget: number) {
+        super();
+      }
+      override setItem(k: string, v: string): void {
+        let total = v.length;
+        for (let i = 0; i < this.length; i++) {
+          const key = this.key(i)!;
+          if (key !== k) total += this.getItem(key)!.length;
+        }
+        if (total > this.budget) {
+          const err = new Error('quota'); // Node-safe stand-in for QuotaExceededError
+          err.name = 'QuotaExceededError';
+          throw err;
+        }
+        super.setItem(k, v);
+      }
+    }
+    const save = makeSave();
+    const oneSize = JSON.stringify(save).length;
+    // budget ≈ 2.4 saves: two pre-existing backups fit, but main + both do not, so
+    // the first main write throws and must free the backups and retry.
+    vi.stubGlobal('localStorage', new QuotaStorage(Math.floor(oneSize * 2.4)));
+    localStorage.setItem('poplands.save.bak1', 'x'.repeat(oneSize)); // near-full backups
+    localStorage.setItem('poplands.save.bak2', 'x'.repeat(oneSize));
+
+    const mgr = new SaveManager(() => save);
+    mgr.writeNow(); // main write overflows → drop backups → retry → succeeds
+
+    const loaded = mgr.load();
+    expect(loaded).not.toBeNull();
+    expect(loaded!.player.pops).toBe(275); // the main save survived the squeeze
+    expect(localStorage.getItem('poplands.save.bak1')).toBeNull(); // backups sacrificed
+    expect(localStorage.getItem('poplands.save.bak2')).toBeNull();
+  });
+
   it('import validates before persisting', () => {
     const mgr = new SaveManager(() => makeSave());
     expect(mgr.importString('junk')).toBeNull();
