@@ -51,7 +51,7 @@ import { palette } from '@/render/palette';
 import { tweens } from '@/core/tween';
 import { t } from '@/core/strings';
 import { bus } from '@/core/events';
-import { qualitySignal, timeOfDaySignal } from '@/core/settingsStore';
+import { qualitySignal, timeOfDaySignal, fpsCapSignal } from '@/core/settingsStore';
 import { popsSignal, stardustSignal, levelSignal, xpSignal } from '@/core/playerStore';
 import { effect } from '@/core/signals';
 import { footprintCenter } from '@/core/grid';
@@ -371,6 +371,10 @@ export class App {
 
     // — loop
     const loop = new GameLoop();
+    effect(() => {
+      const cap = fpsCapSignal.get();
+      loop.setFpsCap(cap === 'off' ? 0 : Number(cap)); // S23 frame cap
+    });
     const debugHud = new DebugHud(uiRoot, rm.renderer, loop, rig, props);
     const input = new InputController(rm.canvas, rig, island, {
       onRotate: () => {

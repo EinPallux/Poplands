@@ -13,12 +13,14 @@ export const reducedMotionSignal = signal(
     : DEFAULT_SETTINGS.reducedMotion,
 );
 export const timeOfDaySignal = signal<SaveSettings['timeOfDay']>(DEFAULT_SETTINGS.timeOfDay);
+export const fpsCapSignal = signal<SaveSettings['fpsCap']>(DEFAULT_SETTINGS.fpsCap);
 
 export function loadSettings(s: SaveSettings): void {
   volumeSignal.set(s.volume);
   qualitySignal.set(s.quality);
   reducedMotionSignal.set(s.reducedMotion);
   timeOfDaySignal.set(s.timeOfDay);
+  fpsCapSignal.set(s.fpsCap);
 }
 
 export function snapshotSettings(): SaveSettings {
@@ -27,6 +29,7 @@ export function snapshotSettings(): SaveSettings {
     quality: qualitySignal.get(),
     reducedMotion: reducedMotionSignal.get(),
     timeOfDay: timeOfDaySignal.get(),
+    fpsCap: fpsCapSignal.get(),
   };
 }
 
