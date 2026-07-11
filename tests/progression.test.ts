@@ -1,5 +1,12 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { applyXp, placementXp, levelReward, tierUnlockedAt, itemsUnlockedAt } from '@/sim/progression';
+import {
+  applyXp,
+  placementXp,
+  levelReward,
+  tierUnlockLevel,
+  tierUnlockedAt,
+  itemsUnlockedAt,
+} from '@/sim/progression';
 import { xpToNext, MAX_LEVEL, levelSignal, xpSignal, loadPlayer } from '@/core/playerStore';
 import { ProgressionSystem } from '@/sim/ProgressionSystem';
 import { bus } from '@/core/events';
@@ -56,13 +63,19 @@ describe('rewards & tiers', () => {
     expect(levelReward(6).stardust).toBe(1);
   });
 
-  it('tier N unlocks at level N (2..6)', () => {
+  it('tiers 1-2 are starter (level 1); tier N≥3 unlocks at level N', () => {
+    expect(tierUnlockLevel(1)).toBe(1);
+    expect(tierUnlockLevel(2)).toBe(1); // stall/hut/lantern available during the tutorial
+    expect(tierUnlockLevel(3)).toBe(3);
+    expect(tierUnlockLevel(6)).toBe(6);
+    // reveal fires only for tiers that gate at a level-up (3..6)
     expect(tierUnlockedAt(1)).toBeNull();
+    expect(tierUnlockedAt(2)).toBeNull();
     expect(tierUnlockedAt(3)).toBe(3);
     expect(tierUnlockedAt(6)).toBe(6);
     expect(tierUnlockedAt(7)).toBeNull();
-    expect(itemsUnlockedAt(3).length).toBeGreaterThan(0); // Tier 3 has items
-    expect(itemsUnlockedAt(1)).toEqual([]); // Tier 1 is the default, no unlock event
+    expect(itemsUnlockedAt(3).length).toBeGreaterThan(0);
+    expect(itemsUnlockedAt(1)).toEqual([]);
   });
 });
 
@@ -93,7 +106,7 @@ describe('ProgressionSystem', () => {
     prog.dispose();
   });
 
-  it('emits level:up with rewards + unlocked tier when XP crosses a threshold', () => {
+  it('emits level:up when XP crosses a threshold; L2 is a starter level (no tier reveal)', () => {
     const player = { level: 1, xp: 55, xpGranted: [] as string[] };
     const prog = new ProgressionSystem(player);
     let evt: { level: number; unlockedTier: number | null; newItems: string[] } | null = null;
@@ -103,7 +116,20 @@ describe('ProgressionSystem', () => {
     expect(levelSignal.get()).toBe(2);
     expect(evt).not.toBeNull();
     expect(evt!.level).toBe(2);
-    expect(evt!.unlockedTier).toBe(2);
+    expect(evt!.unlockedTier).toBeNull(); // tiers 1-2 available from the start
+    expect(evt!.newItems).toEqual([]);
+    off();
+  });
+
+  it('reaching level 3 reveals Tier 3 items', () => {
+    const player = { level: 2, xp: 320, xpGranted: [] as string[] };
+    const prog = new ProgressionSystem(player);
+    let evt: { level: number; unlockedTier: number | null; newItems: string[] } | null = null;
+    const off = bus.on('level:up', (e) => (evt = e));
+    prog.grantXp(20, 'quest'); // 320 + 20 = 340 ≥ 330 → L3
+    expect(player.level).toBe(3);
+    expect(evt!.unlockedTier).toBe(3);
+    expect(evt!.newItems.length).toBeGreaterThan(0);
     off();
   });
 

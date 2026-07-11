@@ -39,6 +39,7 @@ import { tweens } from '@/core/tween';
 import { t } from '@/core/strings';
 import { bus } from '@/core/events';
 import { qualitySignal } from '@/core/settingsStore';
+import { popsSignal, stardustSignal, levelSignal, xpSignal } from '@/core/playerStore';
 import { effect } from '@/core/signals';
 import { footprintCenter } from '@/core/grid';
 import { itemDef } from '@/content/catalog';
@@ -294,6 +295,13 @@ export class App {
         props,
         session,
         state,
+        wallet: () => ({
+          pops: popsSignal.get(),
+          stardust: stardustSignal.get(),
+          level: levelSignal.get(),
+          xp: xpSignal.get(),
+        }),
+        quests: () => state.save.quests,
         /** Screen pixel position of a block center (headless click targeting). */
         projectCell: (wx: number, wz: number) => {
           const v = new Vector3(wx + 0.5, 0, wz + 0.5).project(rig.camera);

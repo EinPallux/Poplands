@@ -18,12 +18,16 @@ export function levelReward(level: number): { pops: number; stardust: number } {
   return { pops, stardust };
 }
 
-/** Tier N unlocks at Level N (identity mapping; extends to all catalog tiers). */
-export const tierUnlockLevel = (tier: number): number => tier;
+/**
+ * Tiers 1–2 are the "starter" tiers, both available from Level 1 (the tutorial
+ * teaches the Flower Stall / Cozy Hut / Lantern at L1 — they must not be gated).
+ * Tier N ≥ 3 unlocks at Level N.
+ */
+export const tierUnlockLevel = (tier: number): number => (tier <= 2 ? 1 : tier);
 
-/** The tier a level-up to `level` unlocks, or null if that level gates no tier. */
+/** The tier that REACHING `level` newly unlocks (for the reveal), or null. */
 export function tierUnlockedAt(level: number): number | null {
-  return level >= 2 && level <= MAX_TIER ? level : null;
+  return level >= 3 && level <= MAX_TIER ? level : null;
 }
 
 export interface XpResult {
