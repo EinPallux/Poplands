@@ -225,10 +225,15 @@ export class BuildSession {
     return this.economy.shortWallet(def);
   }
 
-  /** Clicking a ripe income building with no tool active collects its Pops (F1). */
+  /** No-tool click: cast a line at a fishing pond, else collect a ripe income
+   *  building's Pops (F1). The hovered cell IS the picker (TECH §9). */
   private tryCollect(cell: { wx: number; wz: number }): void {
     const occupant = this.island.occupantAt(cell.wx, cell.wz);
     if (!occupant) return;
+    if (itemDef(occupant.def)?.fishing) {
+      bus.emit('cmd:castLine', { placementId: occupant.id }); // FishingSystem casts or reels
+      return;
+    }
     if (this.economy.ripeAmount(occupant.id) >= 1) {
       bus.emit('cmd:collect', { placementId: occupant.id });
     }

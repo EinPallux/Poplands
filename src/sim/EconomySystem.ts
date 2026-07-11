@@ -117,10 +117,14 @@ export class EconomySystem {
     const offSecret = bus.on('secret:found', (e) => {
       this.credit(e.rewards.pops ?? 0, e.rewards.stardust ?? 0);
     });
+    const offFish = bus.on('fishing:caught', (e) => {
+      this.credit(e.rewards.pops ?? 0, e.rewards.stardust ?? 0);
+    });
     return () => {
       offLevel();
       offQuest();
       offSecret();
+      offFish();
     };
   }
 
@@ -160,6 +164,23 @@ export class EconomySystem {
     const def = p && itemDef(p.def);
     if (!def?.income) return 0;
     return def.income.cap > 0 ? this.ripeAmount(id, now) / def.income.cap : 0;
+  }
+
+  /** Debug only (headless verify): pin a building's banked Pops to a cap fraction,
+   *  so the ripen-bubble threshold states are reachable without waiting on accrual.
+   *  Seeds the accrual entry if it's missing (debug placement skips onPlaced). */
+  debugRipen(id: string, frac = 1): void {
+    const p = this.island.placement(id);
+    const def = p && itemDef(p.def);
+    if (!def?.income) return;
+    let state = this.accrual.get(id);
+    if (!state) {
+      state = { storedPops: 0, lastCollectAt: this.now(), wasFull: false, lastStep: 0 };
+      this.accrual.set(id, state);
+    }
+    state.storedPops = clamp(def.income.cap * frac, 0, def.income.cap);
+    state.lastCollectAt = this.now(); // freeze the anchor so reads return ~storedPops
+    state.wasFull = frac >= 1;
   }
 
   // ——— collection ———

@@ -6,6 +6,7 @@ import { t } from '@/core/strings';
 import { effect } from '@/core/signals';
 import {
   volumeSignal,
+  musicVolumeSignal,
   qualitySignal,
   reducedMotionSignal,
   timeOfDaySignal,
@@ -67,6 +68,10 @@ export class SettingsPanel {
         <input class="s-volume" type="range" min="0" max="1" step="0.05">
       </label>
       <label class="settings-row">
+        <span>${t('settings.music')}</span>
+        <input class="s-music" type="range" min="0" max="1" step="0.05">
+      </label>
+      <label class="settings-row">
         <span>${t('settings.fps')}</span>
         <select class="s-fps">
           <option value="off">${t('settings.fps.off')}</option>
@@ -100,6 +105,7 @@ export class SettingsPanel {
     const fps = this.panel.querySelector('.s-fps') as HTMLSelectElement;
     const uiScale = this.panel.querySelector('.s-uiscale') as HTMLSelectElement;
     const volume = this.panel.querySelector('.s-volume') as HTMLInputElement;
+    const music = this.panel.querySelector('.s-music') as HTMLInputElement;
     const motion = this.panel.querySelector('.s-motion') as HTMLInputElement;
     const file = this.panel.querySelector('.s-file') as HTMLInputElement;
 
@@ -108,6 +114,7 @@ export class SettingsPanel {
     effect(() => (fps.value = fpsCapSignal.get()));
     effect(() => (uiScale.value = String(uiScaleSignal.get())));
     effect(() => (volume.value = String(volumeSignal.get())));
+    effect(() => (music.value = String(musicVolumeSignal.get())));
     effect(() => (motion.checked = reducedMotionSignal.get()));
 
     fps.addEventListener('change', () => {
@@ -129,6 +136,10 @@ export class SettingsPanel {
     });
     volume.addEventListener('input', () => {
       volumeSignal.set(Number(volume.value));
+      bus.emit('settings:changed', undefined);
+    });
+    music.addEventListener('input', () => {
+      musicVolumeSignal.set(Number(music.value));
       bus.emit('settings:changed', undefined);
     });
     motion.addEventListener('change', () => {

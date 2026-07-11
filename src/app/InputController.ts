@@ -22,6 +22,7 @@ export interface InputCallbacks {
   onToggleDebug: () => void; // `
   onToggleAlbum: () => void; // J — Island Album
   onTogglePhoto: () => void; // P — Photo mode
+  onToggleJournal: () => void; // F — Fish Journal
   /** A clean left-click; return true to consume it (e.g. an Islander was tapped)
    *  so it never falls through to a cell click/placement. */
   onPrimaryClick?: (clientX: number, clientY: number) => boolean;
@@ -66,8 +67,9 @@ export class InputController {
 
       if (this.dragging.movedPx > DRAG_THRESHOLD_PX) {
         if (this.dragging.button === 2 || this.dragging.button === 1) {
-          // drag down → camera descends toward the horizon (OrbitControls feel)
-          this.rig.orbitBy(-dx * ORBIT_SPEED, dy * ORBIT_SPEED * 0.8);
+          // vertical orbit follows the drag: drag up tilts toward the horizon,
+          // drag down lifts the camera up and over the top (un-mirrored, per feel).
+          this.rig.orbitBy(-dx * ORBIT_SPEED, -dy * ORBIT_SPEED * 0.8);
         } else if (this.dragging.button === 0) {
           const wpp = this.rig.panWorldPerPixel;
           this.rig.panBy(-dx * wpp, dy * wpp);
@@ -132,6 +134,9 @@ export class InputController {
         return;
       case 'KeyP':
         this.callbacks.onTogglePhoto();
+        return;
+      case 'KeyF':
+        this.callbacks.onToggleJournal();
         return;
       case 'Backquote':
         this.callbacks.onToggleDebug();

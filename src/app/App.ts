@@ -21,6 +21,7 @@ import { AgentRenderer } from '@/world/AgentRenderer';
 import { GlowLayer } from '@/world/GlowLayer';
 import { AmbientLife } from '@/world/AmbientLife';
 import { ThemeAmbience } from '@/world/ThemeAmbience';
+import { WeatherSystem } from '@/world/WeatherSystem';
 import { AuroraLayer } from '@/world/AuroraLayer';
 import { ChunkArrival } from '@/world/ChunkArrival';
 import { LivelinessSystem } from '@/sim/LivelinessSystem';
@@ -35,6 +36,8 @@ import { SettingsPanel } from '@/ui/SettingsPanel';
 import { Hud } from '@/ui/Hud';
 import { Mailbox } from '@/ui/Mailbox';
 import { Album } from '@/ui/Album';
+import { FishJournal } from '@/ui/FishJournal';
+import { FishingLayer } from '@/ui/FishingLayer';
 import { PhotoMode } from '@/ui/PhotoMode';
 import { WorldFx } from '@/ui/WorldFx';
 import { SurveyLayer } from '@/ui/SurveyLayer';
@@ -49,6 +52,7 @@ import { DebugHud } from '@/debug/DebugHud';
 import { Particles } from '@/vfx/Particles';
 import { popIn, popOut, shake } from '@/vfx/presets';
 import { AudioSystem } from '@/audio/AudioSystem';
+import { MusicSystem } from '@/audio/MusicSystem';
 import { palette } from '@/render/palette';
 import { tweens } from '@/core/tween';
 import { t } from '@/core/strings';
@@ -149,6 +153,8 @@ export class App {
     scene.add(ambient.group);
     const themeAmbience = new ThemeAmbience(island); // per-biome mist/bats, snow, sand (S20)
     scene.add(themeAmbience.group);
+    const weather = new WeatherSystem(island); // passing showers + a rainbow (post-1.0)
+    scene.add(weather.group);
     const aurora = new AuroraLayer(island); // The Wonder's permanent aurora (S20 capstone)
     scene.add(aurora.group);
     // a lively island quietly pays a little extra (S13 liveliness dividend), lifted
@@ -185,6 +191,7 @@ export class App {
     scene.add(session.group);
     state.setCarriedProvider(() => session.carriedPlacement); // carried item survives a mid-move save
     const audio = new AudioSystem();
+    new MusicSystem(); // optional bgm.mp3 loop — self-manages its gesture unlock
     const chunkArrival = new ChunkArrival(world, particles, audio);
 
     // — presentation reactions to domain events (the F1 flow)
@@ -262,6 +269,7 @@ export class App {
     // — economy: collection commands → sim; sim's collected event → juice
     bus.on('cmd:collect', ({ placementId }) => state.economy.collect(placementId));
     bus.on('cmd:collectAll', () => state.economy.collectAll());
+    bus.on('cmd:castLine', ({ placementId }) => state.fishing.castLine(placementId)); // tap a pond
     bus.on('income:collected', () => audio.chime()); // coin-arc handled by WorldFx
     bus.on('income:ripe', (e) => {
       const p = island.placement(e.placementId);
@@ -339,6 +347,17 @@ export class App {
     // tap-to-greet: a cute babble when an Islander speaks (bubble handled by SpeechLayer)
     bus.on('npc:spoke', () => audio.chatter());
 
+    // — fishing (post-1.0): cast splash / nibble blip / reel flourish + a water sparkle
+    bus.on('fishing:cast', (e) => {
+      audio.splash();
+      particles.dustRing(e.wx, e.wz, 0.7);
+    });
+    bus.on('fishing:nibble', () => audio.bite());
+    bus.on('fishing:caught', (e) => {
+      audio.reel();
+      particles.sparkle(e.wx, 0.6, e.wz);
+    });
+
     // — pals (S18): adoption welcome + petting hearts
     bus.on('pal:adopted', (e) => {
       const p = state.pals.positionOf(e.id);
@@ -369,6 +388,7 @@ export class App {
     const surveyLayer = new SurveyLayer(uiRoot, (x, y, z) => rig.projectToScreen(x, y, z));
     const secretLayer = new SecretLayer(uiRoot, (x, y, z) => rig.projectToScreen(x, y, z));
     const speechLayer = new SpeechLayer(uiRoot, (x, y, z) => rig.projectToScreen(x, y, z));
+    const fishingLayer = new FishingLayer(uiRoot, (x, y, z) => rig.projectToScreen(x, y, z));
     new ChunkPopup(uiRoot); // self-wires to chunk:unlocked
     const album = new Album(uiRoot, () => ({
       milestones: state.save.quests.milestones,
@@ -376,6 +396,7 @@ export class App {
       pals: state.pals.snapshot().pals,
       themes: island.allChunks().map((c) => island.themeAt(c.cx, c.cz)),
     }));
+    const journal = new FishJournal(uiRoot, () => state.fishing.collection());
     const photo = new PhotoMode(uiRoot, () => {
       rm.render(scene, rig.camera); // one fresh frame, then read it back
       return rm.renderer.domElement.toDataURL('image/png');
@@ -447,6 +468,7 @@ export class App {
       onEscape: () => {
         if (photo.active) photo.toggle(false);
         else if (album.open) album.toggle(false);
+        else if (journal.open) journal.toggle(false);
         else if (settings.open) settings.toggle(false);
         else if (session.isActive) session.cancel();
       },
@@ -456,6 +478,7 @@ export class App {
       onToggleDebug: () => debugHud.toggle(),
       onToggleAlbum: () => album.toggle(),
       onTogglePhoto: () => photo.toggle(),
+      onToggleJournal: () => journal.toggle(),
       // tap an Islander to greet / a Pal to pet (when not mid-build) — consumes the click
       onPrimaryClick: (x, y) => {
         if (session.isActive) return false;
@@ -484,6 +507,7 @@ export class App {
     });
     loop.add((dt) => session.update(dt));
     loop.add((dt) => state.economy.tick(dt));
+    loop.add((dt) => state.fishing.tick(dt)); // advance an active cast's wait/nibble timers
     loop.add(() => state.quests.tick()); // refill postcard slots once a cooldown lapses
     loop.add((dt) => {
       state.islanders.update(dt); // sim integrates kinematics (three.js-free)…
@@ -499,6 +523,7 @@ export class App {
       glow.update(timeOfDay.nightFactor); // lantern halos fade in with the dark
       ambient.update(dt, timeOfDay.nightFactor); // fireflies, shooting stars, balloons
       themeAmbience.update(dt, timeOfDay.nightFactor); // per-biome mist/bats/snow/sand
+      weather.update(dt, timeOfDay.nightFactor, rig.camera); // passing showers + rainbow
       aurora.update(dt, timeOfDay.nightFactor); // The Wonder's aurora shimmer (S20)
       liveliness.update(dt); // periodic Pops dividend from the island's residents
     });
@@ -515,6 +540,7 @@ export class App {
     loop.add((dt) => landmarks.update(dt));
     loop.add((dt) => particles.update(dt));
     loop.add(() => worldFx.update());
+    loop.add((dt) => fishingLayer.update(dt)); // bobber + nibble prompt tracking
     loop.add(() => surveyLayer.update());
     loop.add(() => secretLayer.update());
     loop.add((dt) => hover.update(dt));
@@ -588,6 +614,18 @@ export class App {
         glowCount: () => glow.count,
         auroraCount: () => aurora.count,
         themeAmbience: () => themeAmbience.counts,
+        weather: () => weather.counts,
+        weatherShower: () => weather.forceShower(),
+        weatherRainbow: () => weather.forceRainbow(),
+        fishCollection: () => state.fishing.collection(),
+        fishPhase: () => state.fishing.phase,
+        fishTimer: () => state.fishing.remaining,
+        fishSkipWait: () => state.fishing.debugSkipWait(),
+        fishCast: (id: string) => bus.emit('cmd:castLine', { placementId: id }),
+        ripen: (id: string, frac = 1) => state.economy.debugRipen(id, frac),
+        placementsOf: (def: string) =>
+          island.allPlacements().filter((p) => p.def === def).map((p) => p.id),
+        camPolar: () => rig.state.polar,
         // — S4 phased loading (headless verify): which models are cached now + on-demand phase loads
         loadPhase: (phase: AssetPhase) => assets.loadPhase(phase),
         phaseOf: (id: string) => assets.phaseOf(id),
@@ -645,6 +683,8 @@ export class App {
           props.show(island.place(def, wx, wz, rot));
           return true;
         },
+        /** Emit a play-mode cell click straight into BuildSession (headless routing test). */
+        clickCell: (wx: number, wz: number) => bus.emit('input:cellClick', { wx, wz }),
         /** Screen pixel position of a block center (headless click targeting). */
         projectCell: (wx: number, wz: number) => {
           const v = new Vector3(wx + 0.5, 0, wz + 0.5).project(rig.camera);

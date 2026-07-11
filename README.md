@@ -38,8 +38,17 @@ npm run assets     # scripts/asset-manifest.json → public/assets/models/*.glb 
 ```
 
 Headless verification/soak scripts live in `scripts/` (`verify-v0x.mts`,
-`balance-v07.mts`, `soak-v07.mts`, `og-image.mts`); run them with
-`npx tsx scripts/<name>.mts` after `npm run build`.
+`verify-cozy.mts`, `balance-v07.mts`, `soak-v07.mts`, `og-image.mts`); run them
+with `npx tsx scripts/<name>.mts` after `npm run build`.
+
+## Background music (optional)
+
+Drop your own soundtrack in as **`public/bgm.mp3`** and it loops automatically —
+starting on the first click/keypress (browser autoplay policy). It's entirely
+optional: with no file present the game just stays quiet, no error. Players tune
+it with the **Music** slider in Settings (separate from the **Sound** SFX slider),
+and the level persists in the save. Any browser-playable audio the file names
+`bgm.mp3` works (an `.mp3` is the safe bet cross-browser).
 
 ## Deploy (Vercel)
 

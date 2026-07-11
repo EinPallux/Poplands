@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-11T19:44:58.527Z",
+  "generatedAt": "2026-07-11T21:19:11.027Z",
   "models": {
     "ground.grass-block": {
       "file": "assets/models/ground.grass-block.glb",
@@ -1328,6 +1328,31 @@
     },
     "ground.river": {
       "file": "assets/models/ground.river.glb",
+      "bytes": 7756,
+      "aabb": {
+        "min": [
+          -0.5,
+          -0.10000000074505806,
+          -0.5
+        ],
+        "max": [
+          0.5,
+          -0.04999999999999999,
+          0.5
+        ]
+      },
+      "size": [
+        1,
+        0.050000000745058074,
+        1
+      ],
+      "clips": [],
+      "materials": 4,
+      "meshes": 1,
+      "phase": "early"
+    },
+    "nature.fishing-pond": {
+      "file": "assets/models/nature.fishing-pond.glb",
       "bytes": 7756,
       "aabb": {
         "min": [

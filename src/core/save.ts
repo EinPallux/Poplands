@@ -17,7 +17,8 @@ export interface SavePlacement {
 }
 
 export interface SaveSettings {
-  volume: number; // 0..1
+  volume: number; // 0..1 — SFX / ambient
+  musicVolume: number; // 0..1 — optional user-supplied bgm.mp3 (S22)
   quality: 'auto' | 'high' | 'medium' | 'low';
   reducedMotion: boolean;
   timeOfDay: 'auto' | 'day' | 'dusk' | 'night'; // 'auto' = cycle; others freeze the sky
@@ -51,6 +52,14 @@ export interface SaveSecret {
 export interface SaveIslanders {
   residents: string[];
   pals: string[];
+}
+
+/** Persisted fishing collection (post-1.0): `caught` maps a stable fish-species id
+ *  to how many of that species you've reeled in; `total` is the lifetime catch count.
+ *  Species not yet caught are simply absent (the journal renders them locked). */
+export interface SaveFishing {
+  caught: Record<string, number>;
+  total: number;
 }
 
 /** Persisted quest state (S15). Cumulative predicates keep per-quest counters in `progress`. */
@@ -113,12 +122,19 @@ export interface SaveV4 extends Omit<SaveV3, 'v'> {
   islanders: SaveIslanders;
 }
 
+/** v5 (post-1.0): the fishing collection slice. */
+export interface SaveV5 extends Omit<SaveV4, 'v'> {
+  v: 5;
+  fishing: SaveFishing;
+}
+
 /** The current schema. Bump this alias (not scattered `SaveVn`s) each version. */
-export type Save = SaveV4;
-export const SAVE_VERSION = 4;
+export type Save = SaveV5;
+export const SAVE_VERSION = 5;
 
 export const DEFAULT_SETTINGS: SaveSettings = {
   volume: 0.8,
+  musicVolume: 0.5,
   quality: 'auto',
   reducedMotion: false,
   timeOfDay: 'auto',
@@ -136,6 +152,10 @@ export function freshEconomy(): SaveEconomy {
 
 export function freshIslanders(): SaveIslanders {
   return { residents: [], pals: [] };
+}
+
+export function freshFishing(): SaveFishing {
+  return { caught: {}, total: 0 };
 }
 
 /**
@@ -195,11 +215,16 @@ const migrations: Record<number, (s: AnySave) => AnySave> = {
     // roster roll) — the migration just adds the empty slice.
     return { ...v3, v: 4, islanders: freshIslanders() } as unknown as AnySave;
   },
+  4: (s) => {
+    const v4 = s as unknown as SaveV4;
+    // The fishing collection starts empty — nothing to back-fill.
+    return { ...v4, v: 5, fishing: freshFishing() } as unknown as AnySave;
+  },
 };
 
 export function freshSave(seed: number, now: number): Save {
   return {
-    v: 4,
+    v: 5,
     createdAt: now,
     lastSeenAt: now,
     seed,
@@ -217,6 +242,7 @@ export function freshSave(seed: number, now: number): Save {
     quests: freshQuests(0),
     secrets: [], // SecretSystem seeds the starter chunks' secrets on first start
     islanders: freshIslanders(), // IslanderSystem welcomes residents as homes appear
+    fishing: freshFishing(), // empty catch log; fills as the player fishes
     attic: [],
     settings: { ...DEFAULT_SETTINGS },
   };
@@ -273,6 +299,9 @@ function normalize(v2: Save): Save {
   v2.islanders ??= freshIslanders();
   v2.islanders.residents ??= [];
   v2.islanders.pals ??= [];
+  v2.fishing ??= freshFishing();
+  v2.fishing.caught ??= {};
+  v2.fishing.total ??= 0;
   v2.settings = { ...DEFAULT_SETTINGS, ...v2.settings };
   v2.island.placements ??= [];
   v2.player.level ??= 1;

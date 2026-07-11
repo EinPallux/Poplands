@@ -20,12 +20,19 @@ type Project = (x: number, y: number, z: number) => { x: number; y: number; behi
 
 interface Bubble {
   el: HTMLElement;
+  amtEl: HTMLElement;
   x: number;
   y: number;
   z: number;
+  lastAmt: number; // cached rounded amount so we only touch the DOM text on change
+  prominent: boolean;
 }
 
 const SHOW_THRESHOLD = 0.02; // hide the bubble on an empty (just-collected) building
+// A building only surfaces the prominent "● amount" pill once it's meaningfully full,
+// so the island doesn't get busy — ≥55% ripe AND ≥12 Pops banked (whichever is later).
+const PROMINENT_FRAC = 0.55;
+const PROMINENT_MIN = 12;
 
 export class WorldFx {
   private root: HTMLDivElement;
@@ -48,21 +55,42 @@ export class WorldFx {
     bus.on('income:collected', (e) => this.coinArc(e.wx, e.wz, Math.min(e.amount, 6)));
   }
 
-  private ensureBubble(id: string, wx: number, wz: number, frac: number): void {
+  private ensureBubble(id: string, wx: number, wz: number, frac: number, amount: number): void {
     let b = this.bubbles.get(id);
     if (!b) {
       const el = document.createElement('div');
       el.className = 'ripe-bubble';
-      el.innerHTML = '<span>●</span>';
+      const dot = document.createElement('span');
+      dot.className = 'rb-dot';
+      dot.textContent = '●';
+      const amtEl = document.createElement('span');
+      amtEl.className = 'rb-amt';
+      el.append(dot, amtEl);
       this.root.appendChild(el);
-      b = { el, x: wx, y: 1.7, z: wz };
+      b = { el, amtEl, x: wx, y: 1.7, z: wz, lastAmt: -1, prominent: false };
       this.bubbles.set(id, b);
     }
     b.x = wx;
     b.z = wz;
     b.el.style.setProperty('--fill', String(frac));
-    b.el.style.setProperty('--scale', String(0.5 + Math.min(frac, 1) * 0.5));
-    b.el.classList.toggle('ripe', frac >= 1);
+    const ripe = frac >= 1;
+    b.el.classList.toggle('ripe', ripe);
+    // surface the readable amount only once the building is worth a look
+    const prominent = frac >= PROMINENT_FRAC && amount >= PROMINENT_MIN;
+    if (prominent !== b.prominent) {
+      b.prominent = prominent;
+      b.el.classList.toggle('prominent', prominent);
+    }
+    if (prominent) {
+      const rounded = Math.floor(amount);
+      if (rounded !== b.lastAmt) {
+        b.lastAmt = rounded;
+        b.amtEl.textContent = `● ${rounded}`;
+      }
+      b.el.style.setProperty('--scale', '1');
+    } else {
+      b.el.style.setProperty('--scale', String(0.5 + Math.min(frac, 1) * 0.5));
+    }
   }
 
   private removeBubble(id: string): void {
@@ -120,7 +148,8 @@ export class WorldFx {
       const rotated = p.rot === 1 || p.rot === 3;
       const cx = p.wx + (rotated ? def.footprint.d : def.footprint.w) / 2;
       const cz = p.wz + (rotated ? def.footprint.w : def.footprint.d) / 2;
-      this.ensureBubble(p.id, cx, cz, frac);
+      const amount = this.economy.ripeAmount(p.id);
+      this.ensureBubble(p.id, cx, cz, frac, amount);
     }
     // drop bubbles for buildings that are gone or emptied (collect stale ids into a
     // reused array — can't delete from the Map mid key-iteration without snapshotting)

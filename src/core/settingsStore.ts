@@ -6,6 +6,7 @@ import { signal } from './signals';
 import { DEFAULT_SETTINGS, type SaveSettings } from './save';
 
 export const volumeSignal = signal(DEFAULT_SETTINGS.volume);
+export const musicVolumeSignal = signal(DEFAULT_SETTINGS.musicVolume);
 export const qualitySignal = signal<SaveSettings['quality']>(DEFAULT_SETTINGS.quality);
 export const reducedMotionSignal = signal(
   typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
@@ -18,6 +19,7 @@ export const uiScaleSignal = signal(DEFAULT_SETTINGS.uiScale);
 
 export function loadSettings(s: SaveSettings): void {
   volumeSignal.set(s.volume);
+  musicVolumeSignal.set(s.musicVolume);
   qualitySignal.set(s.quality);
   reducedMotionSignal.set(s.reducedMotion);
   timeOfDaySignal.set(s.timeOfDay);
@@ -28,6 +30,7 @@ export function loadSettings(s: SaveSettings): void {
 export function snapshotSettings(): SaveSettings {
   return {
     volume: volumeSignal.get(),
+    musicVolume: musicVolumeSignal.get(),
     quality: qualitySignal.get(),
     reducedMotion: reducedMotionSignal.get(),
     timeOfDay: timeOfDaySignal.get(),
