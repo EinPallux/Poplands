@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-11T09:03:07.429Z",
+  "generatedAt": "2026-07-11T09:54:23.004Z",
   "models": {
     "ground.grass-block": {
       "file": "assets/models/ground.grass-block.glb",
@@ -1656,6 +1656,690 @@
       "clips": [],
       "materials": 1,
       "meshes": 1
+    },
+    "npc.a": {
+      "file": "assets/models/npc.a.glb",
+      "bytes": 127252,
+      "aabb": {
+        "min": [
+          -0.5493935346603394,
+          1.043081283569336e-7,
+          -0.29189151525497437
+        ],
+        "max": [
+          0.5493935346603394,
+          0.7755283713340759,
+          0.20763878524303436
+        ]
+      },
+      "size": [
+        1.0987870693206787,
+        0.7755282670259476,
+        0.49953030049800873
+      ],
+      "clips": [
+        "static",
+        "idle",
+        "walk",
+        "sprint",
+        "jump",
+        "fall",
+        "crouch",
+        "sit",
+        "drive",
+        "die",
+        "pick-up",
+        "emote-yes",
+        "emote-no",
+        "holding-right",
+        "holding-left",
+        "holding-both",
+        "holding-right-shoot",
+        "holding-left-shoot",
+        "holding-both-shoot",
+        "attack-melee-right",
+        "attack-melee-left",
+        "attack-kick-right",
+        "attack-kick-left",
+        "interact-right",
+        "interact-left",
+        "wheelchair-sit",
+        "wheelchair-look-left",
+        "wheelchair-look-right",
+        "wheelchair-move-forward",
+        "wheelchair-move-back",
+        "wheelchair-move-left",
+        "wheelchair-move-right"
+      ],
+      "materials": 1,
+      "meshes": 2
+    },
+    "npc.b": {
+      "file": "assets/models/npc.b.glb",
+      "bytes": 115692,
+      "aabb": {
+        "min": [
+          -0.3835841417312622,
+          1.043081283569336e-7,
+          -0.21088343858718872
+        ],
+        "max": [
+          0.3835841417312622,
+          0.7233532667160034,
+          0.20763881504535675
+        ]
+      },
+      "size": [
+        0.7671682834625244,
+        0.7233531624078751,
+        0.41852225363254547
+      ],
+      "clips": [
+        "static",
+        "idle",
+        "walk",
+        "sprint",
+        "jump",
+        "fall",
+        "crouch",
+        "sit",
+        "drive",
+        "die",
+        "pick-up",
+        "emote-yes",
+        "emote-no",
+        "holding-right",
+        "holding-left",
+        "holding-both",
+        "holding-right-shoot",
+        "holding-left-shoot",
+        "holding-both-shoot",
+        "attack-melee-right",
+        "attack-melee-left",
+        "attack-kick-right",
+        "attack-kick-left",
+        "interact-right",
+        "interact-left",
+        "wheelchair-sit",
+        "wheelchair-look-left",
+        "wheelchair-look-right",
+        "wheelchair-move-forward",
+        "wheelchair-move-back",
+        "wheelchair-move-left",
+        "wheelchair-move-right"
+      ],
+      "materials": 1,
+      "meshes": 2
+    },
+    "npc.c": {
+      "file": "assets/models/npc.c.glb",
+      "bytes": 116624,
+      "aabb": {
+        "min": [
+          -0.3835841417312622,
+          0,
+          -0.29189151525497437
+        ],
+        "max": [
+          0.3835841417312622,
+          0.7755283713340759,
+          0.20763878524303436
+        ]
+      },
+      "size": [
+        0.7671682834625244,
+        0.7755283713340759,
+        0.49953030049800873
+      ],
+      "clips": [
+        "static",
+        "idle",
+        "walk",
+        "sprint",
+        "jump",
+        "fall",
+        "crouch",
+        "sit",
+        "drive",
+        "die",
+        "pick-up",
+        "emote-yes",
+        "emote-no",
+        "holding-right",
+        "holding-left",
+        "holding-both",
+        "holding-right-shoot",
+        "holding-left-shoot",
+        "holding-both-shoot",
+        "attack-melee-right",
+        "attack-melee-left",
+        "attack-kick-right",
+        "attack-kick-left",
+        "interact-right",
+        "interact-left",
+        "wheelchair-sit",
+        "wheelchair-look-left",
+        "wheelchair-look-right",
+        "wheelchair-move-forward",
+        "wheelchair-move-back",
+        "wheelchair-move-left",
+        "wheelchair-move-right"
+      ],
+      "materials": 1,
+      "meshes": 2
+    },
+    "npc.d": {
+      "file": "assets/models/npc.d.glb",
+      "bytes": 120112,
+      "aabb": {
+        "min": [
+          -0.3835841417312622,
+          1.043081283569336e-7,
+          -0.29189151525497437
+        ],
+        "max": [
+          0.3835841417312622,
+          0.7755283713340759,
+          0.20763881504535675
+        ]
+      },
+      "size": [
+        0.7671682834625244,
+        0.7755282670259476,
+        0.4995303303003311
+      ],
+      "clips": [
+        "static",
+        "idle",
+        "walk",
+        "sprint",
+        "jump",
+        "fall",
+        "crouch",
+        "sit",
+        "drive",
+        "die",
+        "pick-up",
+        "emote-yes",
+        "emote-no",
+        "holding-right",
+        "holding-left",
+        "holding-both",
+        "holding-right-shoot",
+        "holding-left-shoot",
+        "holding-both-shoot",
+        "attack-melee-right",
+        "attack-melee-left",
+        "attack-kick-right",
+        "attack-kick-left",
+        "interact-right",
+        "interact-left",
+        "wheelchair-sit",
+        "wheelchair-look-left",
+        "wheelchair-look-right",
+        "wheelchair-move-forward",
+        "wheelchair-move-back",
+        "wheelchair-move-left",
+        "wheelchair-move-right"
+      ],
+      "materials": 1,
+      "meshes": 2
+    },
+    "npc.e": {
+      "file": "assets/models/npc.e.glb",
+      "bytes": 117572,
+      "aabb": {
+        "min": [
+          -0.3835841417312622,
+          1.043081283569336e-7,
+          -0.31942278146743774
+        ],
+        "max": [
+          0.3835841417312622,
+          0.7164753675460815,
+          0.20763881504535675
+        ]
+      },
+      "size": [
+        0.7671682834625244,
+        0.7164752632379532,
+        0.5270615965127945
+      ],
+      "clips": [
+        "static",
+        "idle",
+        "walk",
+        "sprint",
+        "jump",
+        "fall",
+        "crouch",
+        "sit",
+        "drive",
+        "die",
+        "pick-up",
+        "emote-yes",
+        "emote-no",
+        "holding-right",
+        "holding-left",
+        "holding-both",
+        "holding-right-shoot",
+        "holding-left-shoot",
+        "holding-both-shoot",
+        "attack-melee-right",
+        "attack-melee-left",
+        "attack-kick-right",
+        "attack-kick-left",
+        "interact-right",
+        "interact-left",
+        "wheelchair-sit",
+        "wheelchair-look-left",
+        "wheelchair-look-right",
+        "wheelchair-move-forward",
+        "wheelchair-move-back",
+        "wheelchair-move-left",
+        "wheelchair-move-right"
+      ],
+      "materials": 1,
+      "meshes": 2
+    },
+    "npc.f": {
+      "file": "assets/models/npc.f.glb",
+      "bytes": 121680,
+      "aabb": {
+        "min": [
+          -0.3835841417312622,
+          1.043081283569336e-7,
+          -0.2334733009338379
+        ],
+        "max": [
+          0.3835841417312622,
+          0.6713250875473022,
+          0.20763881504535675
+        ]
+      },
+      "size": [
+        0.7671682834625244,
+        0.6713249832391739,
+        0.44111211597919464
+      ],
+      "clips": [
+        "static",
+        "idle",
+        "walk",
+        "sprint",
+        "jump",
+        "fall",
+        "crouch",
+        "sit",
+        "drive",
+        "die",
+        "pick-up",
+        "emote-yes",
+        "emote-no",
+        "holding-right",
+        "holding-left",
+        "holding-both",
+        "holding-right-shoot",
+        "holding-left-shoot",
+        "holding-both-shoot",
+        "attack-melee-right",
+        "attack-melee-left",
+        "attack-kick-right",
+        "attack-kick-left",
+        "interact-right",
+        "interact-left",
+        "wheelchair-sit",
+        "wheelchair-look-left",
+        "wheelchair-look-right",
+        "wheelchair-move-forward",
+        "wheelchair-move-back",
+        "wheelchair-move-left",
+        "wheelchair-move-right"
+      ],
+      "materials": 1,
+      "meshes": 2
+    },
+    "npc.g": {
+      "file": "assets/models/npc.g.glb",
+      "bytes": 116416,
+      "aabb": {
+        "min": [
+          -0.3835841417312622,
+          1.043081283569336e-7,
+          -0.17236123979091644
+        ],
+        "max": [
+          0.3835841417312622,
+          0.6713249683380127,
+          0.1676386147737503
+        ]
+      },
+      "size": [
+        0.7671682834625244,
+        0.6713248640298843,
+        0.33999985456466675
+      ],
+      "clips": [
+        "static",
+        "idle",
+        "walk",
+        "sprint",
+        "jump",
+        "fall",
+        "crouch",
+        "sit",
+        "drive",
+        "die",
+        "pick-up",
+        "emote-yes",
+        "emote-no",
+        "holding-right",
+        "holding-left",
+        "holding-both",
+        "holding-right-shoot",
+        "holding-left-shoot",
+        "holding-both-shoot",
+        "attack-melee-right",
+        "attack-melee-left",
+        "attack-kick-right",
+        "attack-kick-left",
+        "interact-right",
+        "interact-left",
+        "wheelchair-sit",
+        "wheelchair-look-left",
+        "wheelchair-look-right",
+        "wheelchair-move-forward",
+        "wheelchair-move-back",
+        "wheelchair-move-left",
+        "wheelchair-move-right"
+      ],
+      "materials": 1,
+      "meshes": 2
+    },
+    "npc.h": {
+      "file": "assets/models/npc.h.glb",
+      "bytes": 116160,
+      "aabb": {
+        "min": [
+          -0.3835841417312622,
+          1.043081283569336e-7,
+          -0.16286130249500275
+        ],
+        "max": [
+          0.3835841417312622,
+          0.6613249778747559,
+          0.22661079466342926
+        ]
+      },
+      "size": [
+        0.7671682834625244,
+        0.6613248735666275,
+        0.389472097158432
+      ],
+      "clips": [
+        "static",
+        "idle",
+        "walk",
+        "sprint",
+        "jump",
+        "fall",
+        "crouch",
+        "sit",
+        "drive",
+        "die",
+        "pick-up",
+        "emote-yes",
+        "emote-no",
+        "holding-right",
+        "holding-left",
+        "holding-both",
+        "holding-right-shoot",
+        "holding-left-shoot",
+        "holding-both-shoot",
+        "attack-melee-right",
+        "attack-melee-left",
+        "attack-kick-right",
+        "attack-kick-left",
+        "interact-right",
+        "interact-left",
+        "wheelchair-sit",
+        "wheelchair-look-left",
+        "wheelchair-look-right",
+        "wheelchair-move-forward",
+        "wheelchair-move-back",
+        "wheelchair-move-left",
+        "wheelchair-move-right"
+      ],
+      "materials": 1,
+      "meshes": 2
+    },
+    "npc.i": {
+      "file": "assets/models/npc.i.glb",
+      "bytes": 122552,
+      "aabb": {
+        "min": [
+          -0.3835841417312622,
+          1.043081283569336e-7,
+          -0.18801887333393097
+        ],
+        "max": [
+          0.3835841417312622,
+          0.7927912473678589,
+          0.27263855934143066
+        ]
+      },
+      "size": [
+        0.7671682834625244,
+        0.7927911430597305,
+        0.46065743267536163
+      ],
+      "clips": [
+        "static",
+        "idle",
+        "walk",
+        "sprint",
+        "jump",
+        "fall",
+        "crouch",
+        "sit",
+        "drive",
+        "die",
+        "pick-up",
+        "emote-yes",
+        "emote-no",
+        "holding-right",
+        "holding-left",
+        "holding-both",
+        "holding-right-shoot",
+        "holding-left-shoot",
+        "holding-both-shoot",
+        "attack-melee-right",
+        "attack-melee-left",
+        "attack-kick-right",
+        "attack-kick-left",
+        "interact-right",
+        "interact-left",
+        "wheelchair-sit",
+        "wheelchair-look-left",
+        "wheelchair-look-right",
+        "wheelchair-move-forward",
+        "wheelchair-move-back",
+        "wheelchair-move-left",
+        "wheelchair-move-right"
+      ],
+      "materials": 1,
+      "meshes": 2
+    },
+    "npc.j": {
+      "file": "assets/models/npc.j.glb",
+      "bytes": 115556,
+      "aabb": {
+        "min": [
+          -0.3835841417312622,
+          1.043081283569336e-7,
+          -0.17236123979091644
+        ],
+        "max": [
+          0.3835841417312622,
+          0.7217615246772766,
+          0.16763877868652344
+        ]
+      },
+      "size": [
+        0.7671682834625244,
+        0.7217614203691483,
+        0.3400000184774399
+      ],
+      "clips": [
+        "static",
+        "idle",
+        "walk",
+        "sprint",
+        "jump",
+        "fall",
+        "crouch",
+        "sit",
+        "drive",
+        "die",
+        "pick-up",
+        "emote-yes",
+        "emote-no",
+        "holding-right",
+        "holding-left",
+        "holding-both",
+        "holding-right-shoot",
+        "holding-left-shoot",
+        "holding-both-shoot",
+        "attack-melee-right",
+        "attack-melee-left",
+        "attack-kick-right",
+        "attack-kick-left",
+        "interact-right",
+        "interact-left",
+        "wheelchair-sit",
+        "wheelchair-look-left",
+        "wheelchair-look-right",
+        "wheelchair-move-forward",
+        "wheelchair-move-back",
+        "wheelchair-move-left",
+        "wheelchair-move-right"
+      ],
+      "materials": 1,
+      "meshes": 2
+    },
+    "npc.k": {
+      "file": "assets/models/npc.k.glb",
+      "bytes": 116952,
+      "aabb": {
+        "min": [
+          -0.3835841417312622,
+          1.043081283569336e-7,
+          -0.17236118018627167
+        ],
+        "max": [
+          0.3835841417312622,
+          0.6759665608406067,
+          0.1696052849292755
+        ]
+      },
+      "size": [
+        0.7671682834625244,
+        0.6759664565324783,
+        0.3419664651155472
+      ],
+      "clips": [
+        "static",
+        "idle",
+        "walk",
+        "sprint",
+        "jump",
+        "fall",
+        "crouch",
+        "sit",
+        "drive",
+        "die",
+        "pick-up",
+        "emote-yes",
+        "emote-no",
+        "holding-right",
+        "holding-left",
+        "holding-both",
+        "holding-right-shoot",
+        "holding-left-shoot",
+        "holding-both-shoot",
+        "attack-melee-right",
+        "attack-melee-left",
+        "attack-kick-right",
+        "attack-kick-left",
+        "interact-right",
+        "interact-left",
+        "wheelchair-sit",
+        "wheelchair-look-left",
+        "wheelchair-look-right",
+        "wheelchair-move-forward",
+        "wheelchair-move-back",
+        "wheelchair-move-left",
+        "wheelchair-move-right"
+      ],
+      "materials": 1,
+      "meshes": 2
+    },
+    "npc.l": {
+      "file": "assets/models/npc.l.glb",
+      "bytes": 116960,
+      "aabb": {
+        "min": [
+          -0.3835841417312622,
+          1.043081283569336e-7,
+          -0.17236118018627167
+        ],
+        "max": [
+          0.3835841417312622,
+          0.6713249683380127,
+          0.16763867437839508
+        ]
+      },
+      "size": [
+        0.7671682834625244,
+        0.6713248640298843,
+        0.33999985456466675
+      ],
+      "clips": [
+        "static",
+        "idle",
+        "walk",
+        "sprint",
+        "jump",
+        "fall",
+        "crouch",
+        "sit",
+        "drive",
+        "die",
+        "pick-up",
+        "emote-yes",
+        "emote-no",
+        "holding-right",
+        "holding-left",
+        "holding-both",
+        "holding-right-shoot",
+        "holding-left-shoot",
+        "holding-both-shoot",
+        "attack-melee-right",
+        "attack-melee-left",
+        "attack-kick-right",
+        "attack-kick-left",
+        "interact-right",
+        "interact-left",
+        "wheelchair-sit",
+        "wheelchair-look-left",
+        "wheelchair-look-right",
+        "wheelchair-move-forward",
+        "wheelchair-move-back",
+        "wheelchair-move-left",
+        "wheelchair-move-right"
+      ],
+      "materials": 1,
+      "meshes": 2
     }
   }
 }

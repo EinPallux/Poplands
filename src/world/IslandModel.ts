@@ -146,6 +146,17 @@ export class IslandModel {
     for (const c of cells) this.blocked.add(cellKey(c.wx, c.wz));
   }
 
+  /** Can an agent stand on this cell (S16)? On-island, not landmark-blocked, and
+   *  free of a solid prop. Ground overlays (paths) live in `occ.ground`, so a path
+   *  tile leaves `occ.prop` undefined and reads as walkable — Islanders stroll the
+   *  paths but never clip through benches or huts. Three.js-free (sim consumes it). */
+  walkable(wx: number, wz: number): boolean {
+    if (!this.hasBlock(wx, wz)) return false;
+    const k = cellKey(wx, wz);
+    if (this.blocked.has(k)) return false;
+    return this.cells.get(k)?.prop === undefined;
+  }
+
   canPlace(def: ItemDef, wx: number, wz: number, rot: Rot): { ok: true } | { ok: false; reason: BlockReason } {
     for (const cell of footprintCells(wx, wz, def.footprint, rot)) {
       if (!this.hasBlock(cell.wx, cell.wz)) return { ok: false, reason: 'off-island' };

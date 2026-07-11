@@ -14,6 +14,7 @@ import { ProgressionSystem } from '@/sim/ProgressionSystem';
 import { QuestSystem } from '@/sim/QuestSystem';
 import { ExpansionSystem } from '@/sim/ExpansionSystem';
 import { SecretSystem } from '@/sim/SecretSystem';
+import { IslanderSystem } from '@/sim/IslanderSystem';
 import { itemDef } from '@/content/catalog';
 import { STARTER_PLACEMENTS } from '@/content/starterIsland';
 
@@ -26,6 +27,7 @@ export class GameState {
   readonly quests: QuestSystem;
   readonly expansion: ExpansionSystem;
   readonly secrets: SecretSystem;
+  readonly islanders: IslanderSystem;
   readonly isFresh: boolean;
   /** Supplies the item held in Move mode so the snapshot never drops it. */
   private carriedProvider: (() => Placement | null) | null = null;
@@ -65,6 +67,8 @@ export class GameState {
     this.expansion = new ExpansionSystem(this.island, this.economy, this.save.seed);
     // secrets own the per-chunk discovery roll + dig/chest state (mutates save.secrets)
     this.secrets = new SecretSystem(this.island, this.save.secrets, this.save.seed);
+    // islanders own the roster + wander AI (mutates save.islanders in place)
+    this.islanders = new IslanderSystem(this.island, this.save.islanders, this.save.seed);
 
     // a bought chunk is appended to the persisted chunk set (only ExpansionSystem
     // grows the model, so save.chunks and the model stay in lock-step — themes stay
@@ -86,6 +90,7 @@ export class GameState {
       'secret:spawned', // rolled a new chunk's secret → persist it
       'secret:progress', // partial dig → persist the click count
       'secret:found', // discovered → persist + reward flows credited
+      'npc:arrived', // a neighbour moved in → persist the roster
       'settings:changed',
     ] as const) {
       bus.on(ev, () => this.manager.requestSave());
@@ -103,10 +108,12 @@ export class GameState {
     this.quests.wire();
     this.expansion.wire();
     this.secrets.wire();
+    this.islanders.wire();
     this.economy.resolveOffline();
     this.quests.announce();
     this.expansion.announce();
     this.secrets.announce();
+    this.islanders.announce();
   }
 
   private static makeFreshSave(): Save {

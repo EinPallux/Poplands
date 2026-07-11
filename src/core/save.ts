@@ -41,6 +41,13 @@ export interface SaveSecret {
   reward: { pops: number; stardust: number; xp: number };
 }
 
+/** Persisted Islander roster (S16). `residents` are roster ids in move-in order;
+ *  the list is monotonic (a removed home never evicts a neighbour). Live kinematics
+ *  (positions, headings) are NOT persisted — Islanders simply re-scatter on load. */
+export interface SaveIslanders {
+  residents: string[];
+}
+
 /** Persisted quest state (S15). Cumulative predicates keep per-quest counters in `progress`. */
 export interface SaveQuests {
   tutorial: { activeId: string | null; done: string[] };
@@ -95,9 +102,15 @@ export interface SaveV3 extends Omit<SaveV2, 'v'> {
   secrets: SaveSecret[];
 }
 
+/** v4 (v0.5): the Islander roster slice (S16). */
+export interface SaveV4 extends Omit<SaveV3, 'v'> {
+  v: 4;
+  islanders: SaveIslanders;
+}
+
 /** The current schema. Bump this alias (not scattered `SaveVn`s) each version. */
-export type Save = SaveV3;
-export const SAVE_VERSION = 3;
+export type Save = SaveV4;
+export const SAVE_VERSION = 4;
 
 export const DEFAULT_SETTINGS: SaveSettings = { volume: 0.8, quality: 'auto', reducedMotion: false };
 
@@ -107,6 +120,10 @@ const AUTOSAVE_DEBOUNCE_MS = 5000;
 
 export function freshEconomy(): SaveEconomy {
   return { accrual: [] };
+}
+
+export function freshIslanders(): SaveIslanders {
+  return { residents: [] };
 }
 
 /**
@@ -160,11 +177,17 @@ const migrations: Record<number, (s: AnySave) => AnySave> = {
       },
     } as unknown as AnySave;
   },
+  3: (s) => {
+    const v3 = s as unknown as SaveV3;
+    // Residents re-derive from home capacity on first start (IslanderSystem owns the
+    // roster roll) — the migration just adds the empty slice.
+    return { ...v3, v: 4, islanders: freshIslanders() } as unknown as AnySave;
+  },
 };
 
 export function freshSave(seed: number, now: number): Save {
   return {
-    v: 3,
+    v: 4,
     createdAt: now,
     lastSeenAt: now,
     seed,
@@ -181,6 +204,7 @@ export function freshSave(seed: number, now: number): Save {
     economy: freshEconomy(),
     quests: freshQuests(0),
     secrets: [], // SecretSystem seeds the starter chunks' secrets on first start
+    islanders: freshIslanders(), // IslanderSystem welcomes residents as homes appear
     attic: [],
     settings: { ...DEFAULT_SETTINGS },
   };
@@ -234,6 +258,8 @@ function normalize(v2: Save): Save {
   // the HUD.) A wrong-TYPED slice still throws here and is caught by parseSave → backup.
   v2.attic ??= [];
   v2.secrets ??= [];
+  v2.islanders ??= freshIslanders();
+  v2.islanders.residents ??= [];
   v2.settings = { ...DEFAULT_SETTINGS, ...v2.settings };
   v2.island.placements ??= [];
   v2.player.level ??= 1;

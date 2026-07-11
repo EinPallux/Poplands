@@ -96,7 +96,7 @@ describe('parseSave', () => {
     expect(withCarried(placements, null)).toBe(placements);
   });
 
-  it('migrates a v1 save through to v3, seeding economy + quests + xpGranted + secrets', () => {
+  it('migrates a v1 save through to v4, seeding economy + quests + xpGranted + secrets + islanders', () => {
     // a hand-built v0.2-era v1 save
     const v1 = {
       v: 1,
@@ -116,7 +116,7 @@ describe('parseSave', () => {
     };
     const parsed = parseSave(JSON.stringify(v1));
     expect(parsed).not.toBeNull();
-    expect(parsed!.v).toBe(3); // chains v1→v2→v3
+    expect(parsed!.v).toBe(4); // chains v1→v2→v3→v4
     // wallets preserved, not reset
     expect(parsed!.player.pops).toBe(300);
     expect(parsed!.player.level).toBe(2);
@@ -130,6 +130,16 @@ describe('parseSave', () => {
     // v3: empty secrets slice + the secretsFound counter (SecretSystem seeds on start)
     expect(parsed!.secrets).toEqual([]);
     expect(parsed!.quests.milestones.secretsFound).toBe(0);
+    // v4: empty Islander roster slice (IslanderSystem welcomes residents on start)
+    expect(parsed!.islanders.residents).toEqual([]);
+  });
+
+  it('a v4 save missing the islanders slice normalizes to an empty roster', () => {
+    const save = makeSave() as unknown as Record<string, unknown>;
+    delete save['islanders'];
+    const parsed = parseSave(JSON.stringify(save));
+    expect(parsed).not.toBeNull();
+    expect(parsed!.islanders.residents).toEqual([]);
   });
 });
 
