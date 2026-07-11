@@ -735,6 +735,86 @@ body {
   overflow: hidden;
 }
 
+/* Survey markers (S8) — world-anchored "call this chunk" chips. The chip's
+   transform is set inline per frame (positioning), so hover/bob never touch it:
+   the balloon child bobs, the chip only tints. */
+.survey-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.survey-chip {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 5px 11px 7px;
+  border: none;
+  border-radius: 13px;
+  background: rgba(255, 251, 240, 0.95);
+  box-shadow: 0 3px 10px rgba(58, 48, 80, 0.22);
+  color: var(--ui-ink);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    background 0.12s ease,
+    box-shadow 0.12s ease,
+    opacity 0.12s ease;
+}
+
+.survey-chip:hover {
+  background: #fff;
+  box-shadow: 0 5px 16px rgba(58, 48, 80, 0.3);
+}
+
+.survey-chip.unaffordable {
+  opacity: 0.72;
+}
+.survey-chip.unaffordable .survey-price {
+  color: var(--accent-coral);
+}
+
+.survey-balloon {
+  font-size: 20px;
+  line-height: 1;
+  animation: surveyBob 2.6s ease-in-out infinite;
+}
+.survey-label {
+  font-size: 11px;
+  opacity: 0.72;
+}
+.survey-price {
+  font-size: 12px;
+  color: var(--accent-gold);
+}
+.survey-price .sd {
+  color: var(--accent-mint);
+}
+
+@keyframes surveyBob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .survey-balloon {
+    animation: none;
+  }
+}
+
 .ripe-bubble {
   position: absolute;
   top: 0;

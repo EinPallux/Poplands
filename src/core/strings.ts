@@ -33,6 +33,9 @@ const en = {
   'toast.levelUp': 'Level {level}! ✨ New things to build',
   'toast.questDone': 'Postcard complete! 💌',
 
+  // expansion (S8) — survey markers on the island's free edges
+  'survey.call': 'Call this chunk',
+
   // mailbox
   'mailbox.title': 'Postcards',
   'mailbox.empty': 'No postcards right now — just enjoy your island.',

@@ -16,6 +16,8 @@ import { buildLandmarks } from '@/world/StarterIsland';
 import { buildIslet } from '@/world/IsletBuilder';
 import { HoverHighlight } from '@/world/HoverHighlight';
 import { PropRenderer } from '@/world/PropRenderer';
+import { ChunkArrival } from '@/world/ChunkArrival';
+import { disposeObject } from '@/world/dispose';
 import { BuildSession } from '@/build/BuildSession';
 import { GameState } from '@/app/GameState';
 import { GameLoop } from '@/app/GameLoop';
@@ -26,6 +28,7 @@ import { SettingsPanel } from '@/ui/SettingsPanel';
 import { Hud } from '@/ui/Hud';
 import { Mailbox } from '@/ui/Mailbox';
 import { WorldFx } from '@/ui/WorldFx';
+import { SurveyLayer } from '@/ui/SurveyLayer';
 import '@/ui/questState'; // side-effect: registers quest signal subscriptions
 import { initToasts, showToast } from '@/ui/Toasts';
 import { renderThumbnails } from '@/ui/thumbnails';
@@ -84,14 +87,25 @@ export class App {
     const state = new GameState();
     const island = state.island;
 
-    // — world visuals
+    // — world visuals. Ground + base are held by ref so a chunk purchase can
+    // rebuild them for the new island shape (the outline/slab re-trace organically).
     const world = new Group();
     world.name = 'island';
-    world.add(buildGround(island));
-    world.add(buildIslandBase(island));
+    let groundGroup = buildGround(island);
+    let baseGroup = buildIslandBase(island);
+    world.add(groundGroup, baseGroup);
     const landmarks = buildLandmarks(assets, island);
     world.add(landmarks.group);
     scene.add(world);
+
+    const rebuildIsland = (): void => {
+      world.remove(groundGroup, baseGroup);
+      disposeObject(groundGroup);
+      disposeObject(baseGroup);
+      groundGroup = buildGround(island);
+      baseGroup = buildIslandBase(island);
+      world.add(groundGroup, baseGroup);
+    };
 
     const props = new PropRenderer(assets);
     scene.add(props.group);
@@ -114,6 +128,7 @@ export class App {
     scene.add(session.group);
     state.setCarriedProvider(() => session.carriedPlacement); // carried item survives a mid-move save
     const audio = new AudioSystem();
+    const chunkArrival = new ChunkArrival(world, particles, audio);
 
     // — presentation reactions to domain events (the F1 flow)
     bus.on('item:placed', (e) => {
@@ -205,6 +220,18 @@ export class App {
       showToast(t('toast.questDone'));
     });
 
+    // — expansion (F2): the chunk-arrival set piece, then swap in the merged island.
+    bus.on('chunk:unlocked', (e) => chunkArrival.play(e.cx, e.cz, rebuildIsland));
+    // geometry changed → ease the camera out + refit shadows + recenter the sky
+    // (immediate, while the chunk rises; the rig eases, never snaps — ART rule 6).
+    bus.on('island:grew', () => {
+      const b = island.bounds();
+      lights.fitShadowsTo(b);
+      rig.frameIsland(b);
+      const c = island.center();
+      sky.setCenter(c.x, c.z);
+    });
+
     // — UI (thumbnails render post-boot; they'd otherwise delay first frame)
     initToasts(uiRoot);
     const hud = new Hud(uiRoot);
@@ -216,6 +243,7 @@ export class App {
       state.economy,
       island,
     );
+    const surveyLayer = new SurveyLayer(uiRoot, (x, y, z) => rig.projectToScreen(x, y, z));
     const buildBar = new BuildBar(uiRoot);
     setTimeout(() => buildBar.setThumbnails(renderThumbnails(assets)), 80);
     const settings = new SettingsPanel(
@@ -265,7 +293,15 @@ export class App {
       onToggleDebug: () => debugHud.toggle(),
     });
 
-    loop.add((dt) => input.update(dt));
+    // soft input-lock during the chunk-arrival set piece (first 0.8 s): the camera
+    // still eases (rig.update runs below) — only manual input is gated (ART §7.2).
+    let setPiece = false;
+    bus.on('juice:setPieceStarted', () => (setPiece = true));
+    bus.on('juice:setPieceEnded', () => (setPiece = false));
+
+    loop.add((dt) => {
+      if (!setPiece) input.update(dt);
+    });
     loop.add((dt) => session.update(dt));
     loop.add((dt) => state.economy.tick(dt));
     loop.add(() => state.quests.tick()); // refill postcard slots once a cooldown lapses
@@ -275,6 +311,7 @@ export class App {
     loop.add((dt) => landmarks.update(dt));
     loop.add((dt) => particles.update(dt));
     loop.add(() => worldFx.update());
+    loop.add(() => surveyLayer.update());
     loop.add((dt) => hover.update(dt));
     loop.add((dt) => probe?.update(dt));
     loop.add((dt) => debugHud.update(dt));
@@ -310,6 +347,9 @@ export class App {
           xp: xpSignal.get(),
         }),
         quests: () => state.save.quests,
+        surveys: () => state.expansion.surveys(),
+        buyChunk: (cx: number, cz: number) => bus.emit('cmd:buyChunk', { cx, cz }),
+        chunkCount: () => island.chunkCount,
         /** Screen pixel position of a block center (headless click targeting). */
         projectCell: (wx: number, wz: number) => {
           const v = new Vector3(wx + 0.5, 0, wz + 0.5).project(rig.camera);
