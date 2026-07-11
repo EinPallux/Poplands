@@ -156,6 +156,18 @@ describe('parseSave', () => {
     // pre-existing settings values still survive the merge
     expect(parsed!.settings.volume).toBe(save.settings.volume);
   });
+
+  it('back-fills the musicVolume setting on a save that predates the bgm option', () => {
+    // musicVolume (optional bgm.mp3, S22) also shipped without a version bump — an
+    // older save's settings blob never persisted it, so normalize() must default it.
+    const save = makeSave();
+    const settings = save.settings as unknown as Record<string, unknown>;
+    delete settings['musicVolume'];
+    const parsed = parseSave(JSON.stringify(save));
+    expect(parsed).not.toBeNull();
+    expect(parsed!.settings.musicVolume).toBeGreaterThan(0);
+    expect(parsed!.settings.volume).toBe(save.settings.volume); // siblings untouched
+  });
 });
 
 describe('SaveManager', () => {

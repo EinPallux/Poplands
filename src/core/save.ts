@@ -17,7 +17,8 @@ export interface SavePlacement {
 }
 
 export interface SaveSettings {
-  volume: number; // 0..1
+  volume: number; // 0..1 — SFX / ambient
+  musicVolume: number; // 0..1 — optional user-supplied bgm.mp3 (S22)
   quality: 'auto' | 'high' | 'medium' | 'low';
   reducedMotion: boolean;
   timeOfDay: 'auto' | 'day' | 'dusk' | 'night'; // 'auto' = cycle; others freeze the sky
@@ -119,6 +120,7 @@ export const SAVE_VERSION = 4;
 
 export const DEFAULT_SETTINGS: SaveSettings = {
   volume: 0.8,
+  musicVolume: 0.5,
   quality: 'auto',
   reducedMotion: false,
   timeOfDay: 'auto',

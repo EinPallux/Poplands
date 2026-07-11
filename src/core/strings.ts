@@ -173,6 +173,7 @@ const en = {
   'settings.quality.medium': 'Medium',
   'settings.quality.low': 'Low',
   'settings.volume': 'Sound',
+  'settings.music': 'Music',
   'settings.time': 'Time of day',
   'settings.time.auto': 'Cycle',
   'settings.time.day': 'Day',

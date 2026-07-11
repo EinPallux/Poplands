@@ -53,6 +53,8 @@ export default [
         Blob: 'readonly',
         AudioContext: 'readonly',
         GainNode: 'readonly',
+        Audio: 'readonly',
+        HTMLAudioElement: 'readonly',
         FileReader: 'readonly',
         PointerEvent: 'readonly',
         WebGL2RenderingContext: 'readonly',
