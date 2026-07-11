@@ -513,6 +513,30 @@ body {
   text-align: right;
 }
 
+/* — island share (post-1.0) — */
+.s-code-block {
+  margin-top: 8px;
+}
+.s-code-hint {
+  font-size: 11px;
+  opacity: 0.75;
+  margin-bottom: 4px;
+}
+.s-code {
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  line-height: 1.35;
+  border-radius: 8px;
+  border: 1.5px solid rgba(74, 63, 94, 0.25);
+  padding: 6px 8px;
+  background: rgba(255, 255, 255, 0.6);
+  color: var(--ui-ink);
+  word-break: break-all;
+}
+
 /* — toasts — */
 .toasts {
   position: absolute;

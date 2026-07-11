@@ -28,6 +28,8 @@ export class SettingsPanel {
     private readonly onExport: () => void,
     private readonly onImport: (file: File) => void,
     version: string,
+    private readonly onShare: () => Promise<string>,
+    private readonly onLoadCode: (code: string) => Promise<boolean>,
   ) {
     this.root = document.createElement('div');
     this.root.className = 'settings-root';
@@ -107,6 +109,18 @@ export class SettingsPanel {
         <button class="s-export">${t('settings.export')}</button>
         <button class="s-import">${t('settings.import')}</button>
       </div>
+      <div class="settings-actions">
+        <button class="s-share">${t('settings.share')}</button>
+        <button class="s-loadshare">${t('settings.loadShare')}</button>
+      </div>
+      <div class="s-code-block" style="display:none">
+        <div class="s-code-hint"></div>
+        <textarea class="s-code" rows="3" spellcheck="false"></textarea>
+        <div class="settings-actions">
+          <button class="s-copylink">${t('settings.copyLink')}</button>
+          <button class="s-doload">${t('settings.load')}</button>
+        </div>
+      </div>
       <input class="s-file" type="file" accept=".json,application/json" style="display:none">
       <div class="settings-version">v${version}</div>`;
     this.root.appendChild(this.panel);
@@ -174,6 +188,56 @@ export class SettingsPanel {
       const f = file.files?.[0];
       if (f) this.onImport(f);
       file.value = '';
+    });
+
+    // — island share (post-1.0): a compact code + a ?island= link
+    const codeBlock = this.panel.querySelector('.s-code-block') as HTMLDivElement;
+    const codeHint = this.panel.querySelector('.s-code-hint') as HTMLDivElement;
+    const codeArea = this.panel.querySelector('.s-code') as HTMLTextAreaElement;
+    const copyLink = this.panel.querySelector('.s-copylink') as HTMLButtonElement;
+    const doLoad = this.panel.querySelector('.s-doload') as HTMLButtonElement;
+
+    const copyText = (text: string): void => {
+      try {
+        void navigator.clipboard?.writeText(text); // best-effort; the textarea is the fallback
+      } catch {
+        /* clipboard blocked (insecure context / headless) — ignore */
+      }
+    };
+
+    (this.panel.querySelector('.s-share') as HTMLButtonElement).addEventListener('click', () => {
+      void this.onShare().then((code) => {
+        codeBlock.style.display = '';
+        codeHint.textContent = t('share.codePrompt');
+        codeArea.readOnly = true;
+        codeArea.value = code;
+        copyLink.style.display = '';
+        doLoad.style.display = 'none';
+        codeArea.select();
+        copyText(code);
+        showToast(t('share.copied'));
+      });
+    });
+    (this.panel.querySelector('.s-loadshare') as HTMLButtonElement).addEventListener('click', () => {
+      codeBlock.style.display = '';
+      codeHint.textContent = t('share.pastePrompt');
+      codeArea.readOnly = false;
+      codeArea.value = '';
+      copyLink.style.display = 'none';
+      doLoad.style.display = '';
+      codeArea.focus();
+    });
+    copyLink.addEventListener('click', () => {
+      copyText(`${window.location.origin}${window.location.pathname}?island=${codeArea.value.trim()}`);
+      showToast(t('share.linkCopied'));
+    });
+    doLoad.addEventListener('click', () => {
+      const code = codeArea.value.trim();
+      if (!code) return;
+      if (!window.confirm(t('share.loadPrompt'))) return;
+      void this.onLoadCode(code).then((ok) => {
+        if (!ok) showToast(t('share.invalid')); // on success the page reloads
+      });
     });
   }
 

@@ -435,6 +435,8 @@ export class App {
         });
       },
       VERSION,
+      () => state.shareCode(),
+      (code) => state.loadShareCode(code),
     );
 
     // — quality: explicit setting wins; 'auto' uses the probe
@@ -571,6 +573,16 @@ export class App {
     state.start();
     bus.emit('app:ready', undefined);
 
+    // — shared-island link (post-1.0): a ?island=<code> URL offers to load it
+    const sharedCode = new URLSearchParams(window.location.search).get('island');
+    if (sharedCode) {
+      if (window.confirm(t('share.loadPrompt'))) {
+        void state.loadShareCode(sharedCode); // validates + reloads on success
+      } else {
+        window.history.replaceState(null, '', window.location.pathname); // don't re-prompt on refresh
+      }
+    }
+
     // — background-load the `early` wave (Tiers 5–14, no biome) once the boot frame
     // is settled. A cozy player takes many minutes to reach Tier 5, so this ~5 MB
     // wave has ample cover; `level:up` above is the safety net if idle never fires.
@@ -633,6 +645,11 @@ export class App {
         weatherRainbow: () => weather.forceRainbow(),
         giftPreview: () => state.dailyGift.preview(),
         claimGift: () => bus.emit('cmd:claimGift', undefined),
+        shareCode: () => state.shareCode(),
+        loadShareCode: (code: string) => state.loadShareCode(code),
+        importShare: (code: string) => state.importShareCode(code), // no-reload variant for verify
+        placementSummary: () =>
+          island.allPlacements().map((p) => `${p.def}@${p.wx},${p.wz},${p.rot}`).sort(),
         fishCollection: () => state.fishing.collection(),
         fishPhase: () => state.fishing.phase,
         fishTimer: () => state.fishing.remaining,

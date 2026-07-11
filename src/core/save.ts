@@ -360,6 +360,10 @@ function normalize(v2: Save): Save {
 export class SaveManager {
   private timer: ReturnType<typeof setTimeout> | null = null;
   private storage: Storage | null;
+  /** After an import replaces the save (a reload is imminent), stop autosaving so the
+   *  pagehide / visibilitychange writeNow can't clobber the freshly-imported save with
+   *  the now-stale in-memory state. */
+  private suspended = false;
 
   constructor(private readonly collect: () => Save) {
     this.storage = typeof localStorage === 'undefined' ? null : localStorage;
@@ -388,12 +392,13 @@ export class SaveManager {
 
   /** Debounced autosave — call on any mutating domain event. */
   requestSave(): void {
+    if (this.suspended) return;
     if (this.timer) clearTimeout(this.timer);
     this.timer = setTimeout(() => this.writeNow(), AUTOSAVE_DEBOUNCE_MS);
   }
 
   writeNow(): void {
-    if (!this.storage) return;
+    if (!this.storage || this.suspended) return;
     if (this.timer) {
       clearTimeout(this.timer);
       this.timer = null;
@@ -439,11 +444,14 @@ export class SaveManager {
     return JSON.stringify(this.collect());
   }
 
-  /** Validate + persist an imported save. Caller reloads the world after. */
+  /** Validate + persist an imported save. Caller reloads the world after. Suspends
+   *  autosave so the imminent reload's pagehide writeNow can't overwrite the imported
+   *  save with the stale in-memory state. */
   importString(json: string): Save | null {
     const parsed = parseSave(json);
     if (!parsed || !this.storage) return null;
     this.storage.setItem(KEY, JSON.stringify(parsed));
+    this.suspended = true;
     return parsed;
   }
 
