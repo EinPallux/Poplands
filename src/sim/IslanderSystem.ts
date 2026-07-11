@@ -95,6 +95,12 @@ export class IslanderSystem {
     this.reconcile();
   }
 
+  /** A live agent's world position (for the arrival popup anchor). */
+  positionOf(id: string): { x: number; z: number } | null {
+    const a = this.list.find((x) => x.id === id);
+    return a ? { x: a.x, z: a.z } : null;
+  }
+
   /** The renderer reads this each frame (stable array, mutated in place — no alloc). */
   get agents(): readonly AgentView[] {
     return this.list;
@@ -137,14 +143,14 @@ export class IslanderSystem {
     while (this.state.residents.length < target) {
       const def = ISLANDERS[this.state.residents.length]!;
       this.state.residents.push(def.id);
-      this.spawn(def);
-      bus.emit('npc:arrived', { id: def.id });
+      this.spawn(def, true); // a genuine move-in: walk in from the cloud edge
+      bus.emit('npc:arrived', { id: def.id, nameKey: def.nameKey });
     }
   }
 
-  private spawn(def: IslanderDef): void {
-    const cell = this.randomWalkableCell();
-    this.list.push({
+  private spawn(def: IslanderDef, arrival = false): void {
+    const cell = arrival ? this.randomWalkableEdge() : this.randomWalkableCell();
+    const agent: Agent = {
       id: def.id,
       model: def.model,
       x: cell.x,
@@ -155,7 +161,26 @@ export class IslanderSystem {
       tz: cell.z,
       timer: this.rng() * DWELL_SPAN, // stagger first steps so nobody marches in sync
       chat: 0,
-    });
+    };
+    if (arrival) {
+      // enter from the edge and stroll toward the island's heart (the move-in beat)
+      const c = this.island.center();
+      agent.tx = c.x;
+      agent.tz = c.z;
+      agent.moving = true;
+      agent.timer = WALK_TIMEOUT;
+      agent.yaw = Math.atan2(c.x - cell.x, c.z - cell.z);
+    }
+    this.list.push(agent);
+  }
+
+  private randomWalkableEdge(): { x: number; z: number } {
+    const edges = this.island.edgeCells().filter((e) => this.island.walkable(e.wx, e.wz));
+    if (edges.length) {
+      const e = edges[Math.floor(this.rng() * edges.length)]!;
+      return { x: e.wx + 0.5, z: e.wz + 0.5 };
+    }
+    return this.randomWalkableCell();
   }
 
   private stepWalk(a: Agent, dt: number): void {

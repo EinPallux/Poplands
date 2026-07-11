@@ -183,6 +183,24 @@ export class AudioSystem {
     }
   }
 
+  /** Happy little rising chirp when a Pal is petted (S18). */
+  pet(): void {
+    const ctx = this.ensure();
+    if (!ctx || !this.master) return;
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(620, now);
+    osc.frequency.exponentialRampToValueAtTime(1180, now + 0.14);
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.34, now + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.24);
+    osc.connect(gain).connect(this.master);
+    osc.start(now);
+    osc.stop(now + 0.26);
+  }
+
   /** Airy poof for removals — filtered noise burst. */
   poof(): void {
     const ctx = this.ensure();

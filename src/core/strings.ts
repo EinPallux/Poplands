@@ -33,6 +33,8 @@ const en = {
   'toast.levelUp': 'Level {level}! ✨ New things to build',
   'toast.questDone': 'Postcard complete! 💌',
   'toast.secretFound': 'A discovery! ✨',
+  'toast.npcArrived': '{name} moved in! 🏡',
+  'toast.palAdopted': 'A {pal} came to visit! 🐾',
 
   // expansion (S8) — survey markers on the island's free edges
   'survey.call': 'Call this chunk',
@@ -54,6 +56,14 @@ const en = {
   'npc.say.12': 'I’m just vibing, honestly.',
   'npc.say.13': 'You’re doing a wonderful job. ✨',
   'npc.say.14': 'Careful near the edge — big drop! 😅',
+
+  // pals (S18) — species names, lower-case for "A {pal} came to visit!"
+  'pal.cat.name': 'cat',
+  'pal.dog.name': 'dog',
+  'pal.bunny.name': 'bunny',
+  'pal.chick.name': 'chick',
+  'pal.pig.name': 'pig',
+  'pal.cow.name': 'cow',
 
   // islanders (S16) — proper names; localized tables may transliterate
   'npc.mo.name': 'Mo',

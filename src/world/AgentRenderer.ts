@@ -25,9 +25,14 @@ import { bus } from '@/core/events';
 import type { AssetRegistry } from '@/assets/AssetRegistry';
 import type { AgentView } from '@/sim/IslanderSystem';
 
-const AGENT_SCALE = 1.3; // ~1.0 block tall (models are ~0.78u; cozy, childlike)
-const MODEL_YAW_OFFSET = 0; // Pack-2 characters model-face +Z, matching the sim heading
 const BLEND_RATE = 12; // idle↔walk weight easing (per second)
+
+export interface AgentRenderOpts {
+  /** World-units tall to normalize each model to (Islanders ~1.0, Pals ~0.7). */
+  targetHeight?: number;
+  /** Extra yaw applied on top of the sim heading if a model's forward axis differs. */
+  yawOffset?: number;
+}
 
 interface AgentRec {
   root: Group;
@@ -48,9 +53,16 @@ export class AgentRenderer {
   private seen = new Set<string>();
   private raycaster = new Raycaster();
   private pointer = new Vector2();
+  private readonly targetHeight: number;
+  private readonly yawOffset: number;
 
-  constructor(private readonly assets: AssetRegistry) {
+  constructor(
+    private readonly assets: AssetRegistry,
+    opts?: AgentRenderOpts,
+  ) {
     this.group.name = 'agents';
+    this.targetHeight = opts?.targetHeight ?? 1.0;
+    this.yawOffset = opts?.yawOffset ?? 0;
     bus.on('agent:playClip', (e) => this.playClip(e.id, e.clip));
   }
 
@@ -61,7 +73,7 @@ export class AgentRenderer {
       this.seen.add(a.id);
       const rec = this.recs.get(a.id) ?? this.spawn(a);
       rec.root.position.set(a.x, rec.footY, a.z);
-      rec.root.rotation.y = a.yaw + MODEL_YAW_OFFSET;
+      rec.root.rotation.y = a.yaw + this.yawOffset;
 
       const target = a.moving ? 1 : 0;
       rec.walkW += (target - rec.walkW) * Math.min(1, BLEND_RATE * dt);
@@ -91,10 +103,11 @@ export class AgentRenderer {
 
   private spawn(a: AgentView): AgentRec {
     const { root, clips } = this.assets.cloneAnimated(a.model, { castShadow: true, receiveShadow: false });
-    root.scale.setScalar(AGENT_SCALE);
+    const meta = this.assets.meta(a.model);
+    const scale = this.targetHeight / (meta.size[1] || 1); // normalize to a cozy height
+    root.scale.setScalar(scale);
     root.userData['npcId'] = a.id; // so a raycast hit maps back to the roster id
-    const minY = this.assets.meta(a.model).aabb.min[1];
-    const footY = -minY * AGENT_SCALE; // seat the lowest vertex on y=0
+    const footY = -meta.aabb.min[1] * scale; // seat the lowest vertex on y=0
 
     const mixer = new AnimationMixer(root);
     const idle = bindAction(mixer, clips, 'idle');

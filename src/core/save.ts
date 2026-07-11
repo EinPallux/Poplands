@@ -41,11 +41,12 @@ export interface SaveSecret {
   reward: { pops: number; stardust: number; xp: number };
 }
 
-/** Persisted Islander roster (S16). `residents` are roster ids in move-in order;
- *  the list is monotonic (a removed home never evicts a neighbour). Live kinematics
- *  (positions, headings) are NOT persisted — Islanders simply re-scatter on load. */
+/** Persisted living-things roster (S16 Islanders + S18 Pals). `residents`/`pals` are
+ *  roster ids in arrival order; both lists are monotonic (nobody is ever evicted).
+ *  Live kinematics (positions, headings) are NOT persisted — they re-scatter on load. */
 export interface SaveIslanders {
   residents: string[];
+  pals: string[];
 }
 
 /** Persisted quest state (S15). Cumulative predicates keep per-quest counters in `progress`. */
@@ -123,7 +124,7 @@ export function freshEconomy(): SaveEconomy {
 }
 
 export function freshIslanders(): SaveIslanders {
-  return { residents: [] };
+  return { residents: [], pals: [] };
 }
 
 /**
@@ -260,6 +261,7 @@ function normalize(v2: Save): Save {
   v2.secrets ??= [];
   v2.islanders ??= freshIslanders();
   v2.islanders.residents ??= [];
+  v2.islanders.pals ??= [];
   v2.settings = { ...DEFAULT_SETTINGS, ...v2.settings };
   v2.island.placements ??= [];
   v2.player.level ??= 1;

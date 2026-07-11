@@ -154,10 +154,15 @@ export interface AppEvents extends Record<string, unknown> {
   };
 
   // islanders (S16, v0.5): little neighbours who move in as the island gains homes
-  'npc:arrived': { id: string }; // a resident moved in (roster id) — juice + persist
+  'npc:arrived': { id: string; nameKey: StringKey }; // a resident moved in — juice + persist
   'cmd:clickNpc': { id: string }; // player tapped an Islander → greet
   'npc:spoke': { id: string; textKey: StringKey }; // show a speech bubble + chatter blip
   'agent:playClip': { id: string; clip: string }; // one-shot emote over the idle/walk blend
+
+  // pals (S18, v0.5): animals that scamper in as the island gets lively
+  'pal:adopted': { id: string; nameKey: StringKey }; // a Pal came to visit — juice + persist
+  'cmd:clickPal': { id: string }; // player tapped a Pal → pet it
+  'pal:petted': { id: string }; // a Pal was petted → hearts + happy sound
 
   // juice set-piece framing (S11): the chunk-arrival soft input-lock window
   'juice:setPieceStarted': { kind: 'chunk-arrival' };

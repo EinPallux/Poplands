@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-11T09:54:23.004Z",
+  "generatedAt": "2026-07-11T10:51:45.209Z",
   "models": {
     "ground.grass-block": {
       "file": "assets/models/ground.grass-block.glb",
@@ -2340,6 +2340,204 @@
       ],
       "materials": 1,
       "meshes": 2
+    },
+    "pal.cat": {
+      "file": "assets/models/pal.cat.glb",
+      "bytes": 65696,
+      "aabb": {
+        "min": [
+          -0.6249999842681788,
+          -1.1920928966180355e-8,
+          -1.1036085391897648
+        ],
+        "max": [
+          0.6250000157318212,
+          1.7099943874685057,
+          0.7024125075974972
+        ]
+      },
+      "size": [
+        1.25,
+        1.7099943993894346,
+        1.806021046787262
+      ],
+      "clips": [
+        "static",
+        "idle",
+        "walk",
+        "run",
+        "eat",
+        "dance",
+        "gesture-positive",
+        "gesture-negative"
+      ],
+      "materials": 1,
+      "meshes": 7
+    },
+    "pal.dog": {
+      "file": "assets/models/pal.dog.glb",
+      "bytes": 52536,
+      "aabb": {
+        "min": [
+          -0.62499998426818,
+          -1.1920928966180355e-8,
+          -0.6250000380835026
+        ],
+        "max": [
+          0.6350000061950768,
+          1.5844366548864135,
+          0.8755174494424374
+        ]
+      },
+      "size": [
+        1.2599999904632568,
+        1.5844366668073424,
+        1.50051748752594
+      ],
+      "clips": [
+        "static",
+        "idle",
+        "walk",
+        "run",
+        "eat",
+        "dance",
+        "gesture-positive",
+        "gesture-negative"
+      ],
+      "materials": 1,
+      "meshes": 5
+    },
+    "pal.bunny": {
+      "file": "assets/models/pal.bunny.glb",
+      "bytes": 54512,
+      "aabb": {
+        "min": [
+          -0.62499998426818,
+          -1.1920928966180355e-8,
+          -0.6250000380835026
+        ],
+        "max": [
+          0.62500001573182,
+          2.010044574579407,
+          0.7048249459901363
+        ]
+      },
+      "size": [
+        1.25,
+        2.010044586500336,
+        1.329824984073639
+      ],
+      "clips": [
+        "static",
+        "idle",
+        "walk",
+        "run",
+        "eat",
+        "dance",
+        "gesture-positive",
+        "gesture-negative"
+      ],
+      "materials": 1,
+      "meshes": 5
+    },
+    "pal.chick": {
+      "file": "assets/models/pal.chick.glb",
+      "bytes": 53332,
+      "aabb": {
+        "min": [
+          -1.0979935415855322,
+          -1.1920928966180355e-8,
+          -0.6250000380835026
+        ],
+        "max": [
+          1.0979935684166038,
+          1.5942499636022338,
+          0.7250000453630001
+        ]
+      },
+      "size": [
+        2.195987110002136,
+        1.5942499755231627,
+        1.3500000834465027
+      ],
+      "clips": [
+        "static",
+        "idle",
+        "walk",
+        "run",
+        "eat",
+        "dance",
+        "gesture-positive",
+        "gesture-negative"
+      ],
+      "materials": 1,
+      "meshes": 5
+    },
+    "pal.pig": {
+      "file": "assets/models/pal.pig.glb",
+      "bytes": 54472,
+      "aabb": {
+        "min": [
+          -0.62499998426818,
+          -1.1920928966180355e-8,
+          -0.6250000380835026
+        ],
+        "max": [
+          0.62500001573182,
+          1.5844366548864135,
+          0.8350000000634701
+        ]
+      },
+      "size": [
+        1.25,
+        1.5844366668073424,
+        1.4600000381469727
+      ],
+      "clips": [
+        "static",
+        "idle",
+        "walk",
+        "run",
+        "eat",
+        "dance",
+        "gesture-positive",
+        "gesture-negative"
+      ],
+      "materials": 1,
+      "meshes": 6
+    },
+    "pal.cow": {
+      "file": "assets/models/pal.cow.glb",
+      "bytes": 57900,
+      "aabb": {
+        "min": [
+          -0.7697420558967506,
+          -1.1920928966180355e-8,
+          -0.6250000380835026
+        ],
+        "max": [
+          0.7697423257789696,
+          1.6123760937062988,
+          0.8350000000634701
+        ]
+      },
+      "size": [
+        1.5394843816757202,
+        1.6123761056272277,
+        1.4600000381469727
+      ],
+      "clips": [
+        "static",
+        "idle",
+        "walk",
+        "run",
+        "eat",
+        "dance",
+        "gesture-positive",
+        "gesture-negative"
+      ],
+      "materials": 1,
+      "meshes": 6
     }
   }
 }

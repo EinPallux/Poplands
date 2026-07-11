@@ -117,6 +117,8 @@ export class App {
 
     const agents = new AgentRenderer(assets); // Tier C: animated Islanders (S16)
     scene.add(agents.group);
+    const palAgents = new AgentRenderer(assets, { targetHeight: 0.7 }); // Pals (S18) — smaller
+    scene.add(palAgents.group);
 
     const hover = new HoverHighlight();
     scene.add(hover.mesh);
@@ -255,11 +257,31 @@ export class App {
     // full walk-in-from-the-edge move-in moment lands in a later v0.5 slice).
     bus.on('npc:arrived', (e) => {
       const a = state.islanders.agents.find((ag) => ag.id === e.id);
-      if (a) particles.sparkle(a.x, 0.9, a.z);
+      if (a) {
+        particles.sparkle(a.x, 0.9, a.z);
+        particles.coinBurst(a.x, 1.2, a.z);
+      }
       audio.chime();
+      showToast(t('toast.npcArrived').replace('{name}', t(e.nameKey)));
     });
     // tap-to-greet: a cute babble when an Islander speaks (bubble handled by SpeechLayer)
     bus.on('npc:spoke', () => audio.chatter());
+
+    // — pals (S18): adoption welcome + petting hearts
+    bus.on('pal:adopted', (e) => {
+      const p = state.pals.positionOf(e.id);
+      if (p) {
+        particles.sparkle(p.x, 0.5, p.z);
+        particles.hearts(p.x, 0.7, p.z);
+      }
+      audio.chime();
+      showToast(t('toast.palAdopted').replace('{pal}', t(e.nameKey)));
+    });
+    bus.on('pal:petted', (e) => {
+      const p = state.pals.positionOf(e.id);
+      if (p) particles.hearts(p.x, 0.8, p.z);
+      audio.pet();
+    });
 
     // — UI (thumbnails render post-boot; they'd otherwise delay first frame)
     initToasts(uiRoot);
@@ -323,12 +345,17 @@ export class App {
       onToolMove: () => bus.emit('cmd:setTool', { tool: 'move' }),
       onToolRemove: () => bus.emit('cmd:setTool', { tool: 'remove' }),
       onToggleDebug: () => debugHud.toggle(),
-      // tap an Islander (when not mid-build) to greet them — consumes the click
+      // tap an Islander to greet / a Pal to pet (when not mid-build) — consumes the click
       onPrimaryClick: (x, y) => {
         if (session.isActive) return false;
-        const id = agents.pickAt(x, y, rig.camera);
-        if (id) {
-          bus.emit('cmd:clickNpc', { id });
+        const npc = agents.pickAt(x, y, rig.camera);
+        if (npc) {
+          bus.emit('cmd:clickNpc', { id: npc });
+          return true;
+        }
+        const pal = palAgents.pickAt(x, y, rig.camera);
+        if (pal) {
+          bus.emit('cmd:clickPal', { id: pal });
           return true;
         }
         return false;
@@ -351,6 +378,8 @@ export class App {
       state.islanders.update(dt); // sim integrates kinematics (three.js-free)…
       agents.sync(state.islanders.agents, dt); // …then Tier C projects + animates
       speechLayer.update(state.islanders.agents, dt); // bubbles track their speaker
+      state.pals.update(dt);
+      palAgents.sync(state.pals.agents, dt);
     });
     loop.add((dt) => rig.update(dt));
     loop.add((dt) => tweens.update(dt));
@@ -406,6 +435,10 @@ export class App {
         residents: () => state.islanders.snapshot().residents.slice(),
         agentMeshes: () => agents.count,
         clickNpc: (id: string) => bus.emit('cmd:clickNpc', { id }),
+        pals: () => state.pals.agents.map((a) => ({ id: a.id, x: a.x, z: a.z, moving: a.moving })),
+        palRoster: () => state.pals.snapshot().pals.slice(),
+        palMeshes: () => palAgents.count,
+        clickPal: (id: string) => bus.emit('cmd:clickPal', { id }),
         /** Debug soak (non-persistent): grow the lattice to N chunks + rebuild once,
          *  skipping economy/arrival — for the draw/tri budget measurement only. */
         growTo: (n: number) => {
