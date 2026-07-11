@@ -1010,15 +1010,52 @@ body {
   position: absolute;
   top: 0;
   left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  will-change: transform;
+}
+
+/* Ambient state: a small gold dot hinting "income accruing" — subtle so a
+   busy island of low buildings doesn't shout. Fades in with fill. */
+.rb-dot {
   font-size: 15px;
   color: var(--accent-gold);
   opacity: calc(0.4 + var(--fill, 0) * 0.6);
   filter: drop-shadow(0 1px 2px rgba(120, 90, 0, 0.4));
-  will-change: transform;
 }
 
-.ripe-bubble.ripe {
+/* Prominent pill: a readable "● amount" bubble, shown only past the threshold
+   so the map stays calm until a building is genuinely worth a tap. */
+.rb-amt {
+  display: none;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--ui-ink);
+  background: var(--ui-cream);
+  padding: 4px 9px;
+  border-radius: 999px;
+  white-space: nowrap;
+  border: 1.5px solid rgba(255, 201, 75, 0.55);
+  box-shadow: 0 2px 8px rgba(74, 63, 94, 0.28);
+}
+
+.ripe-bubble.prominent .rb-dot {
+  display: none;
+}
+.ripe-bubble.prominent .rb-amt {
+  display: inline-block;
+  animation: rbPop 0.34s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Fully-ripe (frac ≥ 1) glows to invite collection — the dot for small
+   buildings, the pill for prominent ones. */
+.ripe-bubble.ripe:not(.prominent) .rb-dot {
   animation: ripePulse 1.1s ease-in-out infinite;
+}
+.ripe-bubble.ripe.prominent .rb-amt {
+  animation: ripePillPulse 1.2s ease-in-out infinite;
 }
 
 @keyframes ripePulse {
@@ -1028,6 +1065,37 @@ body {
   }
   50% {
     filter: drop-shadow(0 0 8px rgba(255, 201, 75, 0.9));
+  }
+}
+
+@keyframes ripePillPulse {
+  0%,
+  100% {
+    border-color: rgba(255, 201, 75, 0.55);
+    box-shadow: 0 2px 8px rgba(74, 63, 94, 0.28);
+  }
+  50% {
+    border-color: rgba(255, 201, 75, 1);
+    box-shadow: 0 0 14px rgba(255, 201, 75, 0.85);
+  }
+}
+
+@keyframes rbPop {
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ripe-bubble.ripe:not(.prominent) .rb-dot,
+  .ripe-bubble.ripe.prominent .rb-amt,
+  .ripe-bubble.prominent .rb-amt {
+    animation: none;
   }
 }
 
