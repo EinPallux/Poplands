@@ -45,6 +45,8 @@ import { FishingLayer } from '@/ui/FishingLayer';
 import { DailyGiftUI } from '@/ui/DailyGiftUI';
 import { MuseumPanel } from '@/ui/MuseumPanel';
 import { AchievementsWall } from '@/ui/AchievementsWall';
+import { RatingPanel } from '@/ui/RatingPanel';
+import { computeRating, type RatingSnapshot } from '@/content/rating';
 import { GardenLayer } from '@/ui/GardenLayer';
 import { SeedPicker } from '@/ui/SeedPicker';
 import { BiomePicker } from '@/ui/BiomePicker';
@@ -461,6 +463,29 @@ export class App {
     }));
     const journal = new FishJournal(dock, () => state.fishing.collection());
     const stamps = new AchievementsWall(dock, () => state.achievements.view()); // Stamp Book (K)
+    // Island Charm rating (retention + "what next?" tips) — snapshot assembled from live state
+    const ratingSnapshot = (): RatingSnapshot => {
+      let nature = 0, decor = 0, homes = 0, income = 0, gardens = 0;
+      const types = new Set<string>();
+      for (const p of island.allPlacements()) {
+        const def = itemDef(p.def);
+        if (!def) continue;
+        types.add(p.def);
+        if (def.id === 'nature.garden') gardens++;
+        if (def.category === 'nature') nature++;
+        else if (def.category === 'decor') decor++;
+        else if (def.category === 'home') homes++;
+        else if (def.category === 'income') income++;
+      }
+      return {
+        chunks: island.chunkCount,
+        nature, decor, homes, income, crops: gardens,
+        neighbours: state.islanders.snapshot().residents.length,
+        pals: state.pals.snapshot().pals.length,
+        distinctTypes: types.size,
+      };
+    };
+    const rating = new RatingPanel(dock, ratingSnapshot);
     new DailyGiftUI(uiRoot); // the once-a-day present (self-wires to gift:* events)
     const museumPanel = new MuseumPanel(uiRoot, () => {
       const v = state.museum.view();
@@ -750,6 +775,8 @@ export class App {
         endUse: (id: string) => state.islanders.debugEndUse(id),
         agentMeshY: (id: string) => agents.debugMeshY(id),
         achievementsView: () => state.achievements.view(),
+        ratingView: () => computeRating(ratingSnapshot()),
+        openRating: () => rating.toggle(true),
         gardenView: () => state.garden.view(),
         gardenStage: (id: string) => state.garden.stageOf(id),
         plantCrop: (id: string, crop: string) => bus.emit('cmd:plantCrop', { placementId: id, crop }),
