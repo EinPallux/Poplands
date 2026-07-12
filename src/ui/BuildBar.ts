@@ -103,7 +103,7 @@ export class BuildBar {
     const tools = document.createElement('div');
     tools.className = 'build-tools';
     top.appendChild(tools);
-    const toolButton = (label: string, tool: 'move' | 'remove', keyHint: string) => {
+    const toolButton = (label: string, tool: 'move' | 'remove' | 'biome', keyHint: string) => {
       const btn = document.createElement('button');
       btn.className = `build-tool tool-${tool}`;
       btn.innerHTML = `${label} <kbd>${keyHint}</kbd>`;
@@ -115,6 +115,7 @@ export class BuildBar {
     };
     toolButton(t('build.tool.move'), 'move', 'M');
     toolButton(t('build.tool.remove'), 'remove', 'X');
+    toolButton(t('build.tool.biome'), 'biome', 'G'); // re-theme a chunk's biome
 
     // — cards row
     this.cardsEl = document.createElement('div');
@@ -206,6 +207,7 @@ export class BuildBar {
       else if (tool === 'place') text = t('build.hint.place');
       else if (tool === 'move') text = carrying ? t('build.hint.carrying') : t('build.hint.move');
       else if (tool === 'remove') text = t('build.hint.remove');
+      else if (tool === 'biome') text = t('build.hint.biome');
       this.hintEl.textContent = text;
       this.hintEl.classList.toggle('blocked', tool === 'place' && !!blocked);
       this.hintEl.style.display = text ? '' : 'none';

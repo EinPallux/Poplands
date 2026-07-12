@@ -47,6 +47,7 @@ import { MuseumPanel } from '@/ui/MuseumPanel';
 import { AchievementsWall } from '@/ui/AchievementsWall';
 import { GardenLayer } from '@/ui/GardenLayer';
 import { SeedPicker } from '@/ui/SeedPicker';
+import { BiomePicker } from '@/ui/BiomePicker';
 import { PhotoMode } from '@/ui/PhotoMode';
 import { WorldFx } from '@/ui/WorldFx';
 import { SurveyLayer } from '@/ui/SurveyLayer';
@@ -319,6 +320,17 @@ export class App {
 
     // — expansion (F2): the chunk-arrival set piece, then swap in the merged island.
     bus.on('chunk:unlocked', (e) => chunkArrival.play(e.cx, e.cz, rebuildIsland));
+    // — re-theme (post-1.0): the biome changed → rebuild ground/slab from the new
+    // theme, rescan the ambient emitters (mist/bats/snow), and a soft confirm sparkle.
+    bus.on('chunk:reThemed', (e) => {
+      rebuildIsland();
+      themeAmbience.rescan();
+      audio.chime();
+      const wx = e.cx * 8 + 4;
+      const wz = e.cz * 8 + 4;
+      particles.sparkle(wx, 1.2, wz);
+      showToast(t('biome.changed'));
+    });
     // geometry changed → ease the camera out + refit shadows + recenter the sky
     // (immediate, while the chunk rises; the rig eases, never snaps — ART rule 6).
     bus.on('island:grew', () => {
@@ -419,6 +431,7 @@ export class App {
     const fishingLayer = new FishingLayer(uiRoot, (x, y, z) => rig.projectToScreen(x, y, z));
     const gardenLayer = new GardenLayer(uiRoot, (x, y, z) => rig.projectToScreen(x, y, z), () => state.garden.view());
     const seedPicker = new SeedPicker(uiRoot, () => state.save.player.level);
+    new BiomePicker(uiRoot, (cx, cz) => island.themeAt(cx, cz)); // Biome tool → re-theme picker
     // tap a Garden Patch: harvest if ripe, else open the seed picker on an empty plot
     bus.on('cmd:openGarden', ({ placementId }) => {
       const stage = state.garden.stageOf(placementId);
@@ -554,6 +567,7 @@ export class App {
       onToggleCatalog: () => catalogOpenSignal.update((v) => !v),
       onToolMove: () => bus.emit('cmd:setTool', { tool: 'move' }),
       onToolRemove: () => bus.emit('cmd:setTool', { tool: 'remove' }),
+      onToolBiome: () => bus.emit('cmd:setTool', { tool: 'biome' }),
       onToggleDebug: () => debugHud.toggle(),
       onToggleAlbum: () => album.toggle(),
       onTogglePhoto: () => photo.toggle(),
@@ -685,6 +699,9 @@ export class App {
         surveys: () => state.expansion.surveys(),
         buyChunk: (cx: number, cz: number) => bus.emit('cmd:buyChunk', { cx, cz }),
         chunkCount: () => island.chunkCount,
+        themeAtChunk: (cx: number, cz: number) => island.themeAt(cx, cz),
+        reTheme: (cx: number, cz: number, theme: ChunkTheme) => bus.emit('cmd:reThemeChunk', { cx, cz, theme }),
+        openBiomePicker: (cx: number, cz: number) => bus.emit('cmd:openBiomePicker', { cx, cz }),
         secrets: () => state.secrets.snapshot(),
         clickSecret: (cx: number, cz: number) => bus.emit('cmd:clickSecret', { cx, cz }),
         milestones: () => state.save.quests.milestones,

@@ -32,6 +32,15 @@ export class ExpansionSystem {
 
   wire(): void {
     this.unsubs.push(bus.on('cmd:buyChunk', (e) => this.onBuy(e.cx, e.cz)));
+    // re-theme a placed chunk's biome (post-1.0) — free, cosmetic, no-grind; the
+    // world rebuild + persistence react to the domain event we emit here.
+    this.unsubs.push(
+      bus.on('cmd:reThemeChunk', (e) => {
+        if (this.island.reTheme(e.cx, e.cz, e.theme)) {
+          bus.emit('chunk:reThemed', { cx: e.cx, cz: e.cz, theme: e.theme });
+        }
+      }),
+    );
   }
 
   dispose(): void {

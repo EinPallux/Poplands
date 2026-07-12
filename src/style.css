@@ -2025,7 +2025,7 @@ body {
   align-items: center;
   gap: 2px;
   pointer-events: none;
-  z-index: 30;
+  z-index: 12; /* above the build bar + world, below modal dialogs (backdrops at 20) */
   animation: wh-rise 0.5s cubic-bezier(0.34, 1.4, 0.5, 1);
 }
 .welcome-hint.gone {
@@ -2079,4 +2079,83 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .welcome-hint { animation: none; }
   .wh-arrow { animation: none; }
+}
+
+/* ——— Biome picker (post-1.0): change a chunk's biome ——— */
+.biome-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(40, 34, 54, 0.42);
+  pointer-events: auto;
+}
+.biome-panel {
+  position: relative;
+  width: min(420px, 92vw);
+  max-height: 80vh;
+  overflow-y: auto;
+  padding: 18px 20px;
+  border-radius: 18px;
+  background: var(--ui-cream);
+  color: var(--ui-ink);
+  box-shadow: 0 14px 40px rgba(40, 34, 54, 0.4);
+  transform-origin: 50% 50%;
+}
+.biome-panel h2 { margin: 0 0 4px; font-size: 19px; }
+.biome-sub { font-size: 12px; opacity: 0.75; margin-bottom: 14px; }
+.biome-close {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(120, 110, 130, 0.16);
+  color: var(--ui-ink);
+  font-size: 13px;
+  cursor: pointer;
+  line-height: 1;
+}
+.biome-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+.biome-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 8px 10px;
+  border: 2px solid rgba(120, 110, 130, 0.2);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.5);
+  color: var(--ui-ink);
+  cursor: pointer;
+  text-align: center;
+  font-family: inherit;
+  transition: transform 0.12s ease, border-color 0.12s ease;
+}
+.biome-card:hover { border-color: var(--accent-gold, #f0b429); background: rgba(240, 180, 41, 0.12); transform: translateY(-2px); }
+.biome-card.active { border-color: var(--accent-mint); background: rgba(127, 220, 164, 0.16); }
+.biome-swatch {
+  width: 100%;
+  height: 40px;
+  border-radius: 9px;
+  box-shadow: inset 0 -6px 10px rgba(0, 0, 0, 0.12);
+}
+.biome-emoji { font-size: 22px; line-height: 1; margin-top: 2px; }
+.biome-name { font-size: 13px; font-weight: 800; }
+.biome-current {
+  font-size: 10px;
+  font-weight: 800;
+  color: #fff;
+  background: var(--accent-mint);
+  border-radius: 999px;
+  padding: 1px 8px;
 }

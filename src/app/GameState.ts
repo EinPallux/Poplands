@@ -103,6 +103,13 @@ export class GameState {
       this.save.island.chunks.push({ cx: e.cx, cz: e.cz, theme: e.theme });
     });
 
+    // re-theming a chunk (post-1.0) updates its persisted biome in place (kept out of
+    // collect() alongside the chunk set, so a mid-session re-theme survives autosave)
+    bus.on('chunk:reThemed', (e) => {
+      const chunk = this.save.island.chunks.find((c) => c.cx === e.cx && c.cz === e.cz);
+      if (chunk) chunk.theme = e.theme;
+    });
+
     // autosave on every mutation (debounced inside the manager)
     for (const ev of [
       'item:placed',
@@ -124,6 +131,7 @@ export class GameState {
       'achievement:earned', // a new stamp → persist the Stamp Book
       'garden:planted', // a seed went in → persist the plot
       'garden:harvested', // a crop came out → persist the empty plot + tally
+      'chunk:reThemed', // changed a chunk's biome → persist the new theme
       'settings:changed',
     ] as const) {
       bus.on(ev, () => this.manager.requestSave());
