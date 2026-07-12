@@ -35,6 +35,8 @@ import { LoadingScreen } from '@/ui/LoadingScreen';
 import { BuildBar } from '@/ui/BuildBar';
 import { SettingsPanel } from '@/ui/SettingsPanel';
 import { TopBar } from '@/ui/TopBar';
+import { Tooltip, tip } from '@/ui/Tooltip';
+import { WelcomeHint } from '@/ui/WelcomeHint';
 import { IslandStats } from '@/ui/IslandStats';
 import { Mailbox } from '@/ui/Mailbox';
 import { Album } from '@/ui/Album';
@@ -390,6 +392,7 @@ export class App {
 
     // — UI (thumbnails render post-boot; they'd otherwise delay first frame)
     initToasts(uiRoot);
+    new Tooltip(uiRoot); // one delegated custom tooltip for the whole HUD (replaces title=)
     const topBar = new TopBar(uiRoot, () => ({
       dayPhase: timeOfDay.dayPhase,
       season: season.current,
@@ -466,10 +469,14 @@ export class App {
     photoBtn.className = 'dock-btn';
     photoBtn.textContent = '📷';
     photoBtn.setAttribute('aria-label', t('photo.title'));
+    tip(photoBtn, t('photo.title'));
     photoBtn.addEventListener('click', () => photo.toggle());
     dock.appendChild(photoBtn);
     const buildBar = new BuildBar(uiRoot);
     setTimeout(() => buildBar.setThumbnails(renderThumbnails(assets)), 80);
+    // brand-new players: a friendly welcome coach-mark pointing at the build bar
+    // (only when nothing has ever been placed; retires on the first placement)
+    new WelcomeHint(uiRoot, state.save.quests.milestones.itemsPlaced === 0);
     // — phased asset streaming (S4 §5): later waves fetch in the background so first
     // paint waits only on boot. Each trigger is idempotent (loadPhase no-ops if done);
     // thumbnails re-render in place as each wave lands (BuildBar.setThumbnails is additive).

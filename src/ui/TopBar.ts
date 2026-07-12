@@ -11,6 +11,7 @@ import { popsSignal, stardustSignal, levelSignal, levelProgressSignal } from '@/
 import { tweens, easings } from '@/core/tween';
 import { isReducedMotion } from '@/core/settingsStore';
 import { t } from '@/core/strings';
+import { tip } from '@/ui/Tooltip';
 
 export interface WorldStatus {
   dayPhase: 'dawn' | 'day' | 'dusk' | 'night';
@@ -30,6 +31,8 @@ export class TopBar {
   private timeEl: HTMLElement;
   private seasonEl: HTMLElement;
   private weatherEl: HTMLElement;
+  private seasonChip!: HTMLElement;
+  private weatherChip!: HTMLElement;
   private lastStatus = '';
 
   constructor(
@@ -69,6 +72,10 @@ export class TopBar {
     this.popsAnchor = popsPill;
     bindCounter(popsPill, () => Math.floor(popsSignal.get()));
     bindCounter(sdPill, () => stardustSignal.get());
+    // custom tooltips: explain the currencies + the player badge for new players
+    tip(popsPill, t('tip.pops'));
+    tip(sdPill, t('tip.stardust'));
+    tip(bar.querySelector('.tb-player') as HTMLElement, t('tip.level'));
 
     const fg = bar.querySelector('.tb-ring-fg') as SVGCircleElement;
     const lv = bar.querySelector('.tb-lv') as HTMLElement;
@@ -83,6 +90,11 @@ export class TopBar {
     this.timeEl = bar.querySelector('.tb-time') as HTMLElement;
     this.seasonEl = bar.querySelector('.tb-season .tb-stat-icon') as HTMLElement;
     this.weatherEl = bar.querySelector('.tb-weather .tb-stat-icon') as HTMLElement;
+    this.seasonChip = bar.querySelector('.tb-season') as HTMLElement;
+    this.weatherChip = bar.querySelector('.tb-weather') as HTMLElement;
+    // the time chip shows its label already, so a static concept tooltip is enough;
+    // season/weather are icon-only, so their tooltips name the live value (set in update)
+    tip(this.timeEl, t('tip.time'));
   }
 
   /** Refresh the world-status cluster (called each frame; diffed so it's cheap). */
@@ -93,9 +105,10 @@ export class TopBar {
     this.lastStatus = key;
     this.timeEl.innerHTML = `<span class="tb-stat-icon">${DAY_ICON[s.dayPhase]}</span><span class="tb-stat-label">${t(`status.${s.dayPhase}`)}</span>`;
     this.seasonEl.textContent = SEASON_ICON[s.season];
-    this.seasonEl.parentElement!.title = t(`season.${s.season}`);
     this.weatherEl.textContent = WEATHER_ICON[s.weather];
-    this.weatherEl.parentElement!.title = t(`weather.${s.weather}`);
+    // custom tooltip names the current season/weather (chips are icon-only) + explains it
+    tip(this.seasonChip, `${t(`season.${s.season}`)} — ${t('tip.season')}`);
+    tip(this.weatherChip, `${t(`weather.${s.weather}`)} — ${t('tip.weather')}`);
   }
 }
 

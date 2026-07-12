@@ -7,6 +7,7 @@
  */
 import { bus } from '@/core/events';
 import { t, type StringKey } from '@/core/strings';
+import { attr } from '@/ui/Tooltip';
 
 export interface IslandStatsData {
   neighbours: number;
@@ -17,11 +18,11 @@ export interface IslandStatsData {
 }
 
 const CHIPS: ReadonlyArray<{ key: keyof IslandStatsData; icon: string; titleKey: StringKey }> = [
-  { key: 'neighbours', icon: '🧑', titleKey: 'stats.neighbours' },
-  { key: 'pals', icon: '🐾', titleKey: 'stats.pals' },
-  { key: 'chunks', icon: '🧭', titleKey: 'stats.chunks' },
-  { key: 'crops', icon: '🌱', titleKey: 'stats.crops' },
-  { key: 'stamps', icon: '🎖️', titleKey: 'stats.stamps' },
+  { key: 'neighbours', icon: '🧑', titleKey: 'tip.neighbours' },
+  { key: 'pals', icon: '🐾', titleKey: 'tip.pals' },
+  { key: 'chunks', icon: '🧭', titleKey: 'tip.chunks' },
+  { key: 'crops', icon: '🌱', titleKey: 'tip.crops' },
+  { key: 'stamps', icon: '🎖️', titleKey: 'tip.stamps' },
 ];
 
 // events after which a count might have changed (re-render on any of them)
@@ -59,7 +60,7 @@ export class IslandStats {
     this.last = key;
     this.root.innerHTML = CHIPS.map(
       (c) =>
-        `<div class="istat" title="${t(c.titleKey)}"><span class="istat-icon">${c.icon}</span><span class="istat-n">${d[c.key]}</span></div>`,
+        `<div class="istat" data-tip="${attr(t(c.titleKey))}"><span class="istat-icon">${c.icon}</span><span class="istat-n">${d[c.key]}</span></div>`,
     ).join('');
   }
 }

@@ -134,11 +134,7 @@ async function main(): Promise<void> {
   await sleep(page, 500);
   const afterPops = await pl(page, () => (window as any).__poplands.wallet().pops);
   check('clicking the bubble collects the income (Pops up)', afterPops > collect.before, `${collect.before} → ${afterPops}`);
-  const gone = await pl(page, () => {
-    const h = (window as any).__poplands;
-    const id = h.placementsOf('income.stall')[0];
-    return h.ripen ? document.querySelectorAll('.ripe-bubble.ripe').length : -1;
-  });
+  const gone = await pl(page, () => document.querySelectorAll('.ripe-bubble.ripe').length);
   check('the bubble empties after collecting', gone === 0, `ripe bubbles=${gone}`);
 
   check('no page errors across the run', errors.length === 0, errors.slice(0, 2).join(' | '));

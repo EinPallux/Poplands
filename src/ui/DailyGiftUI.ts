@@ -7,6 +7,7 @@
  */
 import { bus, type QuestReward } from '@/core/events';
 import { t } from '@/core/strings';
+import { tip } from '@/ui/Tooltip';
 import { tweens, easings } from '@/core/tween';
 import { isReducedMotion } from '@/core/settingsStore';
 
@@ -21,7 +22,7 @@ export class DailyGiftUI {
     this.btn = document.createElement('button');
     this.btn.className = 'gift-btn';
     this.btn.textContent = '🎁';
-    this.btn.title = t('gift.ready');
+    tip(this.btn, t('gift.ready'));
     this.btn.setAttribute('aria-label', t('gift.ready'));
     this.btn.style.display = 'none';
     this.btn.addEventListener('click', () => bus.emit('cmd:claimGift', undefined));

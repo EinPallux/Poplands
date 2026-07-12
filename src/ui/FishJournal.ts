@@ -5,6 +5,7 @@
  * Mirrors the Island Album. Text via the string table.
  */
 import { t } from '@/core/strings';
+import { tip } from '@/ui/Tooltip';
 import { FISH } from '@/content/fish';
 
 export interface JournalData {
@@ -29,6 +30,7 @@ export class FishJournal {
     const btn = document.createElement('button');
     btn.className = 'journal-btn';
     btn.setAttribute('aria-label', t('journal.title'));
+    tip(btn, t('journal.title'));
     btn.textContent = '🎣';
     btn.addEventListener('click', () => this.toggle());
     this.root.appendChild(btn);

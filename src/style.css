@@ -1970,3 +1970,113 @@ body {
 .gp-day { font-size: 15px; font-weight: 800; letter-spacing: 0.02em; }
 .gp-reward { font-size: 18px; font-weight: 800; color: var(--accent-gold); }
 .gp-note { font-size: 12px; opacity: 0.7; margin-top: 3px; }
+
+/* ── Custom tooltips (post-1.0): cozy bubbles replacing browser title= ── */
+.tooltip {
+  position: fixed;
+  left: 0;
+  top: 0;
+  max-width: 240px;
+  padding: 7px 11px;
+  border-radius: 11px;
+  background: var(--ui-ink);
+  color: var(--ui-cream);
+  font-size: calc(12.5px * var(--ui-scale, 1));
+  font-weight: 600;
+  line-height: 1.35;
+  text-align: center;
+  box-shadow: 0 6px 18px rgba(74, 63, 94, 0.32);
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(4px) scale(0.96);
+  transition: opacity 0.14s ease, transform 0.14s ease;
+  z-index: 90; /* above panels + dock, below modal celebrations */
+  white-space: normal;
+}
+.tooltip.show {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+/* little pointer nub — points down for the top bar, up for everything else */
+.tooltip::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  background: var(--ui-ink);
+  transform: translateX(-50%) rotate(45deg);
+}
+.tooltip:not(.below)::after { bottom: -3px; }
+.tooltip.below::after { top: -3px; }
+@media (prefers-reduced-motion: reduce) {
+  .tooltip { transition: none; transform: none; }
+  .tooltip.show { transform: none; }
+}
+
+/* ── Empty-island welcome coach-mark (post-1.0) — points at the build bar ── */
+.welcome-hint {
+  position: absolute;
+  left: 50%;
+  bottom: 188px;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  pointer-events: none;
+  z-index: 30;
+  animation: wh-rise 0.5s cubic-bezier(0.34, 1.4, 0.5, 1);
+}
+.welcome-hint.gone {
+  opacity: 0;
+  transform: translateX(-50%) translateY(10px);
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+.wh-card {
+  max-width: 340px;
+  padding: 14px 18px 13px;
+  border-radius: 16px;
+  background: var(--ui-cream);
+  color: var(--ui-ink);
+  text-align: center;
+  box-shadow: 0 10px 28px rgba(58, 48, 80, 0.28);
+  border: 3px solid var(--accent-gold);
+  pointer-events: auto;
+}
+.wh-title { font-size: 17px; font-weight: 800; margin-bottom: 5px; }
+.wh-body { font-size: 13px; line-height: 1.45; opacity: 0.85; }
+.wh-dismiss {
+  margin-top: 11px;
+  padding: 7px 18px;
+  border: none;
+  border-radius: 999px;
+  background: var(--accent-mint);
+  color: #fff;
+  font-weight: 800;
+  font-size: 13px;
+  cursor: pointer;
+  box-shadow: 0 3px 10px rgba(74, 63, 94, 0.2);
+  transition: transform 0.15s ease;
+}
+.wh-dismiss:hover { transform: scale(1.06); }
+.wh-arrow {
+  font-size: 26px;
+  line-height: 1;
+  color: var(--accent-gold);
+  margin-top: -2px;
+  animation: wh-bob 1.4s ease-in-out infinite;
+  text-shadow: 0 2px 4px rgba(58, 48, 80, 0.25);
+}
+@keyframes wh-rise {
+  from { opacity: 0; transform: translateX(-50%) translateY(16px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+@keyframes wh-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(5px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .welcome-hint { animation: none; }
+  .wh-arrow { animation: none; }
+}
