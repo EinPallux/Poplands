@@ -89,4 +89,16 @@ describe('PalSystem (S18)', () => {
       }
     }
   });
+
+  it('has a full 12-Pal menagerie: unique ids + named, models reused across species', () => {
+    expect(PALS).toHaveLength(MAX_PALS); // 12 companions
+    expect(new Set(PALS.map((p) => p.id)).size).toBe(PALS.length); // ids all unique (AgentRenderer keys by id)
+    expect(new Set(PALS.map((p) => p.model)).size).toBe(6); // reuses the six baked Cube Pet models
+    for (const p of PALS) {
+      expect(p.model).toMatch(/^pal\./);
+      expect(p.nameKey).toMatch(/^pal\..+\.name$/);
+      expect(p.icon.length).toBeGreaterThan(0);
+    }
+    expect(PALS[0]!.id).toBe('cat'); // adoption order + save compat: cat still first
+  });
 });

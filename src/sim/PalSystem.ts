@@ -182,7 +182,9 @@ export class PalSystem {
   private rest(p: Pal): void {
     p.moving = false;
     p.timer = DWELL_MIN + this.rng() * DWELL_SPAN;
-    if (this.rng() < 0.25) bus.emit('agent:playClip', { id: p.id, clip: 'eat' }); // nibble the grass
+    const r = this.rng();
+    if (r < 0.25) bus.emit('agent:playClip', { id: p.id, clip: 'eat' }); // nibble the grass
+    else if (r < 0.36) bus.emit('agent:playClip', { id: p.id, clip: 'dance' }); // a playful hop
   }
 
   private randomWalkableEdge(): { x: number; z: number } {

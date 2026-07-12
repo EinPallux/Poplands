@@ -59,12 +59,18 @@ const en = {
   'npc.say.14': 'Careful near the edge — big drop! 😅',
 
   // pals (S18) — species names, lower-case for "A {pal} came to visit!"
-  'pal.cat.name': 'cat',
-  'pal.dog.name': 'dog',
-  'pal.bunny.name': 'bunny',
-  'pal.chick.name': 'chick',
-  'pal.pig.name': 'pig',
-  'pal.cow.name': 'cow',
+  'pal.cat.name': 'Marmalade',
+  'pal.dog.name': 'Biscuit',
+  'pal.bunny.name': 'Clover',
+  'pal.chick.name': 'Sunny',
+  'pal.pig.name': 'Truffle',
+  'pal.cow.name': 'Buttercup',
+  'pal.cat2.name': 'Shadow',
+  'pal.dog2.name': 'Pepper',
+  'pal.bunny2.name': 'Hazel',
+  'pal.chick2.name': 'Pip',
+  'pal.pig2.name': 'Rosie',
+  'pal.cow2.name': 'Clarabelle',
 
   // islanders (S16) — proper names; localized tables may transliterate
   'npc.mo.name': 'Mo',
@@ -224,7 +230,7 @@ const en = {
   'ach.first-pal.name': 'New Friend',
   'ach.first-pal.desc': 'Befriend your first Pal.',
   'ach.menagerie.name': 'Menagerie',
-  'ach.menagerie.desc': 'Befriend all 6 Pals.',
+  'ach.menagerie.desc': 'Befriend all 12 Pals.',
   'ach.first-coins.name': 'Piggy Bank',
   'ach.first-coins.desc': 'Collect 1,000 Pops.',
   'ach.tycoon.name': 'Tycoon',

@@ -99,7 +99,7 @@ describe('AchievementSystem', () => {
 
   it('snapshot round-trips the earned set', () => {
     const stats = zero();
-    stats.pals = 6;
+    stats.pals = 12; // a full menagerie (MAX_PALS)
     sys = new AchievementSystem(freshAchievements(), () => stats);
     sys.announce(); // grants first-pal + menagerie
     const snap = sys.snapshot();
