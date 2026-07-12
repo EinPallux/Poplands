@@ -83,6 +83,16 @@ export class IslandModel {
     return true;
   }
 
+  /** Change an owned chunk's biome (post-1.0 re-theme). Returns false if the chunk
+   *  isn't owned or already wears that theme — the world only rebuilds on a real change. */
+  reTheme(cx: number, cz: number, theme: ChunkTheme): boolean {
+    const k = chunkKey(cx, cz);
+    if (!this.chunks.has(k)) return false;
+    if (this.themes.get(k) === theme) return false;
+    this.themes.set(k, theme);
+    return true;
+  }
+
   /** Unowned chunk cells edge-adjacent to the island — the survey candidates (S8).
    *  Deterministically ordered (by cz, then cx) so offers are stable/reproducible.
    *  Every slot is lattice-connected by construction (no detached islands). */

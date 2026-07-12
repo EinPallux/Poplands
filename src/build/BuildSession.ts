@@ -6,14 +6,14 @@
  */
 import { Group, type Object3D } from 'three';
 import { bus, type BlockReasonUi } from '@/core/events';
-import { footprintCenter, rotYaw, edgeAnchorOrigin, type Rot } from '@/core/grid';
+import { footprintCenter, rotYaw, edgeAnchorOrigin, worldToChunk, type Rot } from '@/core/grid';
 import { itemDef, type ItemDef } from '@/content/catalog';
 import type { IslandModel, Placement } from '@/world/IslandModel';
 import type { PropRenderer } from '@/world/PropRenderer';
 import type { EconomySystem } from '@/sim/EconomySystem';
 import { carryBob } from '@/vfx/presets';
 
-export type BuildTool = 'none' | 'place' | 'move' | 'remove';
+export type BuildTool = 'none' | 'place' | 'move' | 'remove' | 'biome';
 
 interface GhostState {
   def: ItemDef;
@@ -193,10 +193,21 @@ export class BuildSession {
       case 'remove':
         this.tryRemove(cell);
         return;
+      case 'biome':
+        // clicking any block in the biome tool opens the picker for that chunk
+        this.openBiomePicker(cell);
+        return;
       case 'none':
         this.tryCollect(cell);
         return;
     }
+  }
+
+  /** Biome tool: map the clicked block to its chunk and open the biome picker. */
+  private openBiomePicker(cell: { wx: number; wz: number }): void {
+    if (!this.island.hasBlock(cell.wx, cell.wz)) return; // clicked the void
+    const c = worldToChunk(cell.wx, cell.wz);
+    bus.emit('cmd:openBiomePicker', { cx: c.cx, cz: c.cz });
   }
 
   private tryPlace(cell: { wx: number; wz: number }): void {

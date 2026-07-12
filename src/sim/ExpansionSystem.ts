@@ -1,16 +1,15 @@
 /**
- * Chunk expansion (S7/S8): offers up to 3 Surveys on the island's free edges,
+ * Chunk expansion (S7/S8): offers a Survey on EVERY free edge of the island,
  * charges both wallets on purchase, grows the lattice, and refreshes offers.
  * THREE.JS-FREE — the arrival set-piece + world rebuild are presentation's job,
- * reacting to `chunk:unlocked` / `island:grew` (F2 flow). Survey selection is a
- * deterministic seeded pick over the (sorted) candidates, re-rollable for a token
- * Pop fee (never a timer — no-grind covenant).
+ * reacting to `chunk:unlocked` / `island:grew` (F2 flow). A player can call a
+ * chunk on any frontier they can afford (user 2026-07-12) — no seeded subset and
+ * no re-roll; the biome each slot would become is still `themeFor`-seeded.
  */
 import { bus } from '@/core/events';
-import { mulberry32 } from '@/core/math';
-import { chunkPrice, canExpand, REROLL_POPS, type ChunkPrice } from '@/content/expansion';
+import { chunkPrice, canExpand, type ChunkPrice } from '@/content/expansion';
 import { themeFor } from '@/content/themes';
-import type { ChunkCoord, ChunkTheme } from '@/core/grid';
+import type { ChunkTheme } from '@/core/grid';
 import type { IslandModel } from '@/world/IslandModel';
 import type { EconomySystem } from './EconomySystem';
 
@@ -22,11 +21,8 @@ export interface SurveySlot {
   theme: ChunkTheme;
 }
 
-const MAX_SURVEYS = 3;
-
 export class ExpansionSystem {
   private unsubs: Array<() => void> = [];
-  private rerollNonce = 0;
 
   constructor(
     private readonly island: IslandModel,
@@ -35,9 +31,15 @@ export class ExpansionSystem {
   ) {}
 
   wire(): void {
+    this.unsubs.push(bus.on('cmd:buyChunk', (e) => this.onBuy(e.cx, e.cz)));
+    // re-theme a placed chunk's biome (post-1.0) — free, cosmetic, no-grind; the
+    // world rebuild + persistence react to the domain event we emit here.
     this.unsubs.push(
-      bus.on('cmd:buyChunk', (e) => this.onBuy(e.cx, e.cz)),
-      bus.on('cmd:rerollSurveys', () => this.onReroll()),
+      bus.on('cmd:reThemeChunk', (e) => {
+        if (this.island.reTheme(e.cx, e.cz, e.theme)) {
+          bus.emit('chunk:reThemed', { cx: e.cx, cz: e.cz, theme: e.theme });
+        }
+      }),
     );
   }
 
@@ -51,35 +53,18 @@ export class ExpansionSystem {
     bus.emit('chunk:offered', { slots: this.surveys() });
   }
 
-  /** Up to 3 buyable adjacent chunk slots, all at the current price. []=at the cap. */
+  /** EVERY buyable adjacent chunk slot (all four sides), all at the current price —
+   *  a player can call a chunk on any frontier (user 2026-07-12). []=at the cap. */
   surveys(): SurveySlot[] {
     if (!canExpand(this.island.chunkCount)) return [];
-    const candidates = this.island.expandableSlots();
-    if (candidates.length === 0) return [];
     const price = chunkPrice(this.island.chunkCount);
-    return this.pick(candidates, MAX_SURVEYS).map((c) => ({
+    return this.island.expandableSlots().map((c) => ({
       cx: c.cx,
       cz: c.cz,
       pops: price.pops,
       stardust: price.stardust,
       theme: themeFor(this.seed, c.cx, c.cz),
     }));
-  }
-
-  /** Deterministic subset (seeded Fisher–Yates) — stable per (seed, size, nonce). */
-  private pick(items: readonly ChunkCoord[], k: number): ChunkCoord[] {
-    if (items.length <= k) return [...items];
-    const rng = mulberry32(
-      (this.seed ^ (this.island.chunkCount * 2654435761) ^ (this.rerollNonce * 40503)) >>> 0,
-    );
-    const arr = [...items];
-    for (let i = arr.length - 1; i > 0; i--) {
-      const j = Math.floor(rng() * (i + 1));
-      const tmp = arr[i]!;
-      arr[i] = arr[j]!;
-      arr[j] = tmp;
-    }
-    return arr.slice(0, k);
   }
 
   private onBuy(cx: number, cz: number): void {
@@ -92,20 +77,9 @@ export class ExpansionSystem {
     }
     const theme = themeFor(this.seed, cx, cz);
     this.island.addChunk(cx, cz, theme);
-    this.rerollNonce++; // offers refresh after a purchase (F2)
     bus.emit('chunk:unlocked', { cx, cz, index: this.island.chunkCount, theme });
     bus.emit('island:grew', undefined);
-    bus.emit('chunk:offered', { slots: this.surveys() });
-  }
-
-  private onReroll(): void {
-    if (this.island.expandableSlots().length <= MAX_SURVEYS) return; // nothing new to show
-    if (!this.economy.trySpend(REROLL_POPS, 0)) {
-      bus.emit('purchase:denied', { reason: 'pops' });
-      return;
-    }
-    this.rerollNonce++;
-    bus.emit('chunk:offered', { slots: this.surveys() });
+    bus.emit('chunk:offered', { slots: this.surveys() }); // new frontier slots opened up
   }
 
   /** For debug/tests — the current price the next chunk would cost. */

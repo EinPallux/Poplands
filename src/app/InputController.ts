@@ -19,6 +19,7 @@ export interface InputCallbacks {
   onToggleCatalog: () => void; // B
   onToolMove: () => void; // M
   onToolRemove: () => void; // X
+  onToolBiome: () => void; // G — Biome re-theme tool
   onToggleDebug: () => void; // `
   onToggleAlbum: () => void; // J — Island Album
   onTogglePhoto: () => void; // P — Photo mode
@@ -129,6 +130,9 @@ export class InputController {
       case 'KeyX':
       case 'Delete':
         this.callbacks.onToolRemove();
+        return;
+      case 'KeyG':
+        this.callbacks.onToolBiome();
         return;
       case 'KeyJ':
         this.callbacks.onToggleAlbum();

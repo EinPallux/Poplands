@@ -3,6 +3,7 @@
  * One panel at a time, Esc-dismissable (GDD §11.3).
  */
 import { t } from '@/core/strings';
+import { tip } from '@/ui/Tooltip';
 import { effect } from '@/core/signals';
 import {
   volumeSignal,
@@ -38,6 +39,7 @@ export class SettingsPanel {
     const gear = document.createElement('button');
     gear.className = 'settings-gear';
     gear.setAttribute('aria-label', t('settings.title'));
+    tip(gear, t('settings.title'));
     gear.innerHTML =
       '<svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm9 4a7 7 0 0 0-.1-1.2l2-1.5-2-3.5-2.4 1a7 7 0 0 0-2-1.2L16 3h-4l-.4 2.6a7 7 0 0 0-2 1.2l-2.4-1-2 3.5 2 1.5a7 7 0 0 0 0 2.4l-2 1.5 2 3.5 2.4-1a7 7 0 0 0 2 1.2L12 21h4l.4-2.6a7 7 0 0 0 2-1.2l2.4 1 2-3.5-2-1.5c.1-.4.2-.8.2-1.2z"/></svg>';
     gear.addEventListener('click', () => this.toggle());

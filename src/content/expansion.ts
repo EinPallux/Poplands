@@ -12,7 +12,6 @@
  */
 export const STARTER_CHUNKS = 4;
 export const CHUNK_SOFT_CAP = 36; // GDD §5.1 — invisible; offers simply stop here
-export const REROLL_POPS = 10; // token fee to re-roll survey positions (never a timer)
 
 const round10 = (n: number): number => Math.round(n / 10) * 10;
 

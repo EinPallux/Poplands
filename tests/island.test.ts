@@ -100,4 +100,29 @@ describe('IslandModel occupancy & placements', () => {
       expect(island.canPlace(dock, 16, 5, 0)).toEqual({ ok: false, reason: 'occupied' });
     });
   });
+
+  describe('re-theme a chunk (post-1.0)', () => {
+    it('changes an owned chunk’s biome and reports the change', () => {
+      expect(island.themeAt(0, 0)).toBe('meadow'); // default
+      expect(island.reTheme(0, 0, 'spooky')).toBe(true);
+      expect(island.themeAt(0, 0)).toBe('spooky');
+      // block-level lookup follows the chunk it belongs to
+      expect(island.themeAtBlock(3, 3)).toBe('spooky');
+    });
+
+    it('is a no-op (returns false) for an unchanged theme or an unowned chunk', () => {
+      island.reTheme(0, 0, 'sandbar');
+      expect(island.reTheme(0, 0, 'sandbar')).toBe(false); // already that theme
+      expect(island.reTheme(9, 9, 'snowcap')).toBe(false); // not owned
+      expect(island.themeAt(0, 0)).toBe('sandbar'); // unchanged
+    });
+
+    it('re-themes each chunk independently', () => {
+      island.reTheme(0, 0, 'snowcap');
+      island.reTheme(1, 1, 'sandbar');
+      expect(island.themeAt(0, 0)).toBe('snowcap');
+      expect(island.themeAt(1, 1)).toBe('sandbar');
+      expect(island.themeAt(1, 0)).toBe('meadow'); // untouched
+    });
+  });
 });

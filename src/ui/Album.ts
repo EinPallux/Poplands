@@ -4,6 +4,7 @@
  * Read-only; pulls a fresh snapshot each time it opens. Text via the string table.
  */
 import { t } from '@/core/strings';
+import { tip } from '@/ui/Tooltip';
 import { MILESTONES } from '@/content/quests';
 import { islanderDef } from '@/content/roster';
 import { palDef } from '@/content/pals';
@@ -34,6 +35,7 @@ export class Album {
     const btn = document.createElement('button');
     btn.className = 'album-btn';
     btn.setAttribute('aria-label', t('album.title'));
+    tip(btn, t('album.title')); // visible hover label (custom tooltip)
     btn.textContent = '📖';
     btn.addEventListener('click', () => this.toggle());
     this.root.appendChild(btn);

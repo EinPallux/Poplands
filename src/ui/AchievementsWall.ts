@@ -11,6 +11,7 @@
 import { bus } from '@/core/events';
 import { t } from '@/core/strings';
 import type { StringKey } from '@/core/strings';
+import { tip, attr } from '@/ui/Tooltip';
 import { tweens, easings } from '@/core/tween';
 import { isReducedMotion } from '@/core/settingsStore';
 
@@ -48,6 +49,7 @@ export class AchievementsWall {
     const btn = document.createElement('button');
     btn.className = 'stamps-btn';
     btn.setAttribute('aria-label', t('achievements.title'));
+    tip(btn, t('achievements.title'));
     btn.textContent = '🎖️';
     btn.addEventListener('click', () => this.toggle());
     this.root.appendChild(btn);
@@ -75,12 +77,12 @@ export class AchievementsWall {
       .map((s) => {
         if (s.earned) {
           return (
-            `<li class="stamp earned cat-${s.category}" title="${t(s.descKey)}">` +
+            `<li class="stamp earned cat-${s.category}" data-tip="${attr(t(s.descKey))}">` +
             `<span class="stamp-icon">${s.icon}</span><span class="stamp-name">${t(s.nameKey)}</span></li>`
           );
         }
         return (
-          `<li class="stamp locked" title="${t(s.descKey)}">` +
+          `<li class="stamp locked" data-tip="${attr(t(s.descKey))}">` +
           `<span class="stamp-icon">🔒</span><span class="stamp-name">${t(s.nameKey)}</span></li>`
         );
       })

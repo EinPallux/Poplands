@@ -76,15 +76,19 @@ export interface AppEvents extends Record<string, unknown> {
 
   // build commands (UI/input → session)
   'cmd:selectItem': { defId: string | null };
-  'cmd:setTool': { tool: 'place' | 'move' | 'remove' | 'none' };
+  'cmd:setTool': { tool: 'place' | 'move' | 'remove' | 'biome' | 'none' };
   'cmd:collect': { placementId: string };
   'cmd:collectAll': void;
   'cmd:skipPostcard': { id: string };
 
   // expansion commands (S7/S8, v0.4)
   'cmd:buyChunk': { cx: number; cz: number };
-  'cmd:rerollSurveys': void;
   'cmd:clickSecret': { cx: number; cz: number };
+  // re-theme a placed chunk's biome (post-1.0): the Biome tool picks a chunk, the
+  // picker chooses the new biome, ExpansionSystem mutates it, presentation rebuilds.
+  'cmd:openBiomePicker': { cx: number; cz: number };
+  'cmd:reThemeChunk': { cx: number; cz: number; theme: ChunkTheme };
+  'chunk:reThemed': { cx: number; cz: number; theme: ChunkTheme };
 
   // domain events (sim → presentation)
   'item:placed': { id: string; def: string; wx: number; wz: number; rot: 0 | 1 | 2 | 3; silent?: boolean };
@@ -92,7 +96,7 @@ export interface AppEvents extends Record<string, unknown> {
   // a move re-drops an existing placement id — a distinct event so quests/XP
   // never count it as a fresh placement (the quest-farming exploit the critique found)
   'item:moved': { id: string; def: string; wx: number; wz: number; rot: 0 | 1 | 2 | 3 };
-  'build:modeChanged': { tool: 'place' | 'move' | 'remove' | 'none'; carrying?: boolean };
+  'build:modeChanged': { tool: 'place' | 'move' | 'remove' | 'biome' | 'none'; carrying?: boolean };
   'build:ghostChanged': { valid: boolean; reason?: BlockReasonUi } | null;
   'build:rejected': { reason: BlockReasonUi };
   'island:changed': void;

@@ -14,7 +14,6 @@ import { QualityProbe, QUALITY_PRESETS, type QualityConfig } from '@/render/Qual
 import { AssetRegistry } from '@/assets/AssetRegistry';
 import { buildGround } from '@/world/GroundBuilder';
 import { buildIslandBase } from '@/world/SlabBuilder';
-import { buildLandmarks } from '@/world/StarterIsland';
 import { buildIslet } from '@/world/IsletBuilder';
 import { HoverHighlight } from '@/world/HoverHighlight';
 import { PropRenderer } from '@/world/PropRenderer';
@@ -36,6 +35,8 @@ import { LoadingScreen } from '@/ui/LoadingScreen';
 import { BuildBar } from '@/ui/BuildBar';
 import { SettingsPanel } from '@/ui/SettingsPanel';
 import { TopBar } from '@/ui/TopBar';
+import { Tooltip, tip } from '@/ui/Tooltip';
+import { WelcomeHint } from '@/ui/WelcomeHint';
 import { IslandStats } from '@/ui/IslandStats';
 import { Mailbox } from '@/ui/Mailbox';
 import { Album } from '@/ui/Album';
@@ -44,8 +45,11 @@ import { FishingLayer } from '@/ui/FishingLayer';
 import { DailyGiftUI } from '@/ui/DailyGiftUI';
 import { MuseumPanel } from '@/ui/MuseumPanel';
 import { AchievementsWall } from '@/ui/AchievementsWall';
+import { RatingPanel } from '@/ui/RatingPanel';
+import { computeRating, type RatingSnapshot } from '@/content/rating';
 import { GardenLayer } from '@/ui/GardenLayer';
 import { SeedPicker } from '@/ui/SeedPicker';
+import { BiomePicker } from '@/ui/BiomePicker';
 import { PhotoMode } from '@/ui/PhotoMode';
 import { WorldFx } from '@/ui/WorldFx';
 import { SurveyLayer } from '@/ui/SurveyLayer';
@@ -135,8 +139,7 @@ export class App {
     let groundGroup = buildGround(island);
     let baseGroup = buildIslandBase(island);
     world.add(groundGroup, baseGroup);
-    const landmarks = buildLandmarks(assets, island);
-    world.add(landmarks.group);
+    // (No pre-built landmarks — a fresh island is a fully blank canvas, user 2026-07-12.)
     scene.add(world);
 
     const rebuildIsland = (): void => {
@@ -319,6 +322,17 @@ export class App {
 
     // — expansion (F2): the chunk-arrival set piece, then swap in the merged island.
     bus.on('chunk:unlocked', (e) => chunkArrival.play(e.cx, e.cz, rebuildIsland));
+    // — re-theme (post-1.0): the biome changed → rebuild ground/slab from the new
+    // theme, rescan the ambient emitters (mist/bats/snow), and a soft confirm sparkle.
+    bus.on('chunk:reThemed', (e) => {
+      rebuildIsland();
+      themeAmbience.rescan();
+      audio.chime();
+      const wx = e.cx * 8 + 4;
+      const wz = e.cz * 8 + 4;
+      particles.sparkle(wx, 1.2, wz);
+      showToast(t('biome.changed'));
+    });
     // geometry changed → ease the camera out + refit shadows + recenter the sky
     // (immediate, while the chunk rises; the rig eases, never snaps — ART rule 6).
     bus.on('island:grew', () => {
@@ -392,6 +406,7 @@ export class App {
 
     // — UI (thumbnails render post-boot; they'd otherwise delay first frame)
     initToasts(uiRoot);
+    new Tooltip(uiRoot); // one delegated custom tooltip for the whole HUD (replaces title=)
     const topBar = new TopBar(uiRoot, () => ({
       dayPhase: timeOfDay.dayPhase,
       season: season.current,
@@ -418,6 +433,7 @@ export class App {
     const fishingLayer = new FishingLayer(uiRoot, (x, y, z) => rig.projectToScreen(x, y, z));
     const gardenLayer = new GardenLayer(uiRoot, (x, y, z) => rig.projectToScreen(x, y, z), () => state.garden.view());
     const seedPicker = new SeedPicker(uiRoot, () => state.save.player.level);
+    new BiomePicker(uiRoot, (cx, cz) => island.themeAt(cx, cz)); // Biome tool → re-theme picker
     // tap a Garden Patch: harvest if ripe, else open the seed picker on an empty plot
     bus.on('cmd:openGarden', ({ placementId }) => {
       const stage = state.garden.stageOf(placementId);
@@ -447,6 +463,29 @@ export class App {
     }));
     const journal = new FishJournal(dock, () => state.fishing.collection());
     const stamps = new AchievementsWall(dock, () => state.achievements.view()); // Stamp Book (K)
+    // Island Charm rating (retention + "what next?" tips) — snapshot assembled from live state
+    const ratingSnapshot = (): RatingSnapshot => {
+      let nature = 0, decor = 0, homes = 0, income = 0, gardens = 0;
+      const types = new Set<string>();
+      for (const p of island.allPlacements()) {
+        const def = itemDef(p.def);
+        if (!def) continue;
+        types.add(p.def);
+        if (def.id === 'nature.garden') gardens++;
+        if (def.category === 'nature') nature++;
+        else if (def.category === 'decor') decor++;
+        else if (def.category === 'home') homes++;
+        else if (def.category === 'income') income++;
+      }
+      return {
+        chunks: island.chunkCount,
+        nature, decor, homes, income, crops: gardens,
+        neighbours: state.islanders.snapshot().residents.length,
+        pals: state.pals.snapshot().pals.length,
+        distinctTypes: types.size,
+      };
+    };
+    const rating = new RatingPanel(dock, ratingSnapshot);
     new DailyGiftUI(uiRoot); // the once-a-day present (self-wires to gift:* events)
     const museumPanel = new MuseumPanel(uiRoot, () => {
       const v = state.museum.view();
@@ -468,10 +507,14 @@ export class App {
     photoBtn.className = 'dock-btn';
     photoBtn.textContent = '📷';
     photoBtn.setAttribute('aria-label', t('photo.title'));
+    tip(photoBtn, t('photo.title'));
     photoBtn.addEventListener('click', () => photo.toggle());
     dock.appendChild(photoBtn);
     const buildBar = new BuildBar(uiRoot);
     setTimeout(() => buildBar.setThumbnails(renderThumbnails(assets)), 80);
+    // brand-new players: a friendly welcome coach-mark pointing at the build bar
+    // (only when nothing has ever been placed; retires on the first placement)
+    new WelcomeHint(uiRoot, state.save.quests.milestones.itemsPlaced === 0);
     // — phased asset streaming (S4 §5): later waves fetch in the background so first
     // paint waits only on boot. Each trigger is idempotent (loadPhase no-ops if done);
     // thumbnails re-render in place as each wave lands (BuildBar.setThumbnails is additive).
@@ -549,6 +592,7 @@ export class App {
       onToggleCatalog: () => catalogOpenSignal.update((v) => !v),
       onToolMove: () => bus.emit('cmd:setTool', { tool: 'move' }),
       onToolRemove: () => bus.emit('cmd:setTool', { tool: 'remove' }),
+      onToolBiome: () => bus.emit('cmd:setTool', { tool: 'biome' }),
       onToggleDebug: () => debugHud.toggle(),
       onToggleAlbum: () => album.toggle(),
       onTogglePhoto: () => photo.toggle(),
@@ -614,7 +658,6 @@ export class App {
       else audio.chirp();
     });
     loop.add((dt) => sky.update(dt));
-    loop.add((dt) => landmarks.update(dt));
     loop.add((dt) => particles.update(dt));
     loop.add(() => worldFx.update());
     loop.add((dt) => fishingLayer.update(dt)); // bobber + nibble prompt tracking
@@ -681,6 +724,9 @@ export class App {
         surveys: () => state.expansion.surveys(),
         buyChunk: (cx: number, cz: number) => bus.emit('cmd:buyChunk', { cx, cz }),
         chunkCount: () => island.chunkCount,
+        themeAtChunk: (cx: number, cz: number) => island.themeAt(cx, cz),
+        reTheme: (cx: number, cz: number, theme: ChunkTheme) => bus.emit('cmd:reThemeChunk', { cx, cz, theme }),
+        openBiomePicker: (cx: number, cz: number) => bus.emit('cmd:openBiomePicker', { cx, cz }),
         secrets: () => state.secrets.snapshot(),
         clickSecret: (cx: number, cz: number) => bus.emit('cmd:clickSecret', { cx, cz }),
         milestones: () => state.save.quests.milestones,
@@ -729,6 +775,8 @@ export class App {
         endUse: (id: string) => state.islanders.debugEndUse(id),
         agentMeshY: (id: string) => agents.debugMeshY(id),
         achievementsView: () => state.achievements.view(),
+        ratingView: () => computeRating(ratingSnapshot()),
+        openRating: () => rating.toggle(true),
         gardenView: () => state.garden.view(),
         gardenStage: (id: string) => state.garden.stageOf(id),
         plantCrop: (id: string, crop: string) => bus.emit('cmd:plantCrop', { placementId: id, crop }),
