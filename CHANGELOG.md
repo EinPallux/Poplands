@@ -5,6 +5,12 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 
 ## [Unreleased]
 
+### Changed — Cozy quality-of-life batch, slice 1 (post-1.0, user 2026-07-12)
+- **A brand-new island is now a fully blank canvas.** New players start with an **empty** island — nothing pre-built (the old starter decorations and the tease windmill landmark are gone) — so the very first thing you do is place something yourself. The tutorial already opens on *"plant 3 wildflowers anywhere"*, so the empty island reads as an invitation, not a void. (`STARTER_PLACEMENTS` cleared; the windmill landmark construction removed from the App wiring; the `itemsPlaced` milestone counter now starts at 0.)
+- **Call a chunk on ANY side.** The Survey offer is no longer a seeded subset of ≤3 edges — **every** free frontier cell now floats its own "Call this chunk" chip, so you can grow your island toward whichever side you like (all four cardinal directions at once). The token re-roll fee is gone with it (there's nothing left to re-roll). Price and the 36-chunk soft cap are unchanged.
+- **Collect income by tapping the bubble.** The floating "● amount" bubble over a ripe income building is now **clickable** — tap the bubble itself to collect, not only the building mesh underneath it (the bubble opts back into pointer events over the click-through world-FX layer).
+- **Verification.** `scripts/verify-slice1.mts` (14 checks: fresh island boots empty with no windmill, surveys reach all four sides with priced chips, a formerly-unreachable west slot is on offer, and a ripe bubble is clickable → collects → empties) + the updated `expansion.test.ts` (surveys now returns every frontier slot). **205 tests + verify-slice1 green;** check + build clean.
+
 ### Added — More Pals: a fuller menagerie (post-1.0)
 - **The island now fills with up to 12 Pals** (was 6) — a proper menagerie. Because the raw Cube Pet pack isn't on disk to bake new species from, the roster reuses the six baked models (cat/dog/bunny/chick/pig/cow) as **two named individuals each**, so every Pal is a distinct little companion: Marmalade & Shadow (cats), Biscuit & Pepper (dogs), Clover & Hazel (bunnies), Sunny & Pip (chicks), Truffle & Rosie (pigs), Buttercup & Clarabelle (cows). Each carries a species emoji shown in the Island Album. `MAX_PALS` 6 → 12; adoption pacing unchanged (one Pal per 8 nature items, monotonic — a Pal never leaves).
 - **A bit more personality:** on top of nibbling the grass, resting Pals now occasionally do a **playful hop** (`dance` clip). Petting is unchanged.

@@ -14,7 +14,6 @@ import { QualityProbe, QUALITY_PRESETS, type QualityConfig } from '@/render/Qual
 import { AssetRegistry } from '@/assets/AssetRegistry';
 import { buildGround } from '@/world/GroundBuilder';
 import { buildIslandBase } from '@/world/SlabBuilder';
-import { buildLandmarks } from '@/world/StarterIsland';
 import { buildIslet } from '@/world/IsletBuilder';
 import { HoverHighlight } from '@/world/HoverHighlight';
 import { PropRenderer } from '@/world/PropRenderer';
@@ -135,8 +134,7 @@ export class App {
     let groundGroup = buildGround(island);
     let baseGroup = buildIslandBase(island);
     world.add(groundGroup, baseGroup);
-    const landmarks = buildLandmarks(assets, island);
-    world.add(landmarks.group);
+    // (No pre-built landmarks — a fresh island is a fully blank canvas, user 2026-07-12.)
     scene.add(world);
 
     const rebuildIsland = (): void => {
@@ -614,7 +612,6 @@ export class App {
       else audio.chirp();
     });
     loop.add((dt) => sky.update(dt));
-    loop.add((dt) => landmarks.update(dt));
     loop.add((dt) => particles.update(dt));
     loop.add(() => worldFx.update());
     loop.add((dt) => fishingLayer.update(dt)); // bobber + nibble prompt tracking

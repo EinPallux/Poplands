@@ -83,7 +83,6 @@ export interface AppEvents extends Record<string, unknown> {
 
   // expansion commands (S7/S8, v0.4)
   'cmd:buyChunk': { cx: number; cz: number };
-  'cmd:rerollSurveys': void;
   'cmd:clickSecret': { cx: number; cz: number };
 
   // domain events (sim → presentation)

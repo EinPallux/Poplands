@@ -60,6 +60,11 @@ export class WorldFx {
     if (!b) {
       const el = document.createElement('div');
       el.className = 'ripe-bubble';
+      // click the bubble itself to collect (not just the building) — user 2026-07-12
+      el.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        if (this.economy.ripeAmount(id) >= 1) bus.emit('cmd:collect', { placementId: id });
+      });
       const dot = document.createElement('span');
       dot.className = 'rb-dot';
       dot.textContent = '●';

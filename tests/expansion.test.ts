@@ -95,13 +95,19 @@ describe('ExpansionSystem (S8 buy flow)', () => {
     offs.length = 0;
   });
 
-  it('offers up to 3 priced surveys on free edges', () => {
+  it('offers a priced survey on EVERY free edge (all four sides, user 2026-07-12)', () => {
     const s = exp.surveys();
-    expect(s).toHaveLength(3);
+    // no longer capped at 3 — a player can call a chunk on any frontier slot
+    expect(s).toHaveLength(island.expandableSlots().length); // 8 around a 2×2 block
+    expect(s.length).toBe(8);
     for (const slot of s) {
       expect(slot.pops).toBe(250);
       expect(slot.stardust).toBe(2);
       expect(island.hasChunk(slot.cx, slot.cz)).toBe(false);
+    }
+    // every frontier slot is present (parity with expandableSlots)
+    for (const c of island.expandableSlots()) {
+      expect(s.some((sl) => sl.cx === c.cx && sl.cz === c.cz)).toBe(true);
     }
   });
 

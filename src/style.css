@@ -1189,6 +1189,8 @@ body {
   align-items: center;
   justify-content: center;
   will-change: transform;
+  pointer-events: auto; /* click the bubble to collect (not just the building) */
+  cursor: pointer;
 }
 
 /* Ambient state: a small gold dot hinting "income accruing" — subtle so a
