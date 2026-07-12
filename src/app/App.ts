@@ -35,7 +35,8 @@ import { InputController } from '@/app/InputController';
 import { LoadingScreen } from '@/ui/LoadingScreen';
 import { BuildBar } from '@/ui/BuildBar';
 import { SettingsPanel } from '@/ui/SettingsPanel';
-import { Hud } from '@/ui/Hud';
+import { TopBar } from '@/ui/TopBar';
+import { IslandStats } from '@/ui/IslandStats';
 import { Mailbox } from '@/ui/Mailbox';
 import { Album } from '@/ui/Album';
 import { FishJournal } from '@/ui/FishJournal';
@@ -391,12 +392,23 @@ export class App {
 
     // — UI (thumbnails render post-boot; they'd otherwise delay first frame)
     initToasts(uiRoot);
-    const hud = new Hud(uiRoot);
+    const topBar = new TopBar(uiRoot, () => ({
+      dayPhase: timeOfDay.dayPhase,
+      season: season.current,
+      weather: weather.counts.raining ? 'rain' : weather.counts.rainbow ? 'rainbow' : 'clear',
+    }));
     new Mailbox(uiRoot);
+    new IslandStats(uiRoot, () => ({
+      neighbours: state.islanders.snapshot().residents.length,
+      pals: state.pals.snapshot().pals.length,
+      chunks: island.chunkCount,
+      crops: state.garden.view().length,
+      stamps: state.achievements.view().earned,
+    }));
     const worldFx = new WorldFx(
       uiRoot,
       (x, y, z) => rig.projectToScreen(x, y, z),
-      hud.popsAnchor,
+      topBar.popsAnchor,
       state.economy,
       island,
     );
@@ -423,14 +435,18 @@ export class App {
       particles.sparkle(e.wx, 0.6, e.wz);
     });
     new ChunkPopup(uiRoot); // self-wires to chunk:unlocked
-    const album = new Album(uiRoot, () => ({
+    // right-side feature dock (UI rework): the journal panels live in one framed column
+    const dock = document.createElement('div');
+    dock.className = 'hud-dock';
+    uiRoot.appendChild(dock);
+    const album = new Album(dock, () => ({
       milestones: state.save.quests.milestones,
       residents: state.islanders.snapshot().residents,
       pals: state.pals.snapshot().pals,
       themes: island.allChunks().map((c) => island.themeAt(c.cx, c.cz)),
     }));
-    const journal = new FishJournal(uiRoot, () => state.fishing.collection());
-    const stamps = new AchievementsWall(uiRoot, () => state.achievements.view()); // Stamp Book (K)
+    const journal = new FishJournal(dock, () => state.fishing.collection());
+    const stamps = new AchievementsWall(dock, () => state.achievements.view()); // Stamp Book (K)
     new DailyGiftUI(uiRoot); // the once-a-day present (self-wires to gift:* events)
     const museumPanel = new MuseumPanel(uiRoot, () => {
       const v = state.museum.view();
@@ -447,6 +463,13 @@ export class App {
       rm.render(scene, rig.camera); // one fresh frame, then read it back
       return rm.renderer.domElement.toDataURL('image/png');
     });
+    // a photo-mode entry in the feature dock (also on the `P` key)
+    const photoBtn = document.createElement('button');
+    photoBtn.className = 'dock-btn';
+    photoBtn.textContent = '📷';
+    photoBtn.setAttribute('aria-label', t('photo.title'));
+    photoBtn.addEventListener('click', () => photo.toggle());
+    dock.appendChild(photoBtn);
     const buildBar = new BuildBar(uiRoot);
     setTimeout(() => buildBar.setThumbnails(renderThumbnails(assets)), 80);
     // — phased asset streaming (S4 §5): later waves fetch in the background so first
@@ -596,6 +619,7 @@ export class App {
     loop.add(() => worldFx.update());
     loop.add((dt) => fishingLayer.update(dt)); // bobber + nibble prompt tracking
     loop.add((dt) => gardenLayer.update(dt)); // crop growth markers (sim growth is time-based)
+    loop.add(() => topBar.update()); // world-status cluster (diffed — cheap)
     loop.add(() => surveyLayer.update());
     loop.add(() => secretLayer.update());
     loop.add((dt) => hover.update(dt));

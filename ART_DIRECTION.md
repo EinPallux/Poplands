@@ -138,7 +138,7 @@ Character GLBs ship with `idle, walk, sprint, sit, pick-up, interact-left/right,
 - **Typography:** one friendly rounded sans for everything — **Baloo 2** (headings) + **Nunito** (body), self-hosted WOFF2 (OFL license). Ink color `#4A3F5E`. Numerals tabular for counters.
 - **Iconography:** custom minimal SVG set (~24 icons: Pops, Stardust, XP, hammer/build, mailbox, camera, gear…), 2.5 px rounded strokes, filled with palette accents. Style-matched to the sticker aesthetic; no emoji, no mixed icon sets.
 - **Motion:** panels slide+spring (never fade-only), buttons depress 4% and bounce back, counters tick with spring-scale. All via the same Juice system as the world — one motion language.
-- **HUD layout** (see GDD §11.3): corners only, center screen stays clear; total HUD footprint ≤ 12% of screen area at 1080p. Everything auto-hides in photo mode.
+- **HUD layout** (see GDD §11.3): center screen stays clear; everything auto-hides in photo mode. *Amended (post-1.0, user 2026-07-12): the original "corners only, ≤12% footprint" minimalism read as too empty for a management-style game — the HUD now uses framed, grouped panels for a more game-like feel (still corner-anchored, center clear).* The frame: a **top status bar** (island crest + name, level ring + XP, wallet pills, day/season/weather cluster) top-left; a **Tasks** card below it; an **island-stats strip** (neighbours/Pals/chunks/crops/stamps) bottom-left; a **feature dock** (Album/Journal/Stamp Book/Photo, panels flyout-left) top-right below the settings gear; the build bar bottom-centre.
 - **Cursor & feedback:** default arrow; build mode gets a soft circular cursor; interactive world objects get hover-lift, not cursor swaps (readable on touch later).
 
 ## 9. Audio-Visual Cohesion Notes

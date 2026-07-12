@@ -31,12 +31,16 @@ export interface StampBookData {
 export class AchievementsWall {
   private root: HTMLDivElement;
   private panel: HTMLDivElement;
+  /** The top-level UI root — the earned toast escapes here so a transformed dock
+   *  ancestor never breaks its position:fixed centering. */
+  private readonly uiRoot: HTMLElement;
   open = false;
 
   constructor(
     private readonly parent: HTMLElement,
     private readonly data: () => StampBookData,
   ) {
+    this.uiRoot = (parent.closest('#ui') as HTMLElement | null) ?? parent;
     this.root = document.createElement('div');
     this.root.className = 'stamps-root';
     parent.appendChild(this.root);
@@ -96,8 +100,11 @@ export class AchievementsWall {
       `<span class="st-icon">${icon}</span>` +
       `<span class="st-label">${t('achievements.earned')}</span>` +
       `<span class="st-name">${name}</span>`;
-    // append to #ui (not the transformed .stamps-root) so position:fixed centres on the viewport
-    this.parent.appendChild(card);
+    // stack multiple simultaneous earns (e.g. Builder + Home Sweet Home) instead of overlapping
+    const stacked = this.uiRoot.querySelectorAll('.stamp-toast').length;
+    card.style.top = `calc(28% + ${stacked * 82}px)`;
+    // append to the top-level #ui (not the dock/root) so position:fixed centres on the viewport
+    this.uiRoot.appendChild(card);
 
     const remove = (): void => card.remove();
     if (isReducedMotion()) {

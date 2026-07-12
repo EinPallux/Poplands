@@ -68,7 +68,7 @@ export class Album {
     const pals = d.pals
       .map((id) => {
         const def = palDef(id);
-        return def ? `<span class="album-chip">🐾 ${t(def.nameKey)}</span>` : '';
+        return def ? `<span class="album-chip">${def.icon} ${t(def.nameKey)}</span>` : '';
       })
       .join('');
 
