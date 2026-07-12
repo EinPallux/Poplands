@@ -571,84 +571,235 @@ body {
 }
 
 /* — top HUD: wallets + level ring — */
-.hud-wallet {
+/* — top status bar (UI rework): player badge + wallet + world status — */
+.topbar {
   position: absolute;
   top: 12px;
   left: 12px;
   display: flex;
-  gap: 8px;
-  pointer-events: none;
+  align-items: center;
+  gap: 12px;
+  padding: 7px 14px 7px 9px;
+  border-radius: 18px;
+  background: var(--ui-cream);
+  border: 1px solid rgba(74, 63, 94, 0.08);
+  box-shadow: 0 5px 18px rgba(58, 48, 80, 0.2);
+  pointer-events: auto;
   transform: scale(var(--ui-scale, 1));
-  transform-origin: 0% 0%; /* top-left */
+  transform-origin: 0% 0%;
 }
-
-.hud-pill {
+.tb-player {
   display: flex;
   align-items: center;
-  gap: 6px;
-  background: var(--ui-cream);
-  border: 1px solid rgba(74, 63, 94, 0.12);
-  border-radius: 999px;
-  box-shadow: 0 3px 10px rgba(58, 48, 80, 0.15);
-  padding: 6px 14px 6px 10px;
-  font-weight: 800;
-  font-size: 15px;
-  color: var(--ui-ink);
-  transform-origin: center;
+  gap: 8px;
 }
-
-.hud-pops .pill-icon {
-  color: var(--accent-gold);
+.tb-ring {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  flex: none;
 }
-
-.hud-stardust .pill-icon {
-  color: #7a6ad0;
-}
-
-.hud-level {
-  position: absolute;
-  top: 10px;
-  right: 62px;
-  width: 48px;
-  height: 48px;
-  pointer-events: none;
-  transform: scale(var(--ui-scale, 1));
-  transform-origin: 100% 0%; /* top-right, same side as settings/wallet */
-}
-
-.hud-level svg {
+.tb-ring svg {
   position: absolute;
   inset: 0;
 }
-
-.ring-bg {
-  fill: var(--ui-cream);
-  stroke: rgba(74, 63, 94, 0.12);
-  stroke-width: 4;
+.tb-ring-bg {
+  fill: rgba(127, 220, 164, 0.16);
+  stroke: rgba(74, 63, 94, 0.14);
+  stroke-width: 3.5;
 }
-
-.ring-fg {
+.tb-ring-fg {
   fill: none;
   stroke: var(--accent-mint);
-  stroke-width: 4;
+  stroke-width: 3.5;
   stroke-linecap: round;
   transition: stroke-dashoffset 0.4s ease;
 }
-
-.level-num {
+.tb-lv {
   position: absolute;
   inset: 0;
   display: grid;
   place-items: center;
   font-weight: 800;
-  font-size: 16px;
+  font-size: 14px;
   color: var(--ui-ink);
+}
+.tb-pmeta {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.tb-name {
+  font-weight: 800;
+  font-size: 13px;
+  color: var(--ui-ink);
+  line-height: 1;
+  letter-spacing: 0.01em;
+}
+.tb-xp {
+  width: 76px;
+  height: 5px;
+  border-radius: 3px;
+  background: rgba(74, 63, 94, 0.12);
+  overflow: hidden;
+}
+.tb-xpfill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #7fdca4, #ffc94b);
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+.tb-wallet {
+  display: flex;
+  gap: 7px;
+  padding-left: 11px;
+  border-left: 1.5px solid rgba(74, 63, 94, 0.1);
+}
+.hud-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.55);
+  border-radius: 999px;
+  padding: 5px 13px 5px 9px;
+  font-weight: 800;
+  font-size: 15px;
+  color: var(--ui-ink);
+  transform-origin: center;
+}
+.hud-pops .pill-icon {
+  color: var(--accent-gold);
+}
+.hud-stardust .pill-icon {
+  color: #7a6ad0;
+}
+.tb-status {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  padding-left: 11px;
+  border-left: 1.5px solid rgba(74, 63, 94, 0.1);
+}
+.tb-stat {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 9px;
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.5);
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--ui-ink);
+}
+.tb-stat-icon {
+  font-size: 15px;
+  line-height: 1;
+}
+
+/* — island stats strip (UI rework): glanceable counts, bottom-left — */
+.island-stats {
+  position: absolute;
+  left: 12px;
+  bottom: 16px;
+  display: flex;
+  gap: 6px;
+  padding: 6px 8px;
+  border-radius: 14px;
+  background: var(--ui-cream);
+  border: 1px solid rgba(74, 63, 94, 0.08);
+  box-shadow: 0 4px 14px rgba(58, 48, 80, 0.16);
+  pointer-events: auto;
+  transform: scale(var(--ui-scale, 1));
+  transform-origin: 0% 100%;
+}
+.istat {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.5);
+  font-weight: 800;
+  font-size: 13px;
+  color: var(--ui-ink);
+}
+.istat-icon {
+  font-size: 15px;
+  line-height: 1;
+}
+.istat-n {
+  min-width: 10px;
+  text-align: center;
+}
+
+/* — feature dock (UI rework): the journal buttons in one framed right-side column — */
+.hud-dock {
+  position: absolute;
+  top: 64px;
+  right: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 22px;
+  background: var(--ui-cream);
+  border: 1px solid rgba(74, 63, 94, 0.08);
+  box-shadow: 0 5px 18px rgba(58, 48, 80, 0.2);
+  pointer-events: auto;
+  z-index: 6;
+  transform: scale(var(--ui-scale, 1));
+  transform-origin: 100% 0%;
+}
+/* the re-parented journal roots flow in the dock column instead of self-positioning;
+ * static (not relative) so their panels anchor to the DOCK, giving every flyout the
+ * same clean position beside the dock rather than an offset per button */
+.hud-dock .album-root,
+.hud-dock .journal-root,
+.hud-dock .stamps-root {
+  position: static;
+  transform: none;
+  z-index: auto;
+}
+/* dock buttons sit on the cream dock, so give them a soft contrast fill */
+.hud-dock .album-btn,
+.hud-dock .journal-btn,
+.hud-dock .stamps-btn,
+.dock-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.62);
+  color: var(--ui-ink);
+  font-size: 20px;
+  cursor: pointer;
+  box-shadow: inset 0 0 0 1px rgba(74, 63, 94, 0.06);
+  transition: background 0.15s ease, transform 0.12s ease;
+  display: grid;
+  place-items: center;
+}
+.hud-dock .album-btn:hover,
+.hud-dock .journal-btn:hover,
+.hud-dock .stamps-btn:hover,
+.dock-btn:hover {
+  background: #fff;
+  transform: translateY(-1px);
+}
+/* panels fly out to the LEFT of the dock (the dock hugs the right edge) */
+.hud-dock .album-panel,
+.hud-dock .journal-panel,
+.hud-dock .stamps-panel {
+  top: 0;
+  right: calc(100% + 14px);
+  left: auto;
 }
 
 /* — mailbox (left) — */
 .mailbox {
   position: absolute;
-  top: 70px;
+  top: 74px;
   left: 12px;
   width: 232px;
   pointer-events: auto;

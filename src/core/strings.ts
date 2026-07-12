@@ -295,6 +295,7 @@ const en = {
   'gift.claimed': 'See you tomorrow! 🎁',
 
   // photo mode (S23, v0.6)
+  'photo.title': 'Photo Mode',
   'photo.hint': 'Photo Mode — drag to frame your island',
   'photo.save': 'Save PNG',
   'photo.exit': 'Exit',
@@ -321,6 +322,24 @@ const en = {
   'settings.season.summer': 'Summer ☀️',
   'settings.season.autumn': 'Autumn 🍂',
   'settings.season.winter': 'Winter ❄️',
+  // top-bar world-status widget (UI rework)
+  'status.dawn': 'Dawn',
+  'status.day': 'Day',
+  'status.dusk': 'Dusk',
+  'status.night': 'Night',
+  'season.spring': 'Spring',
+  'season.summer': 'Summer',
+  'season.autumn': 'Autumn',
+  'season.winter': 'Winter',
+  'weather.clear': 'Clear',
+  'weather.rain': 'Rain',
+  'weather.rainbow': 'Rainbow',
+  // island stats strip (UI rework)
+  'stats.neighbours': 'Neighbours',
+  'stats.pals': 'Pals',
+  'stats.chunks': 'Chunks',
+  'stats.crops': 'Crops growing',
+  'stats.stamps': 'Stamps earned',
   'settings.reducedMotion': 'Reduce motion',
   'settings.fps': 'Frame cap',
   'settings.fps.off': 'Off',

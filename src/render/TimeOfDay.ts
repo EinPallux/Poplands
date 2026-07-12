@@ -69,6 +69,15 @@ export class TimeOfDay {
     return this._night;
   }
 
+  /** Coarse label of the current time of day — for the HUD status widget. */
+  get dayPhase(): 'dawn' | 'day' | 'dusk' | 'night' {
+    const p = this.phase;
+    if (p >= 0.9 || p < 0.15) return 'dawn';
+    if (p < 0.42) return 'day';
+    if (p < 0.6) return 'dusk';
+    return 'night';
+  }
+
   update(dt: number): void {
     const setting = timeOfDaySignal.get();
     if (setting === 'auto') {
