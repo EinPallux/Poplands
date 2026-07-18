@@ -479,6 +479,22 @@ body {
   accent-color: var(--accent-mint);
 }
 
+.settings-row input[type='text'] {
+  font: 600 12.5px/1 inherit;
+  font-family: inherit;
+  color: var(--ui-ink);
+  background: #fff;
+  border: 1.5px solid rgba(74, 63, 94, 0.2);
+  border-radius: 10px;
+  padding: 6px 9px;
+  max-width: 130px;
+  text-align: right;
+}
+.settings-row input[type='text']:focus {
+  outline: none;
+  border-color: var(--accent-mint);
+}
+
 .settings-check {
   justify-content: flex-start;
 }
@@ -1358,6 +1374,26 @@ body {
   padding: 4px 9px;
   border-radius: 12px;
   background: rgba(127, 220, 164, 0.22);
+}
+.album-chip[data-id] {
+  cursor: pointer;
+}
+.album-chip[data-id]:hover {
+  background: rgba(127, 220, 164, 0.4);
+}
+/* inline rename input (tap a neighbour/Pal chip) */
+.album-rename {
+  font: 700 12px/1 inherit;
+  font-family: inherit;
+  color: var(--ui-ink);
+  background: #fff;
+  border: 1.5px solid var(--accent-mint);
+  border-radius: 10px;
+  padding: 3px 7px;
+  width: 96px;
+}
+.album-rename:focus {
+  outline: none;
 }
 .album-empty {
   font-size: 12px;

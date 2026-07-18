@@ -22,6 +22,7 @@ import { showToast } from './Toasts';
 export class SettingsPanel {
   private root: HTMLDivElement;
   private panel: HTMLDivElement;
+  private islandInput!: HTMLInputElement;
   open = false;
 
   constructor(
@@ -31,6 +32,9 @@ export class SettingsPanel {
     version: string,
     private readonly onShare: () => Promise<string>,
     private readonly onLoadCode: (code: string) => Promise<boolean>,
+    /** The island's current display name + a setter (post-1.0). */
+    private readonly islandName: () => string = () => '',
+    private readonly onRenameIsland: (name: string) => void = () => {},
   ) {
     this.root = document.createElement('div');
     this.root.className = 'settings-root';
@@ -50,6 +54,10 @@ export class SettingsPanel {
     this.panel.style.display = 'none';
     this.panel.innerHTML = `
       <h2>${t('settings.title')}</h2>
+      <label class="settings-row">
+        <span>${t('settings.islandName')}</span>
+        <input class="s-islandname" type="text" maxlength="24" placeholder="${t('settings.islandNamePlaceholder')}">
+      </label>
       <label class="settings-row">
         <span>${t('settings.quality')}</span>
         <select class="s-quality">
@@ -136,6 +144,15 @@ export class SettingsPanel {
     const music = this.panel.querySelector('.s-music') as HTMLInputElement;
     const motion = this.panel.querySelector('.s-motion') as HTMLInputElement;
     const file = this.panel.querySelector('.s-file') as HTMLInputElement;
+
+    // — island name (post-1.0): commit on change/Enter; blank reverts to the default
+    this.islandInput = this.panel.querySelector('.s-islandname') as HTMLInputElement;
+    this.islandInput.value = this.islandName();
+    const commitName = (): void => this.onRenameIsland(this.islandInput.value);
+    this.islandInput.addEventListener('change', commitName);
+    this.islandInput.addEventListener('keydown', (ev) => {
+      if (ev.key === 'Enter') this.islandInput.blur(); // blur fires change → commit
+    });
 
     effect(() => (quality.value = qualitySignal.get()));
     effect(() => (time.value = timeOfDaySignal.get()));
@@ -246,5 +263,6 @@ export class SettingsPanel {
   toggle(force?: boolean): void {
     this.open = force ?? !this.open;
     this.panel.style.display = this.open ? '' : 'none';
+    if (this.open) this.islandInput.value = this.islandName(); // reflect the live name
   }
 }

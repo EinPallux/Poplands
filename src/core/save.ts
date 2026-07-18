@@ -56,6 +56,8 @@ export interface SaveIslanders {
   /** Lifetime pet count per Pal id (post-1.0 Pal tricks). A Pal learns a trick once
    *  petted enough; the count persists so the trick sticks across sessions. */
   palPets: Record<string, number>;
+  /** Custom names by Islander/Pal id (post-1.0). Absent id ⇒ the roster default. */
+  names: Record<string, string>;
 }
 
 /** Persisted fishing collection (post-1.0): `caught` maps a stable fish-species id
@@ -187,9 +189,16 @@ export interface SaveV10 extends Omit<SaveV9, 'v'> {
   v: 10;
 }
 
+/** v11 (post-1.0): a custom island name + custom Islander/Pal names. */
+export interface SaveV11 extends Omit<SaveV10, 'v'> {
+  v: 11;
+  /** Player-chosen island name; absent ⇒ the default title. */
+  islandName?: string;
+}
+
 /** The current schema. Bump this alias (not scattered `SaveVn`s) each version. */
-export type Save = SaveV10;
-export const SAVE_VERSION = 10;
+export type Save = SaveV11;
+export const SAVE_VERSION = 11;
 
 export const DEFAULT_SETTINGS: SaveSettings = {
   volume: 0.8,
@@ -211,7 +220,7 @@ export function freshEconomy(): SaveEconomy {
 }
 
 export function freshIslanders(): SaveIslanders {
-  return { residents: [], pals: [], palPets: {} };
+  return { residents: [], pals: [], palPets: {}, names: {} };
 }
 
 export function freshFishing(): SaveFishing {
@@ -326,11 +335,20 @@ const migrations: Record<number, (s: AnySave) => AnySave> = {
       islanders: { ...v9.islanders, palPets: v9.islanders?.palPets ?? {} },
     } as unknown as AnySave;
   },
+  10: (s) => {
+    const v10 = s as unknown as SaveV10;
+    // No custom names yet — the island keeps its default title, everyone their roster name.
+    return {
+      ...v10,
+      v: 11,
+      islanders: { ...v10.islanders, names: v10.islanders?.names ?? {} },
+    } as unknown as AnySave;
+  },
 };
 
 export function freshSave(seed: number, now: number): Save {
   return {
-    v: 10,
+    v: 11,
     createdAt: now,
     lastSeenAt: now,
     seed,
@@ -410,6 +428,7 @@ function normalize(v2: Save): Save {
   v2.islanders.residents ??= [];
   v2.islanders.pals ??= [];
   v2.islanders.palPets ??= {};
+  v2.islanders.names ??= {};
   v2.fishing ??= freshFishing();
   v2.fishing.caught ??= {};
   v2.fishing.total ??= 0;

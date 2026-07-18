@@ -4,7 +4,7 @@
  * Read-only; pulls a fresh snapshot each time it opens. Text via the string table.
  */
 import { t, type StringKey } from '@/core/strings';
-import { tip } from '@/ui/Tooltip';
+import { tip, attr } from '@/ui/Tooltip';
 import { MILESTONES } from '@/content/quests';
 import { islanderDef, friendPairs } from '@/content/roster';
 import { palDef } from '@/content/pals';
@@ -21,6 +21,8 @@ export interface AlbumData {
   mood: { emoji: string; moodKey: StringKey };
   /** Pal ids that have learned a trick (post-1.0) — shown with a ⭐ in the roster. */
   palTricks: string[];
+  /** Resolve an Islander/Pal's display name (custom name or the roster default). */
+  nameOf: (id: string) => string;
 }
 
 export class Album {
@@ -31,6 +33,8 @@ export class Album {
   constructor(
     parent: HTMLElement,
     private readonly data: () => AlbumData,
+    /** Rename an Islander/Pal by id (post-1.0). */
+    private readonly rename: (id: string, name: string) => void = () => {},
   ) {
     this.root = document.createElement('div');
     this.root.className = 'album-root';
@@ -48,6 +52,42 @@ export class Album {
     this.panel.className = 'album-panel';
     this.panel.style.display = 'none';
     this.root.appendChild(this.panel);
+
+    // tap a neighbour/Pal chip to rename them inline (post-1.0)
+    this.panel.addEventListener('click', (e) => {
+      const chip = (e.target as HTMLElement).closest('.album-chip[data-id]') as HTMLElement | null;
+      if (chip && !chip.querySelector('input')) this.startRename(chip);
+    });
+  }
+
+  /** Swap a roster chip for an inline text input; Enter/blur commits the new name. */
+  private startRename(chip: HTMLElement): void {
+    const id = chip.dataset['id'];
+    const current = chip.dataset['name'] ?? '';
+    if (!id) return;
+    const input = document.createElement('input');
+    input.className = 'album-rename';
+    input.value = current;
+    input.maxLength = 20;
+    chip.innerHTML = '';
+    chip.appendChild(input);
+    input.focus();
+    input.select();
+    let done = false;
+    const commit = (): void => {
+      if (done) return;
+      done = true;
+      this.rename(id, input.value);
+      this.render(); // re-render with the resolved name
+    };
+    input.addEventListener('keydown', (ev) => {
+      if (ev.key === 'Enter') commit();
+      else if (ev.key === 'Escape') {
+        done = true;
+        this.render();
+      }
+    });
+    input.addEventListener('blur', commit);
   }
 
   toggle(force?: boolean): void {
@@ -65,11 +105,14 @@ export class Album {
       return `<li><span>${t(m.labelKey)}</span><b>${goal}</b></li>`;
     }).join('');
 
+    // player-supplied names go into both text + attributes, so escape them
+    const esc = (s: string): string =>
+      s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c] ?? c);
+    const chip = (id: string, icon: string, name: string, extra = ''): string =>
+      `<span class="album-chip" data-id="${esc(id)}" data-name="${esc(name)}" data-tip="${attr(t('album.renameHint'))}">${icon} ${esc(name)}${extra}</span>`;
+
     const people = d.residents
-      .map((id) => {
-        const def = islanderDef(id);
-        return def ? `<span class="album-chip">🙂 ${t(def.nameKey)}</span>` : '';
-      })
+      .map((id) => (islanderDef(id) ? chip(id, '🙂', d.nameOf(id)) : ''))
       .join('');
     const tricks = new Set(d.palTricks);
     const pals = d.pals
@@ -77,7 +120,7 @@ export class Album {
         const def = palDef(id);
         if (!def) return '';
         const star = tricks.has(id) ? ' <span class="album-trick" title="Knows a trick">⭐</span>' : '';
-        return `<span class="album-chip">${def.icon} ${t(def.nameKey)}${star}</span>`;
+        return chip(id, def.icon, d.nameOf(id), star);
       })
       .join('');
 
@@ -86,7 +129,9 @@ export class Album {
       .map((p) => {
         const a = islanderDef(p.a);
         const b = islanderDef(p.b);
-        return a && b ? `<span class="album-chip">💛 ${t(a.nameKey)} &amp; ${t(b.nameKey)}</span>` : '';
+        return a && b
+          ? `<span class="album-chip">💛 ${esc(d.nameOf(p.a))} &amp; ${esc(d.nameOf(p.b))}</span>`
+          : '';
       })
       .join('');
 

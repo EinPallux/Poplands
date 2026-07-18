@@ -399,7 +399,7 @@ export class App {
         particles.coinBurst(a.x, 1.2, a.z);
       }
       audio.chime();
-      showToast(t('toast.npcArrived').replace('{name}', t(e.nameKey)));
+      showToast(t('toast.npcArrived').replace('{name}', state.nameOf(e.id)));
     });
     // tap-to-greet: a cute babble when an Islander speaks (bubble handled by SpeechLayer)
     bus.on('npc:spoke', () => audio.chatter());
@@ -407,12 +407,12 @@ export class App {
     // — Islander requests (post-1.0): a wish appears (soft chime) → granted (hearts + toast)
     bus.on('request:new', (e) => {
       audio.chatter();
-      showToast(`💭 ${t(e.wishKey).replace('{name}', t(e.nameKey))}`);
+      showToast(`💭 ${t(e.wishKey).replace('{name}', state.nameOf(e.id))}`);
     });
     bus.on('request:fulfilled', (e) => {
       audio.chime();
       particles.hearts(e.wx + 0.5, 1.0, e.wz + 0.5);
-      showToast(t('wish.granted').replace('{name}', t(e.nameKey)));
+      showToast(t('wish.granted').replace('{name}', state.nameOf(e.id)));
     });
 
     // — fishing (post-1.0): cast splash / nibble blip / reel flourish + a water sparkle
@@ -455,11 +455,15 @@ export class App {
     // — UI (thumbnails render post-boot; they'd otherwise delay first frame)
     initToasts(uiRoot);
     new Tooltip(uiRoot); // one delegated custom tooltip for the whole HUD (replaces title=)
-    const topBar = new TopBar(uiRoot, () => ({
-      dayPhase: timeOfDay.dayPhase,
-      season: season.current,
-      weather: weather.counts.raining ? 'rain' : weather.counts.rainbow ? 'rainbow' : 'clear',
-    }));
+    const topBar = new TopBar(
+      uiRoot,
+      () => ({
+        dayPhase: timeOfDay.dayPhase,
+        season: season.current,
+        weather: weather.counts.raining ? 'rain' : weather.counts.rainbow ? 'rainbow' : 'clear',
+      }),
+      () => state.islandName(),
+    );
     new Mailbox(uiRoot);
     new IslandStats(uiRoot, () => ({
       neighbours: state.islanders.snapshot().residents.length,
@@ -504,17 +508,22 @@ export class App {
     const dock = document.createElement('div');
     dock.className = 'hud-dock';
     uiRoot.appendChild(dock);
-    const album = new Album(dock, () => {
-      const h = computeHappiness(ratingSnapshot());
-      return {
-        milestones: state.save.quests.milestones,
-        residents: state.islanders.snapshot().residents,
-        pals: state.pals.snapshot().pals,
-        themes: island.allChunks().map((c) => island.themeAt(c.cx, c.cz)),
-        mood: { emoji: h.emoji, moodKey: h.moodKey },
-        palTricks: state.pals.tricks(),
-      };
-    });
+    const album = new Album(
+      dock,
+      () => {
+        const h = computeHappiness(ratingSnapshot());
+        return {
+          milestones: state.save.quests.milestones,
+          residents: state.islanders.snapshot().residents,
+          pals: state.pals.snapshot().pals,
+          themes: island.allChunks().map((c) => island.themeAt(c.cx, c.cz)),
+          mood: { emoji: h.emoji, moodKey: h.moodKey },
+          palTricks: state.pals.tricks(),
+          nameOf: (id) => state.nameOf(id),
+        };
+      },
+      (id, name) => state.setName(id, name), // rename an Islander/Pal inline (post-1.0)
+    );
     const journal = new FishJournal(dock, () => state.fishing.collection());
     const stamps = new AchievementsWall(dock, () => state.achievements.view()); // Stamp Book (K)
     // Island Charm rating (retention + "what next?" tips) — reuses the shared ratingSnapshot
@@ -573,6 +582,8 @@ export class App {
       VERSION,
       () => state.shareCode(),
       (code) => state.loadShareCode(code),
+      () => state.islandName(),
+      (name) => state.setIslandName(name),
     );
 
     // — quality: explicit setting wins; 'auto' uses the probe
@@ -776,6 +787,11 @@ export class App {
         clickPal: (id: string) => bus.emit('cmd:clickPal', { id }),
         petCount: (id: string) => state.pals.petCount(id),
         palTricks: () => state.pals.tricks(),
+        // — naming (post-1.0): rename the island + individual Islanders/Pals
+        islandName: () => state.islandName(),
+        setIslandName: (name: string) => state.setIslandName(name),
+        nameOf: (id: string) => state.nameOf(id),
+        setName: (id: string, name: string) => state.setName(id, name),
         tileShapes: () =>
           island
             .allPlacements()

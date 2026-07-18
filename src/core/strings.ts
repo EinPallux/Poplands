@@ -167,6 +167,7 @@ const en = {
   'album.pals': 'Pals',
   'album.biomes': 'Biomes',
   'album.empty': 'Nobody yet — build a home!',
+  'album.renameHint': 'Tap to rename',
 
   // fishing journal + catch moment (post-1.0)
   'journal.title': 'Fish Journal',
@@ -314,6 +315,8 @@ const en = {
 
   // settings
   'settings.title': 'Settings',
+  'settings.islandName': 'Island name',
+  'settings.islandNamePlaceholder': 'Poplands',
   'settings.quality': 'Quality',
   'settings.quality.auto': 'Auto',
   'settings.quality.high': 'High',

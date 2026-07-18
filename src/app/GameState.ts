@@ -17,6 +17,9 @@ import { ExpansionSystem } from '@/sim/ExpansionSystem';
 import { SecretSystem } from '@/sim/SecretSystem';
 import { IslanderSystem } from '@/sim/IslanderSystem';
 import { PalSystem } from '@/sim/PalSystem';
+import { islanderDef } from '@/content/roster';
+import { palDef } from '@/content/pals';
+import { t } from '@/core/strings';
 import { RequestSystem } from '@/sim/RequestSystem';
 import { FishingSystem } from '@/sim/FishingSystem';
 import { DailyGiftSystem } from '@/sim/DailyGiftSystem';
@@ -251,6 +254,39 @@ export class GameState {
     this.save.garden = this.garden.snapshot();
     this.save.settings = snapshotSettings();
     return this.save;
+  }
+
+  // — custom names (post-1.0): the island + each Islander/Pal can be renamed —
+
+  /** The island's display name — the player's choice, or the default title. */
+  islandName(): string {
+    return this.save.islandName?.trim() || t('app.title');
+  }
+
+  /** Rename the island (blank reverts to the default). Persists + notifies the HUD. */
+  setIslandName(name: string): void {
+    const clean = name.trim().slice(0, 24);
+    if (clean) this.save.islandName = clean;
+    else delete this.save.islandName; // blank reverts to the default title
+    this.manager.requestSave();
+    bus.emit('island:renamed', { name: this.islandName() });
+  }
+
+  /** An Islander/Pal's display name — the player's choice, or the roster default. */
+  nameOf(id: string): string {
+    const custom = this.save.islanders.names[id];
+    if (custom) return custom;
+    const def = islanderDef(id) ?? palDef(id);
+    return def ? t(def.nameKey) : id;
+  }
+
+  /** Rename an Islander/Pal (blank reverts to the roster default). Persists + notifies. */
+  setName(id: string, name: string): void {
+    const clean = name.trim().slice(0, 20);
+    if (clean) this.save.islanders.names[id] = clean;
+    else delete this.save.islanders.names[id];
+    this.manager.requestSave();
+    bus.emit('agent:renamed', { id, name: this.nameOf(id) });
   }
 
   exportToFile(): void {
