@@ -169,6 +169,7 @@ export interface AppEvents extends Record<string, unknown> {
   'pal:adopted': { id: string; nameKey: StringKey }; // a Pal came to visit — juice + persist
   'cmd:clickPal': { id: string }; // player tapped a Pal → pet it
   'pal:petted': { id: string }; // a Pal was petted → hearts + happy sound
+  'pal:learnedTrick': { id: string; nameKey: StringKey }; // petted enough → learns a trick
   // Islander requests (post-1.0): a neighbour wishes for something nearby → grant it
   'request:new': { id: string; nameKey: StringKey; icon: string; wishKey: StringKey };
   'request:fulfilled': { id: string; nameKey: StringKey; wx: number; wz: number; rewards: QuestReward };

@@ -116,7 +116,7 @@ describe('parseSave', () => {
     };
     const parsed = parseSave(JSON.stringify(v1));
     expect(parsed).not.toBeNull();
-    expect(parsed!.v).toBe(9); // chains v1→v2→…→v9
+    expect(parsed!.v).toBe(10); // chains v1→v2→…→v10
     // wallets preserved, not reset
     expect(parsed!.player.pops).toBe(300);
     expect(parsed!.player.level).toBe(2);
@@ -133,6 +133,8 @@ describe('parseSave', () => {
     // v4: empty living-things roster slice (Islanders + Pals arrive on start)
     expect(parsed!.islanders.residents).toEqual([]);
     expect(parsed!.islanders.pals).toEqual([]);
+    // v10: empty Pal pet counts (tricks are learned by petting)
+    expect(parsed!.islanders.palPets).toEqual({});
     // v5: empty fishing collection (fills as the player fishes)
     expect(parsed!.fishing.caught).toEqual({});
     expect(parsed!.fishing.total).toBe(0);

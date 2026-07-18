@@ -133,6 +133,7 @@ export class GameState {
       'secret:found', // discovered → persist + reward flows credited
       'npc:arrived', // a neighbour moved in → persist the roster
       'pal:adopted', // a Pal came to visit → persist the roster
+      'pal:petted', // petting bumps the pet count (→ tricks) → persist it
       'fishing:caught', // reeled in a fish → persist the collection
       'gift:claimed', // opened the daily present → persist the claim
       'museum:donated', // put a fish on display → persist the donation

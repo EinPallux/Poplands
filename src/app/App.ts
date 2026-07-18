@@ -441,6 +441,16 @@ export class App {
       if (p) particles.hearts(p.x, 0.8, p.z);
       audio.pet();
     });
+    // — Pal tricks (post-1.0): petted enough → learns a trick (extra sparkle + toast)
+    bus.on('pal:learnedTrick', (e) => {
+      const p = state.pals.positionOf(e.id);
+      if (p) {
+        particles.sparkle(p.x, 0.9, p.z);
+        particles.hearts(p.x, 0.9, p.z);
+      }
+      audio.chime();
+      showToast(t('toast.palTrick').replace('{pal}', t(e.nameKey)));
+    });
 
     // — UI (thumbnails render post-boot; they'd otherwise delay first frame)
     initToasts(uiRoot);
@@ -502,6 +512,7 @@ export class App {
         pals: state.pals.snapshot().pals,
         themes: island.allChunks().map((c) => island.themeAt(c.cx, c.cz)),
         mood: { emoji: h.emoji, moodKey: h.moodKey },
+        palTricks: state.pals.tricks(),
       };
     });
     const journal = new FishJournal(dock, () => state.fishing.collection());
@@ -763,6 +774,8 @@ export class App {
         palRoster: () => state.pals.snapshot().pals.slice(),
         palMeshes: () => palAgents.count,
         clickPal: (id: string) => bus.emit('cmd:clickPal', { id }),
+        petCount: (id: string) => state.pals.petCount(id),
+        palTricks: () => state.pals.tricks(),
         tileShapes: () =>
           island
             .allPlacements()

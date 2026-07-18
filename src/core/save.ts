@@ -53,6 +53,9 @@ export interface SaveSecret {
 export interface SaveIslanders {
   residents: string[];
   pals: string[];
+  /** Lifetime pet count per Pal id (post-1.0 Pal tricks). A Pal learns a trick once
+   *  petted enough; the count persists so the trick sticks across sessions. */
+  palPets: Record<string, number>;
 }
 
 /** Persisted fishing collection (post-1.0): `caught` maps a stable fish-species id
@@ -179,9 +182,14 @@ export interface SaveV9 extends Omit<SaveV8, 'v'> {
   garden: SaveGarden;
 }
 
+/** v10 (post-1.0): per-Pal pet counts (Pal tricks) — a sub-field of the islanders slice. */
+export interface SaveV10 extends Omit<SaveV9, 'v'> {
+  v: 10;
+}
+
 /** The current schema. Bump this alias (not scattered `SaveVn`s) each version. */
-export type Save = SaveV9;
-export const SAVE_VERSION = 9;
+export type Save = SaveV10;
+export const SAVE_VERSION = 10;
 
 export const DEFAULT_SETTINGS: SaveSettings = {
   volume: 0.8,
@@ -203,7 +211,7 @@ export function freshEconomy(): SaveEconomy {
 }
 
 export function freshIslanders(): SaveIslanders {
-  return { residents: [], pals: [] };
+  return { residents: [], pals: [], palPets: {} };
 }
 
 export function freshFishing(): SaveFishing {
@@ -309,11 +317,20 @@ const migrations: Record<number, (s: AnySave) => AnySave> = {
     // No plots planted yet — the garden starts bare.
     return { ...v8, v: 9, garden: freshGarden() } as unknown as AnySave;
   },
+  9: (s) => {
+    const v9 = s as unknown as SaveV9;
+    // Pal tricks start un-learned — nobody's been petted enough yet.
+    return {
+      ...v9,
+      v: 10,
+      islanders: { ...v9.islanders, palPets: v9.islanders?.palPets ?? {} },
+    } as unknown as AnySave;
+  },
 };
 
 export function freshSave(seed: number, now: number): Save {
   return {
-    v: 9,
+    v: 10,
     createdAt: now,
     lastSeenAt: now,
     seed,
@@ -392,6 +409,7 @@ function normalize(v2: Save): Save {
   v2.islanders ??= freshIslanders();
   v2.islanders.residents ??= [];
   v2.islanders.pals ??= [];
+  v2.islanders.palPets ??= {};
   v2.fishing ??= freshFishing();
   v2.fishing.caught ??= {};
   v2.fishing.total ??= 0;

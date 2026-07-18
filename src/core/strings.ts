@@ -38,6 +38,7 @@ const en = {
   'toast.secretFound': 'A discovery! ✨',
   'toast.npcArrived': '{name} moved in! 🏡',
   'toast.palAdopted': 'A {pal} came to visit! 🐾',
+  'toast.palTrick': '{pal} learned a trick! 🎉',
 
   // expansion (S8) — survey markers on the island's free edges
   'survey.call': 'Call this chunk',

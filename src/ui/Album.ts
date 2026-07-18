@@ -19,6 +19,8 @@ export interface AlbumData {
   themes: ChunkTheme[];
   /** Island mood (post-1.0 happiness) — an emoji + a mood-word string key. */
   mood: { emoji: string; moodKey: StringKey };
+  /** Pal ids that have learned a trick (post-1.0) — shown with a ⭐ in the roster. */
+  palTricks: string[];
 }
 
 export class Album {
@@ -69,10 +71,13 @@ export class Album {
         return def ? `<span class="album-chip">🙂 ${t(def.nameKey)}</span>` : '';
       })
       .join('');
+    const tricks = new Set(d.palTricks);
     const pals = d.pals
       .map((id) => {
         const def = palDef(id);
-        return def ? `<span class="album-chip">${def.icon} ${t(def.nameKey)}</span>` : '';
+        if (!def) return '';
+        const star = tricks.has(id) ? ' <span class="album-trick" title="Knows a trick">⭐</span>' : '';
+        return `<span class="album-chip">${def.icon} ${t(def.nameKey)}${star}</span>`;
       })
       .join('');
 
