@@ -16,7 +16,8 @@ import {
   uiScaleSignal,
 } from '@/core/settingsStore';
 import { bus } from '@/core/events';
-import type { SaveSettings } from '@/core/save';
+import type { SaveSettings, SlotInfo } from '@/core/save';
+import { attr } from '@/ui/Tooltip';
 import { showToast } from './Toasts';
 
 export class SettingsPanel {
@@ -35,6 +36,10 @@ export class SettingsPanel {
     /** The island's current display name + a setter (post-1.0). */
     private readonly islandName: () => string = () => '',
     private readonly onRenameIsland: (name: string) => void = () => {},
+    /** Multiple save slots (post-1.0): list + switch + delete. */
+    private readonly listSlots: () => SlotInfo[] = () => [],
+    private readonly onSwitchSlot: (slot: string) => void = () => {},
+    private readonly onDeleteSlot: (slot: string) => void = () => {},
   ) {
     this.root = document.createElement('div');
     this.root.className = 'settings-root';
@@ -132,6 +137,10 @@ export class SettingsPanel {
         </div>
       </div>
       <input class="s-file" type="file" accept=".json,application/json" style="display:none">
+      <div class="slots-block">
+        <div class="slots-title">${t('slots.title')}</div>
+        <div class="slots-list"></div>
+      </div>
       <div class="settings-version">v${version}</div>`;
     this.root.appendChild(this.panel);
 
@@ -258,11 +267,56 @@ export class SettingsPanel {
         if (!ok) showToast(t('share.invalid')); // on success the page reloads
       });
     });
+
+    // — save slots (post-1.0): switch to / start / delete a local island
+    const slotsList = this.panel.querySelector('.slots-list') as HTMLElement;
+    slotsList.addEventListener('click', (e) => {
+      const el = e.target as HTMLElement;
+      const play = el.closest('.slot-play') as HTMLElement | null;
+      if (play) {
+        const slot = play.dataset['slot'] ?? '';
+        const fresh = play.dataset['exists'] !== '1';
+        if (window.confirm(t(fresh ? 'slots.confirmNew' : 'slots.confirmSwitch'))) this.onSwitchSlot(slot);
+        return;
+      }
+      const del = el.closest('.slot-del') as HTMLElement | null;
+      if (del) {
+        const slot = del.dataset['slot'] ?? '';
+        if (window.confirm(t('slots.confirmDelete'))) {
+          this.onDeleteSlot(slot);
+          this.renderSlots();
+        }
+      }
+    });
+    this.renderSlots();
+  }
+
+  private renderSlots(): void {
+    const list = this.panel.querySelector('.slots-list');
+    if (!list) return;
+    list.innerHTML = this.listSlots()
+      .map((s) => {
+        const name = s.exists ? attr(s.name ?? t('app.title')) : t('slots.empty');
+        const meta = s.exists ? t('slots.meta').replace('{lv}', String(s.level)).replace('{chunks}', String(s.chunks)) : '&nbsp;';
+        const action = s.active
+          ? `<span class="slot-current">${t('slots.current')}</span>`
+          : `<button class="slot-play" data-slot="${s.id}" data-exists="${s.exists ? '1' : '0'}">${t(s.exists ? 'slots.play' : 'slots.new')}</button>`;
+        const del = !s.active && s.exists ? `<button class="slot-del" data-slot="${s.id}" aria-label="${attr(t('slots.delete'))}" data-tip="${attr(t('slots.delete'))}">🗑</button>` : '';
+        return (
+          `<div class="slot-row${s.active ? ' active' : ''}${s.exists ? '' : ' empty'}">` +
+          `<div class="slot-info"><div class="slot-name">🏝️ ${name}</div><div class="slot-meta">${meta}</div></div>` +
+          `${action}${del}</div>`
+        );
+      })
+      .join('');
   }
 
   toggle(force?: boolean): void {
     this.open = force ?? !this.open;
     this.panel.style.display = this.open ? '' : 'none';
-    if (this.open) this.islandInput.value = this.islandName(); // reflect the live name
+    if (this.open) {
+      this.islandInput.value = this.islandName(); // reflect the live name
+      this.renderSlots(); // refresh the slot list (levels/chunks may have changed)
+    }
   }
 }

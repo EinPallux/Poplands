@@ -5,7 +5,15 @@
  * and drives autosave + export/import.
  */
 import { bus } from '@/core/events';
-import { freshSave, SaveManager, withCarried, type Save, type SavePlacement, type SaveBookmark } from '@/core/save';
+import {
+  freshSave,
+  SaveManager,
+  withCarried,
+  type Save,
+  type SavePlacement,
+  type SaveBookmark,
+  type SlotInfo,
+} from '@/core/save';
 import type { CameraViewpoint } from '@/render/CameraRig';
 import { encodeShareCode, decodeShareCode } from '@/core/islandCode';
 import { loadSettings, snapshotSettings } from '@/core/settingsStore';
@@ -324,6 +332,30 @@ export class GameState {
    *  it rides along on the next autosave / the pagehide flush (kept out of collect). */
   addPlayMs(ms: number): void {
     this.save.stats.playMs += ms;
+  }
+
+  // — save slots (post-1.0): several local islands, no backend —
+
+  /** Summaries of every save slot for the "My Islands" picker. */
+  listSlots(): SlotInfo[] {
+    return this.manager.listSlots();
+  }
+
+  /** The active slot id ('1'..'5'). */
+  activeSlot(): string {
+    return this.manager.activeSlotId();
+  }
+
+  /** Switch to another slot — saves the current island, then reloads into that one.
+   *  Switching to an EMPTY slot starts a fresh island there. */
+  switchSlot(slot: string): void {
+    this.manager.switchTo(slot);
+    window.location.reload(); // placements-are-truth → clean reload hydrates the new slot
+  }
+
+  /** Forget another slot's island (never the active one). */
+  deleteSlot(slot: string): void {
+    this.manager.deleteSlot(slot);
   }
 
   exportToFile(): void {

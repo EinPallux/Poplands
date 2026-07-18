@@ -643,6 +643,9 @@ export class App {
       (code) => state.loadShareCode(code),
       () => state.islandName(),
       (name) => state.setIslandName(name),
+      () => state.listSlots(),
+      (slot) => state.switchSlot(slot),
+      (slot) => state.deleteSlot(slot),
     );
 
     // — quality: explicit setting wins; 'auto' uses the probe
@@ -871,6 +874,11 @@ export class App {
         openMinimap: () => minimap.toggle(true),
         focusOn: (wx: number, wz: number) => rig.focusOn(wx, wz),
         camTarget: () => rig.lookTarget,
+        // — save slots (post-1.0)
+        slots: () => state.listSlots(),
+        activeSlot: () => state.activeSlot(),
+        switchSlot: (slot: string) => state.switchSlot(slot),
+        deleteSlot: (slot: string) => state.deleteSlot(slot),
         tileShapes: () =>
           island
             .allPlacements()

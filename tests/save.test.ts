@@ -305,3 +305,62 @@ describe('SaveManager', () => {
     expect(mgr.load()!.seed).toBe(42);
   });
 });
+
+describe('SaveManager slots (post-1.0 multiple islands)', () => {
+  it('defaults to slot 1 == the legacy key (zero migration for existing players)', () => {
+    localStorage.setItem('poplands.save', JSON.stringify(makeSave())); // a pre-slots save
+    const m = new SaveManager(() => makeSave());
+    expect(m.activeSlotId()).toBe('1');
+    expect(m.load()).not.toBeNull(); // reads the legacy key
+    const slots = m.listSlots();
+    expect(slots).toHaveLength(5);
+    expect(slots[0]).toMatchObject({ id: '1', active: true, exists: true });
+    expect(slots[1]).toMatchObject({ id: '2', active: false, exists: false });
+  });
+
+  it('switchTo flushes the current slot, points at the new one, and suspends writes', () => {
+    const m = new SaveManager(() => makeSave());
+    m.writeNow(); // slot 1 has a save
+    m.switchTo('2');
+    expect(localStorage.getItem('poplands.slot')).toBe('2');
+    expect(m.activeSlotId()).toBe('2');
+    expect(localStorage.getItem('poplands.save')).not.toBeNull(); // slot 1 preserved
+    // a fresh manager reads the pointer → loads the (empty) slot 2 → a new island
+    const m2 = new SaveManager(() => makeSave());
+    expect(m2.activeSlotId()).toBe('2');
+    expect(m2.load()).toBeNull();
+  });
+
+  it('writes a non-legacy slot to a namespaced key (legacy key untouched)', () => {
+    localStorage.setItem('poplands.slot', '2');
+    const m = new SaveManager(() => makeSave());
+    m.writeNow();
+    expect(localStorage.getItem('poplands.save.s2')).not.toBeNull();
+    expect(localStorage.getItem('poplands.save')).toBeNull();
+  });
+
+  it('createSlot picks the first empty slot; deleteSlot never removes the active island', () => {
+    const m = new SaveManager(() => makeSave());
+    m.writeNow(); // slot 1 filled + active
+    expect(m.createSlot()).toBe('2'); // first empty
+    const m2 = new SaveManager(() => makeSave());
+    m2.writeNow(); // fill slot 2
+    expect(m2.activeSlotId()).toBe('2');
+    m2.deleteSlot('2'); // guarded — can't delete the active slot
+    expect(m2.listSlots().find((s) => s.id === '2')?.exists).toBe(true);
+    m2.deleteSlot('1'); // a non-active slot → forgotten
+    expect(localStorage.getItem('poplands.save')).toBeNull();
+  });
+
+  it('listSlots summarizes each island (name, level, chunks)', () => {
+    const s = makeSave();
+    s.islandName = 'Testonia';
+    s.player.level = 4;
+    localStorage.setItem('poplands.save', JSON.stringify(s));
+    const m = new SaveManager(() => makeSave());
+    const one = m.listSlots()[0]!;
+    expect(one.name).toBe('Testonia');
+    expect(one.level).toBe(4);
+    expect(one.chunks).toBe(s.island.chunks.length);
+  });
+});
