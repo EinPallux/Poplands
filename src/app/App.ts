@@ -42,6 +42,7 @@ import { Mailbox } from '@/ui/Mailbox';
 import { Album } from '@/ui/Album';
 import { CameraBookmarks } from '@/ui/CameraBookmarks';
 import { StatsPanel } from '@/ui/StatsPanel';
+import { MinimapPanel } from '@/ui/MinimapPanel';
 import { FishJournal } from '@/ui/FishJournal';
 import { FishingLayer } from '@/ui/FishingLayer';
 import { DailyGiftUI } from '@/ui/DailyGiftUI';
@@ -76,7 +77,7 @@ import { qualitySignal, timeOfDaySignal, seasonSignal, fpsCapSignal, uiScaleSign
 import { popsSignal, stardustSignal, levelSignal, xpSignal } from '@/core/playerStore';
 import { effect } from '@/core/signals';
 import { footprintCenter, type ChunkTheme } from '@/core/grid';
-import { itemDef, CATALOG } from '@/content/catalog';
+import { itemDef, CATALOG, type Category } from '@/content/catalog';
 import type { AssetPhase } from '@/content/assetPhases';
 import { themeFor } from '@/content/themes';
 
@@ -564,6 +565,19 @@ export class App {
         museumDonated: state.museum.view().donatedCount,
       };
     });
+    // minimap / island overview (post-1.0): top-down map, tap to recenter the camera
+    const minimap = new MinimapPanel(
+      dock,
+      () => ({
+        chunks: island.allChunks().map((c) => ({ cx: c.cx, cz: c.cz, theme: island.themeAt(c.cx, c.cz) })),
+        dots: island
+          .allPlacements()
+          .map((p) => ({ wx: p.wx, wz: p.wz, category: itemDef(p.def)?.category }))
+          .filter((p): p is { wx: number; wz: number; category: Category } => p.category !== undefined),
+        cam: rig.lookTarget,
+      }),
+      (wx, wz) => rig.focusOn(wx, wz),
+    );
     // Island Charm rating (retention + "what next?" tips) — reuses the shared ratingSnapshot
     const rating = new RatingPanel(dock, ratingSnapshot);
     new DailyGiftUI(uiRoot); // the once-a-day present (self-wires to gift:* events)
@@ -677,6 +691,7 @@ export class App {
         else if (stamps.open) stamps.toggle(false);
         else if (bookmarks.open) bookmarks.toggle(false);
         else if (statsPanel.open) statsPanel.toggle(false);
+        else if (minimap.open) minimap.toggle(false);
         else if (settings.open) settings.toggle(false);
         else if (session.isActive) session.cancel();
       },
@@ -852,6 +867,10 @@ export class App {
         // — statistics (post-1.0)
         playMs: () => state.save.stats.playMs,
         addPlayMs: (ms: number) => state.addPlayMs(ms),
+        // — minimap (post-1.0)
+        openMinimap: () => minimap.toggle(true),
+        focusOn: (wx: number, wz: number) => rig.focusOn(wx, wz),
+        camTarget: () => rig.lookTarget,
         tileShapes: () =>
           island
             .allPlacements()

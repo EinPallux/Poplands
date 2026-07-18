@@ -109,6 +109,14 @@ export class CameraRig {
     this.distanceGoal = clamp(this.distanceGoal * factor, DIST_MIN, DIST_MAX);
   }
 
+  /** Recenter the camera on a world point (keeps the current angle + zoom), clamped
+   *  to island bounds. Used by the minimap tap-to-jump (post-1.0). */
+  focusOn(x: number, z: number): void {
+    if (this.introPlaying) return;
+    this.targetGoal.x = clamp(x, this.bounds.minX - PAN_MARGIN, this.bounds.maxX + PAN_MARGIN);
+    this.targetGoal.z = clamp(z, this.bounds.minZ - PAN_MARGIN, this.bounds.maxZ + PAN_MARGIN);
+  }
+
   reset(): void {
     if (this.introPlaying) return;
     this.azimuthGoal = AZIMUTH_DEFAULT;
@@ -153,6 +161,11 @@ export class CameraRig {
 
   get state(): { azimuth: number; polar: number; distance: number } {
     return { azimuth: ((this.azimuth % TAU) + TAU) % TAU, polar: this.polar, distance: this.distance };
+  }
+
+  /** Where the camera is currently looking on the ground plane (world blocks). */
+  get lookTarget(): { x: number; z: number } {
+    return { x: this.target.x, z: this.target.z };
   }
 
   /** Capture the current view GOALS for a bookmark (post-1.0). Uses goals, not the

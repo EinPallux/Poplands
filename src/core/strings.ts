@@ -201,6 +201,10 @@ const en = {
   'statspage.stamps': 'Stamps earned',
   'statspage.gifts': 'Gifts claimed',
 
+  // minimap / island overview (post-1.0)
+  'minimap.title': 'Island Map',
+  'minimap.hint': 'Tap the map to recenter the camera',
+
   // fishing journal + catch moment (post-1.0)
   'journal.title': 'Fish Journal',
   'journal.progress': 'species',
