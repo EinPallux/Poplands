@@ -33,6 +33,12 @@ const en = {
   'build.blocked.afford': 'Not enough Pops yet',
   'build.blocked.edge': 'Needs to reach the island’s edge',
   'build.locked': 'Unlocks at Level {level}',
+  // catalog search/filter (post-1.0)
+  'build.search.placeholder': 'Search…',
+  'build.search.tip': 'Type to find items by name',
+  'build.search.affordable': '● Affordable',
+  'build.search.unplaced': 'Not placed',
+  'build.search.empty': 'Nothing matches — try another search or filter.',
   'toast.levelUp': 'Level {level}! ✨ New things to build',
   'toast.questDone': 'Postcard complete! 💌',
   'toast.secretFound': 'A discovery! ✨',

@@ -60,7 +60,7 @@ import { ChunkPopup } from '@/ui/ChunkPopup';
 import '@/ui/questState'; // side-effect: registers quest signal subscriptions
 import { initToasts, showToast } from '@/ui/Toasts';
 import { renderThumbnails } from '@/ui/thumbnails';
-import { catalogOpenSignal, catalogRevealSignal } from '@/ui/uiState';
+import { catalogOpenSignal, catalogRevealSignal, placedDefsSignal } from '@/ui/uiState';
 import { DebugHud } from '@/debug/DebugHud';
 import { Particles } from '@/vfx/Particles';
 import { popIn, popOut, shake } from '@/vfx/presets';
@@ -554,6 +554,13 @@ export class App {
     dock.appendChild(photoBtn);
     const buildBar = new BuildBar(uiRoot);
     setTimeout(() => buildBar.setThumbnails(renderThumbnails(assets)), 80);
+    // feed the catalog's "not placed" filter with the live set of placed def ids
+    const refreshPlacedDefs = (): void => {
+      placedDefsSignal.set(new Set(island.allPlacements().map((p) => p.def)));
+    };
+    refreshPlacedDefs();
+    bus.on('item:placed', refreshPlacedDefs);
+    bus.on('item:removed', refreshPlacedDefs);
     // brand-new players: a friendly welcome coach-mark pointing at the build bar
     // (only when nothing has ever been placed; retires on the first placement)
     new WelcomeHint(uiRoot, state.save.quests.milestones.itemsPlaced === 0);

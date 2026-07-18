@@ -15,6 +15,16 @@ export const catalogRevealSignal = signal<ReadonlySet<string>>(new Set());
 /** Why the current placement ghost is invalid (S23 colour-blind cue), or null when valid/idle. */
 export const ghostBlockedSignal = signal<BlockReasonUi | null>(null);
 
+// — catalog search/filter (post-1.0): the build bar's search box + two toggles.
+/** Live search text (matched against item display names, case-insensitive). */
+export const catalogSearchSignal = signal('');
+/** "Affordable only" toggle — hide items the player can't currently pay for. */
+export const affordableOnlySignal = signal(false);
+/** "Not placed" toggle — hide items already placed somewhere on the island. */
+export const unplacedOnlySignal = signal(false);
+/** Def ids currently on the island, kept fresh by App (place/remove) for the filter. */
+export const placedDefsSignal = signal<ReadonlySet<string>>(new Set());
+
 bus.on('build:modeChanged', ({ tool, carrying }) => {
   toolSignal.set(tool);
   carryingSignal.set(carrying ?? false);
