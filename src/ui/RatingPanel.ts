@@ -63,6 +63,7 @@ export class RatingPanel {
         <div class="rating-num">${r.stars} <span class="rating-of">${t('rating.outOf')}</span></div>
       </div>
       <div class="rating-verdict">${t(r.verdictKey)}</div>
+      <div class="rating-mood">${r.happiness.emoji} ${t('rating.mood')} <b>${t(r.happiness.moodKey)}</b></div>
       <div class="rating-breakdown">${bars}</div>
       <div class="rating-tips">
         <div class="rt-head">${t('rating.tipsHead')}</div>

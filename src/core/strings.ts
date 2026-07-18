@@ -384,6 +384,12 @@ const en = {
   'rating.tip.bustle': 'Place an income building to keep the Pops flowing ●',
   'rating.tip.room': 'Call a new chunk to give your island room to grow 🧭',
   'rating.tip.perfect': 'Your island is wonderfully cozy — nothing to add! 💛',
+  'rating.mood': 'Neighbours are',
+  'mood.content': 'settling in',
+  'mood.happy': 'happy',
+  'mood.cheerful': 'cheerful',
+  'mood.delighted': 'delighted',
+  'stats.mood': 'How happy your neighbours are',
   // island stats strip (UI rework)
   'stats.neighbours': 'Neighbours',
   'stats.pals': 'Pals',

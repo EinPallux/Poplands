@@ -2269,3 +2269,24 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .wish-bubble { transition: opacity 0.2s ease; scale: 1; }
 }
+
+/* ——— Happiness mood lines (post-1.0) ——— */
+.rating-mood {
+  font-size: 13px;
+  font-weight: 600;
+  margin: 0 0 12px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: rgba(255, 201, 75, 0.16);
+}
+.rating-mood b { color: var(--accent-gold); }
+.album-mood {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  padding: 7px 11px;
+  border-radius: 10px;
+  background: rgba(255, 201, 75, 0.16);
+  color: var(--ui-ink);
+}
+.album-mood b { color: var(--accent-coral); }

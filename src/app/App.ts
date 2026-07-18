@@ -46,7 +46,7 @@ import { DailyGiftUI } from '@/ui/DailyGiftUI';
 import { MuseumPanel } from '@/ui/MuseumPanel';
 import { AchievementsWall } from '@/ui/AchievementsWall';
 import { RatingPanel } from '@/ui/RatingPanel';
-import { computeRating, type RatingSnapshot } from '@/content/rating';
+import { computeRating, computeHappiness, type RatingSnapshot } from '@/content/rating';
 import { GardenLayer } from '@/ui/GardenLayer';
 import { SeedPicker } from '@/ui/SeedPicker';
 import { BiomePicker } from '@/ui/BiomePicker';
@@ -174,12 +174,36 @@ export class App {
     scene.add(seasonAmbience.group);
     const aurora = new AuroraLayer(island); // The Wonder's permanent aurora (S20 capstone)
     scene.add(aurora.group);
+    // Island Charm + happiness snapshot, assembled from live state (post-1.0). Shared by
+    // the liveliness dividend, the RatingPanel, the Album, and the stats strip.
+    const ratingSnapshot = (): RatingSnapshot => {
+      let nature = 0, decor = 0, homes = 0, income = 0, gardens = 0;
+      const types = new Set<string>();
+      for (const p of island.allPlacements()) {
+        const def = itemDef(p.def);
+        if (!def) continue;
+        types.add(p.def);
+        if (def.id === 'nature.garden') gardens++;
+        if (def.category === 'nature') nature++;
+        else if (def.category === 'decor') decor++;
+        else if (def.category === 'home') homes++;
+        else if (def.category === 'income') income++;
+      }
+      return {
+        chunks: island.chunkCount,
+        nature, decor, homes, income, crops: gardens,
+        neighbours: state.islanders.snapshot().residents.length,
+        pals: state.pals.snapshot().pals.length,
+        distinctTypes: types.size,
+      };
+    };
     // a lively island quietly pays a little extra (S13 liveliness dividend), lifted
-    // island-wide by each Grand Assembly Hall (+5% each, capped at +20%).
+    // island-wide by each Grand Assembly Hall (+5% each, capped at +20%), plus a warm
+    // top-up when the neighbours are happy (post-1.0: up to +30% when delighted).
     const livelinessBonus = (): number => {
       let sum = 0;
       for (const p of island.allPlacements()) sum += itemDef(p.def)?.livelinessBonus ?? 0;
-      return Math.min(sum, 0.2);
+      return Math.min(sum, 0.2) + computeHappiness(ratingSnapshot()).score * 0.3;
     };
     const liveliness = new LivelinessSystem(
       state.economy,
@@ -470,36 +494,19 @@ export class App {
     const dock = document.createElement('div');
     dock.className = 'hud-dock';
     uiRoot.appendChild(dock);
-    const album = new Album(dock, () => ({
-      milestones: state.save.quests.milestones,
-      residents: state.islanders.snapshot().residents,
-      pals: state.pals.snapshot().pals,
-      themes: island.allChunks().map((c) => island.themeAt(c.cx, c.cz)),
-    }));
+    const album = new Album(dock, () => {
+      const h = computeHappiness(ratingSnapshot());
+      return {
+        milestones: state.save.quests.milestones,
+        residents: state.islanders.snapshot().residents,
+        pals: state.pals.snapshot().pals,
+        themes: island.allChunks().map((c) => island.themeAt(c.cx, c.cz)),
+        mood: { emoji: h.emoji, moodKey: h.moodKey },
+      };
+    });
     const journal = new FishJournal(dock, () => state.fishing.collection());
     const stamps = new AchievementsWall(dock, () => state.achievements.view()); // Stamp Book (K)
-    // Island Charm rating (retention + "what next?" tips) — snapshot assembled from live state
-    const ratingSnapshot = (): RatingSnapshot => {
-      let nature = 0, decor = 0, homes = 0, income = 0, gardens = 0;
-      const types = new Set<string>();
-      for (const p of island.allPlacements()) {
-        const def = itemDef(p.def);
-        if (!def) continue;
-        types.add(p.def);
-        if (def.id === 'nature.garden') gardens++;
-        if (def.category === 'nature') nature++;
-        else if (def.category === 'decor') decor++;
-        else if (def.category === 'home') homes++;
-        else if (def.category === 'income') income++;
-      }
-      return {
-        chunks: island.chunkCount,
-        nature, decor, homes, income, crops: gardens,
-        neighbours: state.islanders.snapshot().residents.length,
-        pals: state.pals.snapshot().pals.length,
-        distinctTypes: types.size,
-      };
-    };
+    // Island Charm rating (retention + "what next?" tips) — reuses the shared ratingSnapshot
     const rating = new RatingPanel(dock, ratingSnapshot);
     new DailyGiftUI(uiRoot); // the once-a-day present (self-wires to gift:* events)
     const museumPanel = new MuseumPanel(uiRoot, () => {
@@ -797,6 +804,8 @@ export class App {
         agentMeshY: (id: string) => agents.debugMeshY(id),
         achievementsView: () => state.achievements.view(),
         ratingView: () => computeRating(ratingSnapshot()),
+        happiness: () => computeHappiness(ratingSnapshot()),
+        livelinessBonus: () => livelinessBonus(),
         openRating: () => rating.toggle(true),
         gardenView: () => state.garden.view(),
         gardenStage: (id: string) => state.garden.stageOf(id),

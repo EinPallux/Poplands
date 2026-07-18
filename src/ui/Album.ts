@@ -3,7 +3,7 @@
  * counters and the little community that's grown — who's moved in, which Pals visit.
  * Read-only; pulls a fresh snapshot each time it opens. Text via the string table.
  */
-import { t } from '@/core/strings';
+import { t, type StringKey } from '@/core/strings';
 import { tip } from '@/ui/Tooltip';
 import { MILESTONES } from '@/content/quests';
 import { islanderDef, friendPairs } from '@/content/roster';
@@ -17,6 +17,8 @@ export interface AlbumData {
   residents: string[];
   pals: string[];
   themes: ChunkTheme[];
+  /** Island mood (post-1.0 happiness) — an emoji + a mood-word string key. */
+  mood: { emoji: string; moodKey: StringKey };
 }
 
 export class Album {
@@ -92,6 +94,7 @@ export class Album {
 
     this.panel.innerHTML = `
       <h2>${t('album.title')}</h2>
+      ${d.residents.length > 0 ? `<div class="album-mood">${d.mood.emoji} ${t('rating.mood')} <b>${t(d.mood.moodKey)}</b></div>` : ''}
       <h3>${t('album.milestones')}</h3>
       <ul class="album-ms">${ms}</ul>
       <h3>${t('album.neighbours')}</h3>
