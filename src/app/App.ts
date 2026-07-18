@@ -120,6 +120,8 @@ export class App {
     await assets.loadBoot(import.meta.env.BASE_URL); // boot wave only: Tiers 1–4 + agents
     const state = new GameState();
     const island = state.island;
+    // day/night routines (post-1.0): the sim reads the time of day (render → sim seam)
+    state.islanders.setPhaseProvider(() => timeOfDay.dayPhase);
 
     // Returning-save guard (S4 §6.1): boot carries only Tiers 1–4 + agents, so a
     // veteran's Tier-5+/themed buildings would miss the cache. Await exactly the
@@ -788,6 +790,8 @@ export class App {
         islanderUsage: () => state.islanders.debugUsage(),
         wishes: () => state.requests.debugWishes(),
         newWish: (id?: string, category?: string) => state.requests.debugNewWish(id, category),
+        retireAll: () => state.islanders.debugRetireAll(),
+        hiddenCount: () => state.islanders.debugHiddenCount(),
         sitNow: (pid?: string) => state.islanders.debugSitNow(pid),
         endUse: (id: string) => state.islanders.debugEndUse(id),
         agentMeshY: (id: string) => agents.debugMeshY(id),

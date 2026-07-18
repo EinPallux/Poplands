@@ -48,9 +48,13 @@ export interface AgentView {
   readonly ox?: number;
   readonly oz?: number;
   readonly lift?: number;
+  /** Tucked in at home for the night (post-1.0 routines): the renderer hides the
+   *  avatar; the window glow already sells "someone's home". Absent ⇒ visible. */
+  readonly hidden?: boolean;
 }
 
 type UseKind = 'sit' | 'gather';
+export type DayPhase = 'dawn' | 'day' | 'dusk' | 'night';
 
 interface Agent extends AgentView {
   id: string;
@@ -62,6 +66,8 @@ interface Agent extends AgentView {
   ox: number;
   oz: number;
   lift: number;
+  hidden: boolean; // tucked in at home for the night
+  homing: boolean; // walking home to tuck in (night routine)
   tx: number; // current wander target
   tz: number;
   timer: number; // seconds until the next decision (idle dwell / walk safety cap)
@@ -107,6 +113,10 @@ export class IslanderSystem {
   private rng: () => number;
   /** Furniture placement ids currently claimed by a neighbour (one user apiece). */
   private claimed = new Set<string>();
+  /** Time of day (post-1.0 routines) — injected by App from TimeOfDay; sim stays
+   *  three.js-free (it only ever reads a plain string). Defaults to 'day'. */
+  private phaseProvider: () => DayPhase = () => 'day';
+  private phase: DayPhase = 'day';
 
   constructor(
     private readonly island: IslandModel,
@@ -131,6 +141,11 @@ export class IslanderSystem {
   dispose(): void {
     for (const off of this.unsubs) off();
     this.unsubs = [];
+  }
+
+  /** App wires the time-of-day read (render → sim) after construction. */
+  setPhaseProvider(fn: () => DayPhase): void {
+    this.phaseProvider = fn;
   }
 
   /** Spawn live agents for already-resident Islanders (from the save), then catch
@@ -160,15 +175,36 @@ export class IslanderSystem {
 
   /** Per-frame kinematics + timer-gated decisions. */
   update(dt: number): void {
+    this.phase = this.phaseProvider(); // cached once per tick (pickTarget reads it)
+    const night = this.phase === 'night';
     for (const a of this.list) {
       if (a.chat > 0) {
         a.chat -= dt; // paused mid-island to greet the player — stand and chat
         a.moving = false;
         continue;
       }
+      // — day/night routine (post-1.0): tuck in at night, wake at dawn —
+      if (a.hidden) {
+        if (night) {
+          a.moving = false;
+          continue; // still asleep inside
+        }
+        this.wakeUp(a); // morning — reappear + resume wandering
+      }
       if (a.using) {
-        this.tickUsing(a, dt); // seated/gathered at a piece of furniture
-        continue;
+        if (night) {
+          this.getUp(a); // it's bedtime — leave the bench/fire and head home
+        } else {
+          this.tickUsing(a, dt); // seated/gathered at a piece of furniture
+          continue;
+        }
+      }
+      if (night && !a.homing) {
+        if (a.usePid) this.abandonApproach(a); // drop any seat plan, go home instead
+        this.startHoming(a); // walk to the nearest home (no-op if none → just wanders)
+      } else if (!night && a.homing) {
+        a.homing = false; // dawn broke mid-walk — abandon the trek home
+        this.rest(a);
       }
       a.timer -= dt;
       if (a.moving) this.stepWalk(a, dt);
@@ -215,6 +251,8 @@ export class IslanderSystem {
       ox: 0,
       oz: 0,
       lift: 0,
+      hidden: false,
+      homing: false,
       tx: cell.x,
       tz: cell.z,
       timer: this.rng() * DWELL_SPAN, // stagger first steps so nobody marches in sync
@@ -255,8 +293,11 @@ export class IslanderSystem {
       return;
     }
     if (a.timer <= 0) {
-      // couldn't get there in time — give up (release any furniture claim) and rest
-      if (a.usePid) this.abandonApproach(a);
+      // couldn't get there in time — give up (release any furniture claim) and rest.
+      // A homing neighbour just tucks in where they are (still on a walkable cell) so
+      // night reliably settles everyone rather than wandering on.
+      if (a.homing) this.enterHome(a);
+      else if (a.usePid) this.abandonApproach(a);
       else this.rest(a);
       return;
     }
@@ -267,7 +308,8 @@ export class IslanderSystem {
     const nz = a.z + uz * step;
     if (!this.island.walkable(Math.floor(nx), Math.floor(nz))) {
       // path clipped a solid cell — change of mind (drop a furniture plan cleanly)
-      if (a.usePid) this.abandonApproach(a);
+      if (a.homing) this.enterHome(a);
+      else if (a.usePid) this.abandonApproach(a);
       else this.rest(a);
       return;
     }
@@ -276,13 +318,16 @@ export class IslanderSystem {
     a.yaw = turnToward(a.yaw, Math.atan2(ux, uz), TURN_RATE * dt);
   }
 
-  /** Reached the current target: settle onto furniture if that's why we came, else idle. */
+  /** Reached the current target: tuck into a home, settle onto furniture, or idle. */
   private arrive(a: Agent): void {
-    if (a.usePid) this.beginUsing(a);
+    if (a.homing) this.enterHome(a);
+    else if (a.usePid) this.beginUsing(a);
     else this.rest(a);
   }
 
   private pickTarget(a: Agent): void {
+    // at dawn the island wakes up — neighbours drift toward a gathering spot for a spell
+    if (this.phase === 'dawn' && this.rng() < 0.5 && this.pickGatherTarget(a)) return;
     // sometimes head for a nearby seat/fire/fountain instead of an aimless step
     if (this.rng() < FURNITURE_CHANCE && this.pickFurnitureTarget(a)) return;
     for (let i = 0; i < 8; i++) {
@@ -443,6 +488,85 @@ export class IslanderSystem {
     return { x: c.x, z: c.z };
   }
 
+  // ——— day/night routine (post-1.0) ———
+
+  /** Head for the nearest home to tuck in for the night. Returns false (→ just wander)
+   *  if no home has a walkable doorstep. */
+  private startHoming(a: Agent): boolean {
+    let best: { wx: number; wz: number } | null = null;
+    let bestD = Infinity;
+    for (const p of this.island.allPlacements()) {
+      const def = itemDef(p.def);
+      if (!def?.houses) continue;
+      const ap = this.approachCell(a, p, def);
+      if (!ap) continue;
+      const d = (ap.wx + 0.5 - a.x) ** 2 + (ap.wz + 0.5 - a.z) ** 2;
+      if (d < bestD) {
+        bestD = d;
+        best = ap;
+      }
+    }
+    if (!best) return false;
+    a.homing = true;
+    a.tx = best.wx + 0.5;
+    a.tz = best.wz + 0.5;
+    a.moving = true;
+    a.timer = WALK_TIMEOUT;
+    return true;
+  }
+
+  /** Tuck in: hide the avatar (stays on its walkable doorstep cell → invariant holds). */
+  private enterHome(a: Agent): void {
+    a.homing = false;
+    a.moving = false;
+    a.hidden = true;
+  }
+
+  /** Morning: reappear and resume the cozy wander. */
+  private wakeUp(a: Agent): void {
+    a.hidden = false;
+    this.rest(a);
+  }
+
+  /** Drift toward a gathering spot (nearest fountain/fire/statue, else the island's
+   *  heart) — the dawn "good morning" cluster. */
+  private pickGatherTarget(a: Agent): boolean {
+    let gx: number;
+    let gz: number;
+    let nearest: { x: number; z: number } | null = null;
+    let bestD = Infinity;
+    for (const p of this.island.allPlacements()) {
+      const def = itemDef(p.def);
+      if (def?.interaction !== 'gather') continue;
+      const c = footprintCenter(p.wx, p.wz, def.footprint, p.rot);
+      const d = (c.x - a.x) ** 2 + (c.z - a.z) ** 2;
+      if (d < bestD) {
+        bestD = d;
+        nearest = c;
+      }
+    }
+    if (nearest) {
+      gx = nearest.x;
+      gz = nearest.z;
+    } else {
+      const c = this.island.center();
+      gx = c.x;
+      gz = c.z;
+    }
+    for (let i = 0; i < 8; i++) {
+      const cx = Math.floor(gx + (this.rng() - 0.5) * 5);
+      const cz = Math.floor(gz + (this.rng() - 0.5) * 5);
+      if (this.island.walkable(cx, cz)) {
+        a.tx = cx + 0.5;
+        a.tz = cz + 0.5;
+        a.moving = true;
+        a.timer = WALK_TIMEOUT;
+        return true;
+      }
+    }
+    return false;
+  }
+
   // ——— debug (headless verification; ?debug=1 only) ———
 
   /** Live furniture visits, for the verify harness. */
@@ -479,6 +603,20 @@ export class IslanderSystem {
     if (!a) return false;
     this.getUp(a);
     return true;
+  }
+
+  /** Tuck every neighbour straight in (skips the headless-slow walk home). */
+  debugRetireAll(): number {
+    for (const a of this.list) {
+      if (a.usePid) this.clearUse(a);
+      this.enterHome(a);
+    }
+    return this.list.length;
+  }
+
+  /** How many neighbours are currently tucked in (hidden). */
+  debugHiddenCount(): number {
+    return this.list.filter((a) => a.hidden).length;
   }
 }
 
