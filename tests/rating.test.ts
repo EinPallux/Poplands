@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { computeRating, type RatingSnapshot } from '@/content/rating';
+import { computeRating, computeHappiness, type RatingSnapshot } from '@/content/rating';
 
 const EMPTY: RatingSnapshot = {
   chunks: 4, nature: 0, homes: 0, neighbours: 0, decor: 0, income: 0, pals: 0, distinctTypes: 0, crops: 0,
@@ -59,5 +59,35 @@ describe('Island Charm rating (post-1.0)', () => {
     expect(r.categories.map((c) => c.id)).toEqual([
       'greenery', 'community', 'charm', 'critters', 'bustle', 'room',
     ]);
+  });
+});
+
+describe('Island happiness (post-1.0)', () => {
+  it('is always positive & never sad — even a bare island is "settling in"', () => {
+    const h = computeHappiness(EMPTY);
+    expect(h.score).toBeGreaterThanOrEqual(0);
+    expect(h.moodKey).toBe('mood.content'); // the lowest mood, still cosy
+    expect(h.emoji).toBeTruthy();
+  });
+
+  it('rises as amenities-per-neighbour grow, and tops out delighted', () => {
+    const few: RatingSnapshot = { ...EMPTY, neighbours: 4, nature: 4 };
+    const lots: RatingSnapshot = { ...EMPTY, neighbours: 4, nature: 60, decor: 30, homes: 8, pals: 6 };
+    expect(computeHappiness(lots).score).toBeGreaterThan(computeHappiness(few).score);
+    expect(computeHappiness(lots).moodKey).toBe('mood.delighted'); // a lavish, low-density island
+  });
+
+  it('more neighbours with the same amenities are a little less content (per-capita)', () => {
+    const cosy: RatingSnapshot = { ...EMPTY, neighbours: 2, nature: 12, decor: 6 };
+    const crowded: RatingSnapshot = { ...EMPTY, neighbours: 12, nature: 12, decor: 6 };
+    expect(computeHappiness(crowded).score).toBeLessThan(computeHappiness(cosy).score);
+  });
+
+  it('is exposed on the rating result and nudges the overall score', () => {
+    const r = computeRating({ ...EMPTY, neighbours: 4, nature: 20, decor: 12, homes: 4 });
+    expect(r.happiness).toBeDefined();
+    expect(r.happiness.score).toBeGreaterThan(0);
+    // the happiness nudge keeps overall a blend, never above 1
+    expect(r.overall).toBeLessThanOrEqual(1);
   });
 });

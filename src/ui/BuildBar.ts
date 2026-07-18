@@ -11,6 +11,8 @@ import { signal } from '@/core/signals';
 import { levelSignal, popsSignal, stardustSignal } from '@/core/playerStore';
 import { tierUnlockLevel } from '@/sim/progression';
 import { showToast } from './Toasts';
+import { tip } from '@/ui/Tooltip';
+import { matchesCatalogFilter } from './catalogFilter';
 import {
   selectedDefSignal,
   toolSignal,
@@ -18,6 +20,10 @@ import {
   catalogOpenSignal,
   catalogRevealSignal,
   ghostBlockedSignal,
+  catalogSearchSignal,
+  affordableOnlySignal,
+  unplacedOnlySignal,
+  placedDefsSignal,
 } from './uiState';
 
 const TAB_KEYS: Record<Category | 'all', StringKey> = {
@@ -28,6 +34,9 @@ const TAB_KEYS: Record<Category | 'all', StringKey> = {
   income: 'build.tab.income',
   ground: 'build.tab.ground',
 };
+
+/** Stable empty set for the "not placed" filter when it's off (keeps effect deps steady). */
+const EMPTY_PLACED: ReadonlySet<string> = new Set();
 
 /** Ghost-invalid reason → its localized hint (S23 colour-blind cue: text, not colour). */
 const BLOCK_KEY: Record<BlockReasonUi, StringKey> = {
@@ -117,15 +126,48 @@ export class BuildBar {
     toolButton(t('build.tool.remove'), 'remove', 'X');
     toolButton(t('build.tool.biome'), 'biome', 'G'); // re-theme a chunk's biome
 
+    // — search + filter row (post-1.0): find by name, "affordable only", "not placed"
+    const search = document.createElement('div');
+    search.className = 'build-search';
+    this.root.appendChild(search);
+
+    const searchInput = document.createElement('input');
+    searchInput.className = 'build-search-input';
+    searchInput.type = 'text';
+    searchInput.placeholder = t('build.search.placeholder');
+    searchInput.setAttribute('aria-label', t('build.search.placeholder'));
+    searchInput.addEventListener('input', () => catalogSearchSignal.set(searchInput.value));
+    search.appendChild(searchInput);
+
+    const filterChip = (labelKey: StringKey, sig: typeof affordableOnlySignal): void => {
+      const btn = document.createElement('button');
+      btn.className = 'build-filter';
+      btn.textContent = t(labelKey);
+      btn.addEventListener('click', () => sig.update((v) => !v));
+      effect(() => btn.classList.toggle('active', sig.get()));
+      search.appendChild(btn);
+    };
+    filterChip('build.search.affordable', affordableOnlySignal);
+    filterChip('build.search.unplaced', unplacedOnlySignal);
+    tip(searchInput, t('build.search.tip'));
+
     // — cards row
     this.cardsEl = document.createElement('div');
     this.cardsEl.className = 'build-cards';
     this.root.appendChild(this.cardsEl);
 
+    // empty-state shown when no item matches the active tab + search + filters
+    const emptyEl = document.createElement('div');
+    emptyEl.className = 'build-empty';
+    emptyEl.textContent = t('build.search.empty');
+    emptyEl.style.display = 'none';
+    this.cardsEl.appendChild(emptyEl);
+
     const cardEls = new Map<string, HTMLButtonElement>();
     for (const def of CATALOG) {
       const card = document.createElement('button');
       card.className = 'build-card';
+      card.dataset['def'] = def.id; // stable hook for filtering + headless verify
       const costHtml = `<span class="card-cost">● ${def.cost}<span class="afford-flag" aria-hidden="true"> ✕</span></span>${
         def.costStardust ? `<span class="card-cost-sd">✦ ${def.costStardust}</span>` : ''
       }`;
@@ -163,31 +205,55 @@ export class BuildBar {
       this.cardsEl.appendChild(card);
     }
 
-    // tab filtering with a staggered entrance cascade (ART §7.1.4 — cascade,
+    // tab + search + filter with a staggered entrance cascade (ART §7.1.4 — cascade,
     // don't sync). Visible cards re-trigger their pop-in animation with a small
-    // per-card delay so switching tabs feels alive, not a static show/hide.
+    // per-card delay so switching tabs feels alive, not a static show/hide. The
+    // cascade only replays when the visible SET changes (`structuralChange`), so
+    // an income tick under "affordable only" doesn't re-animate every frame.
     let firstFilter = true;
+    let lastVisibleKey = '';
     effect(() => {
       const tab = this.activeTab.get();
+      const query = catalogSearchSignal.get().trim().toLowerCase();
+      const affordableOnly = affordableOnlySignal.get();
+      const unplacedOnly = unplacedOnlySignal.get();
+      // read wallet / placed-set ONLY when the relevant filter is on, so ordinary
+      // income ticks don't re-run this effect (the signal deps are dynamic).
+      const pops = affordableOnly ? popsSignal.get() : 0;
+      const stardust = affordableOnly ? stardustSignal.get() : 0;
+      const placed = unplacedOnly ? placedDefsSignal.get() : EMPTY_PLACED;
+      const filter = { query, affordableOnly, unplacedOnly, pops, stardust, placed };
+
+      const visible = new Set<string>();
+      for (const def of CATALOG) {
+        const tabOk = tab === 'all' || def.category === tab;
+        if (tabOk && matchesCatalogFilter(def, t(def.nameKey), filter)) visible.add(def.id);
+      }
+      const key = [...visible].join(',');
+      const structuralChange = key !== lastVisibleKey;
+      lastVisibleKey = key;
+
       let visibleIndex = 0;
       for (const def of CATALOG) {
         const el = cardEls.get(def.id);
         if (!el) continue;
-        const visible = tab === 'all' || def.category === tab;
-        if (!visible) {
+        if (!visible.has(def.id)) {
           el.style.display = 'none';
           el.classList.remove('card-enter');
           continue;
         }
         el.style.display = '';
-        // restart the CSS entrance animation (force reflow so it replays)
-        el.classList.remove('card-enter');
-        void el.offsetWidth;
-        el.style.animationDelay = `${visibleIndex * 24}ms`;
-        el.classList.add('card-enter');
+        if (structuralChange) {
+          // restart the CSS entrance animation (force reflow so it replays)
+          el.classList.remove('card-enter');
+          void el.offsetWidth;
+          el.style.animationDelay = `${visibleIndex * 24}ms`;
+          el.classList.add('card-enter');
+        }
         visibleIndex++;
       }
-      if (!firstFilter) this.cardsEl.scrollLeft = 0; // reset scroll when switching tabs
+      emptyEl.style.display = visibleIndex === 0 ? '' : 'none';
+      if (!firstFilter && structuralChange) this.cardsEl.scrollLeft = 0; // reset scroll on a real change
       firstFilter = false;
     });
 

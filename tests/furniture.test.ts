@@ -158,3 +158,60 @@ describe('IslanderSystem furniture — organic + invariant soak', () => {
     expect(usedFurniture).toBe(true); // the wander AI chose to use furniture at least once
   });
 });
+
+describe('IslanderSystem day/night routines (post-1.0)', () => {
+  it('neighbours tuck into their homes at night, then reappear by morning', () => {
+    place('home.house', 10, 10, 'home'); // 2 residents
+    sys.announce();
+    const n = sys.agents.length;
+    expect(n).toBeGreaterThan(0);
+
+    sys.setPhaseProvider(() => 'night');
+    // give them time to walk home + tuck in
+    for (let step = 0; step < 800; step++) sys.update(1 / 30);
+    expect(sys.debugHiddenCount()).toBe(n); // everyone's asleep
+    // and every hidden neighbour is still on walkable ground (invariant holds)
+    for (const a of sys.agents) {
+      expect(island.walkable(Math.floor(a.x), Math.floor(a.z))).toBe(true);
+    }
+
+    // morning breaks — they wake up and get moving again
+    sys.setPhaseProvider(() => 'day');
+    for (let step = 0; step < 120; step++) sys.update(1 / 30);
+    expect(sys.debugHiddenCount()).toBe(0);
+  });
+
+  it('daytime keeps everyone awake (no one tucks in)', () => {
+    place('home.house', 10, 10, 'home');
+    sys.announce();
+    // default provider is 'day'
+    for (let step = 0; step < 400; step++) sys.update(1 / 30);
+    expect(sys.debugHiddenCount()).toBe(0);
+  });
+
+  it('debugRetireAll tucks everyone in immediately, on walkable ground', () => {
+    place('home.house', 10, 10, 'home');
+    sys.announce();
+    const n = sys.debugRetireAll();
+    expect(sys.debugHiddenCount()).toBe(n);
+    for (const a of sys.agents) {
+      expect(island.walkable(Math.floor(a.x), Math.floor(a.z))).toBe(true);
+    }
+  });
+
+  it('a neighbour leaves the bench at bedtime (no furniture claim leaks)', () => {
+    place('home.house', 10, 10, 'home');
+    place('decor.bench', 5, 5, 'bench');
+    sys.announce();
+    sys.debugSitNow('bench');
+    expect(sys.debugUsage()).toHaveLength(1);
+
+    sys.setPhaseProvider(() => 'night');
+    for (let step = 0; step < 800; step++) sys.update(1 / 30);
+    // nobody is still sitting; the seat claim was released so it's re-usable
+    expect(sys.debugUsage()).toHaveLength(0);
+    sys.setPhaseProvider(() => 'day');
+    for (let step = 0; step < 120; step++) sys.update(1 / 30);
+    expect(sys.debugSitNow('bench')).not.toBeNull(); // the bench is free again
+  });
+});

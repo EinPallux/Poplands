@@ -13,6 +13,15 @@ import type { IslandBounds } from './Lights';
 const DEG = Math.PI / 180;
 const tmpProject = new Vector3();
 
+/** A saved camera viewpoint (post-1.0 bookmarks) — plain numbers, safe to persist. */
+export interface CameraViewpoint {
+  azimuth: number;
+  polar: number;
+  distance: number;
+  tx: number;
+  tz: number;
+}
+
 const POLAR_MIN = 30 * DEG;
 const POLAR_MAX = 65 * DEG;
 const POLAR_DEFAULT = 50 * DEG;
@@ -100,6 +109,14 @@ export class CameraRig {
     this.distanceGoal = clamp(this.distanceGoal * factor, DIST_MIN, DIST_MAX);
   }
 
+  /** Recenter the camera on a world point (keeps the current angle + zoom), clamped
+   *  to island bounds. Used by the minimap tap-to-jump (post-1.0). */
+  focusOn(x: number, z: number): void {
+    if (this.introPlaying) return;
+    this.targetGoal.x = clamp(x, this.bounds.minX - PAN_MARGIN, this.bounds.maxX + PAN_MARGIN);
+    this.targetGoal.z = clamp(z, this.bounds.minZ - PAN_MARGIN, this.bounds.maxZ + PAN_MARGIN);
+  }
+
   reset(): void {
     if (this.introPlaying) return;
     this.azimuthGoal = AZIMUTH_DEFAULT;
@@ -144,6 +161,37 @@ export class CameraRig {
 
   get state(): { azimuth: number; polar: number; distance: number } {
     return { azimuth: ((this.azimuth % TAU) + TAU) % TAU, polar: this.polar, distance: this.distance };
+  }
+
+  /** Where the camera is currently looking on the ground plane (world blocks). */
+  get lookTarget(): { x: number; z: number } {
+    return { x: this.target.x, z: this.target.z };
+  }
+
+  /** Capture the current view GOALS for a bookmark (post-1.0). Uses goals, not the
+   *  damped current pose, so a mid-glide save records where the camera is heading. */
+  viewpoint(): CameraViewpoint {
+    return {
+      azimuth: this.azimuthGoal,
+      polar: this.polarGoal,
+      distance: this.distanceGoal,
+      tx: this.targetGoal.x,
+      tz: this.targetGoal.z,
+    };
+  }
+
+  /** Ease the camera to a saved viewpoint (post-1.0 bookmarks), clamped to the safe
+   *  ranges so a stale bookmark from a smaller island never flies off into the void. */
+  applyViewpoint(vp: CameraViewpoint): void {
+    if (this.introPlaying) return;
+    this.azimuthGoal = vp.azimuth;
+    this.polarGoal = clamp(vp.polar, POLAR_MIN, POLAR_MAX);
+    this.distanceGoal = clamp(vp.distance, DIST_MIN, DIST_MAX);
+    this.targetGoal.set(
+      clamp(vp.tx, this.bounds.minX - PAN_MARGIN, this.bounds.maxX + PAN_MARGIN),
+      0,
+      clamp(vp.tz, this.bounds.minZ - PAN_MARGIN, this.bounds.maxZ + PAN_MARGIN),
+    );
   }
 
   /** Project a world point to screen pixels for world-anchored DOM (S21). */

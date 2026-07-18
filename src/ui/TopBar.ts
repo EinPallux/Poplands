@@ -12,6 +12,7 @@ import { tweens, easings } from '@/core/tween';
 import { isReducedMotion } from '@/core/settingsStore';
 import { t } from '@/core/strings';
 import { tip } from '@/ui/Tooltip';
+import { bus } from '@/core/events';
 
 export interface WorldStatus {
   dayPhase: 'dawn' | 'day' | 'dusk' | 'night';
@@ -38,6 +39,8 @@ export class TopBar {
   constructor(
     parent: HTMLElement,
     private readonly status: () => WorldStatus,
+    /** The island's (renamable) display name (post-1.0). */
+    private readonly islandName: () => string = () => t('app.title'),
   ) {
     const bar = document.createElement('div');
     bar.className = 'topbar';
@@ -52,7 +55,7 @@ export class TopBar {
           <span class="tb-lv">1</span>
         </div>
         <div class="tb-pmeta">
-          <div class="tb-name">${t('app.title')}</div>
+          <div class="tb-name">${this.islandName()}</div>
           <div class="tb-xp"><div class="tb-xpfill"></div></div>
         </div>
       </div>
@@ -86,6 +89,10 @@ export class TopBar {
       xp.style.width = `${Math.round(p * 100)}%`;
     });
     effect(() => (lv.textContent = String(levelSignal.get())));
+
+    // keep the island name live if the player renames it (post-1.0)
+    const nameEl = bar.querySelector('.tb-name') as HTMLElement;
+    bus.on('island:renamed', (e) => (nameEl.textContent = e.name));
 
     this.timeEl = bar.querySelector('.tb-time') as HTMLElement;
     this.seasonEl = bar.querySelector('.tb-season .tb-stat-icon') as HTMLElement;

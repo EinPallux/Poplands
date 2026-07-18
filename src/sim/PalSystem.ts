@@ -32,6 +32,7 @@ const WALK_TIMEOUT = 6;
 const DWELL_MIN = 1.2;
 const DWELL_SPAN = 2.6;
 const NATURE_PER_PAL = 8; // one Pal drawn per this many nature items
+const TRICK_AT = 3; // pet a Pal this many times and it learns a trick (post-1.0)
 
 function natureCount(island: IslandModel): number {
   let n = 0;
@@ -101,8 +102,27 @@ export class PalSystem {
     if (!p) return;
     p.pet = 2.2;
     p.moving = false;
-    bus.emit('agent:playClip', { id, clip: 'gesture-positive' });
+    // count the pet; a Pal petted enough learns a trick that persists (post-1.0)
+    const count = (this.state.palPets[id] ?? 0) + 1;
+    this.state.palPets[id] = count;
+    const knowsTrick = count >= TRICK_AT;
+    // a Pal that knows a trick shows it off (a playful dance); otherwise a happy wiggle
+    bus.emit('agent:playClip', { id, clip: knowsTrick ? 'dance' : 'gesture-positive' });
     bus.emit('pal:petted', { id });
+    if (count === TRICK_AT) {
+      const def = palDef(id);
+      if (def) bus.emit('pal:learnedTrick', { id, nameKey: def.nameKey }); // just learned it!
+    }
+  }
+
+  /** Pal ids that have learned a trick (petted ≥ TRICK_AT times) — for the Album. */
+  tricks(): string[] {
+    return Object.keys(this.state.palPets).filter((id) => (this.state.palPets[id] ?? 0) >= TRICK_AT);
+  }
+
+  /** Pet count for a Pal (debug / verify). */
+  petCount(id: string): number {
+    return this.state.palPets[id] ?? 0;
   }
 
   private reconcile(): void {

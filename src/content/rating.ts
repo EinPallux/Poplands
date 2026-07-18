@@ -52,16 +52,23 @@ export interface RatingTip {
   id: string;
   tipKey: StringKey;
 }
+export interface RatingHappiness {
+  score: number; // 0..1 how happy the neighbours are
+  moodKey: StringKey; // Content / Happy / Cheerful / Delighted
+  emoji: string;
+}
 export interface RatingResult {
   stars: number; // 0.5..5 in half steps
-  overall: number; // 0..1 mean fraction
+  overall: number; // 0..1 mean fraction (incl. the happiness nudge)
   verdictKey: StringKey;
   categories: RatingBreakdown[];
   tips: RatingTip[];
+  happiness: RatingHappiness;
 }
 
 const TIP_THRESHOLD = 0.8; // an axis below this is worth suggesting
 const MAX_TIPS = 3;
+const HAPPINESS_K = 6; // amenities-per-neighbour to reach ~50% happy
 
 function verdict(stars: number): StringKey {
   if (stars < 1.5) return 'rating.verdict.start';
@@ -71,13 +78,37 @@ function verdict(stars: number): StringKey {
   return 'rating.verdict.masterpiece';
 }
 
+/**
+ * How happy the neighbours are (post-1.0), derived from the cosy amenities around them
+ * per resident — nature, decorations, homes, Pals, gardens. Pure + always positive (the
+ * lowest mood is just "settling in", never sad — no-fail covenant). Feeds the Charm
+ * score and the liveliness dividend, and shows on the HUD.
+ */
+export function computeHappiness(s: RatingSnapshot): RatingHappiness {
+  const amenities = s.nature + s.decor * 1.5 + s.homes + s.pals * 0.5 + s.crops * 0.5;
+  const perCapita = amenities / Math.max(1, s.neighbours);
+  const score = perCapita / (perCapita + HAPPINESS_K);
+  const [moodKey, emoji]: [StringKey, string] =
+    score < 0.3
+      ? ['mood.content', '🙂']
+      : score < 0.55
+        ? ['mood.happy', '😊']
+        : score < 0.8
+          ? ['mood.cheerful', '😄']
+          : ['mood.delighted', '🥰'];
+  return { score, moodKey, emoji };
+}
+
 /** Compute the island's charm rating from a plain snapshot. Pure + deterministic. */
 export function computeRating(s: RatingSnapshot): RatingResult {
   const categories = RATING_CATEGORIES.map((c) => {
     const v = c.value(s);
     return { id: c.id, labelKey: c.labelKey, fraction: v / (v + c.k), tipKey: c.tipKey };
   });
-  const overall = categories.reduce((a, c) => a + c.fraction, 0) / categories.length;
+  const axesMean = categories.reduce((a, c) => a + c.fraction, 0) / categories.length;
+  const happiness = computeHappiness(s);
+  // happy neighbours lift the whole score a little (10% weight) — the island "feels" good
+  const overall = axesMean * 0.9 + happiness.score * 0.1;
   // map to half-stars, generously (a genuinely rich island — axes averaging ~0.83 under
   // the saturation caps — reads as a full 5); floored at a friendly 0.5, capped at 5.
   const stars = Math.max(0.5, Math.min(5, Math.round(overall * 6 * 2) / 2));
@@ -96,5 +127,6 @@ export function computeRating(s: RatingSnapshot): RatingResult {
     verdictKey: verdict(stars),
     categories: categories.map(({ id, labelKey, fraction }) => ({ id, labelKey, fraction })),
     tips,
+    happiness,
   };
 }

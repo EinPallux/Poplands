@@ -40,13 +40,16 @@ import { WelcomeHint } from '@/ui/WelcomeHint';
 import { IslandStats } from '@/ui/IslandStats';
 import { Mailbox } from '@/ui/Mailbox';
 import { Album } from '@/ui/Album';
+import { CameraBookmarks } from '@/ui/CameraBookmarks';
+import { StatsPanel } from '@/ui/StatsPanel';
+import { MinimapPanel } from '@/ui/MinimapPanel';
 import { FishJournal } from '@/ui/FishJournal';
 import { FishingLayer } from '@/ui/FishingLayer';
 import { DailyGiftUI } from '@/ui/DailyGiftUI';
 import { MuseumPanel } from '@/ui/MuseumPanel';
 import { AchievementsWall } from '@/ui/AchievementsWall';
 import { RatingPanel } from '@/ui/RatingPanel';
-import { computeRating, type RatingSnapshot } from '@/content/rating';
+import { computeRating, computeHappiness, type RatingSnapshot } from '@/content/rating';
 import { GardenLayer } from '@/ui/GardenLayer';
 import { SeedPicker } from '@/ui/SeedPicker';
 import { BiomePicker } from '@/ui/BiomePicker';
@@ -55,11 +58,12 @@ import { WorldFx } from '@/ui/WorldFx';
 import { SurveyLayer } from '@/ui/SurveyLayer';
 import { SecretLayer } from '@/ui/SecretLayer';
 import { SpeechLayer } from '@/ui/SpeechLayer';
+import { WishLayer } from '@/ui/WishLayer';
 import { ChunkPopup } from '@/ui/ChunkPopup';
 import '@/ui/questState'; // side-effect: registers quest signal subscriptions
 import { initToasts, showToast } from '@/ui/Toasts';
 import { renderThumbnails } from '@/ui/thumbnails';
-import { catalogOpenSignal, catalogRevealSignal } from '@/ui/uiState';
+import { catalogOpenSignal, catalogRevealSignal, placedDefsSignal } from '@/ui/uiState';
 import { DebugHud } from '@/debug/DebugHud';
 import { Particles } from '@/vfx/Particles';
 import { popIn, popOut, shake } from '@/vfx/presets';
@@ -73,7 +77,7 @@ import { qualitySignal, timeOfDaySignal, seasonSignal, fpsCapSignal, uiScaleSign
 import { popsSignal, stardustSignal, levelSignal, xpSignal } from '@/core/playerStore';
 import { effect } from '@/core/signals';
 import { footprintCenter, type ChunkTheme } from '@/core/grid';
-import { itemDef, CATALOG } from '@/content/catalog';
+import { itemDef, CATALOG, type Category } from '@/content/catalog';
 import type { AssetPhase } from '@/content/assetPhases';
 import { themeFor } from '@/content/themes';
 
@@ -119,6 +123,8 @@ export class App {
     await assets.loadBoot(import.meta.env.BASE_URL); // boot wave only: Tiers 1–4 + agents
     const state = new GameState();
     const island = state.island;
+    // day/night routines (post-1.0): the sim reads the time of day (render → sim seam)
+    state.islanders.setPhaseProvider(() => timeOfDay.dayPhase);
 
     // Returning-save guard (S4 §6.1): boot carries only Tiers 1–4 + agents, so a
     // veteran's Tier-5+/themed buildings would miss the cache. Await exactly the
@@ -171,12 +177,36 @@ export class App {
     scene.add(seasonAmbience.group);
     const aurora = new AuroraLayer(island); // The Wonder's permanent aurora (S20 capstone)
     scene.add(aurora.group);
+    // Island Charm + happiness snapshot, assembled from live state (post-1.0). Shared by
+    // the liveliness dividend, the RatingPanel, the Album, and the stats strip.
+    const ratingSnapshot = (): RatingSnapshot => {
+      let nature = 0, decor = 0, homes = 0, income = 0, gardens = 0;
+      const types = new Set<string>();
+      for (const p of island.allPlacements()) {
+        const def = itemDef(p.def);
+        if (!def) continue;
+        types.add(p.def);
+        if (def.id === 'nature.garden') gardens++;
+        if (def.category === 'nature') nature++;
+        else if (def.category === 'decor') decor++;
+        else if (def.category === 'home') homes++;
+        else if (def.category === 'income') income++;
+      }
+      return {
+        chunks: island.chunkCount,
+        nature, decor, homes, income, crops: gardens,
+        neighbours: state.islanders.snapshot().residents.length,
+        pals: state.pals.snapshot().pals.length,
+        distinctTypes: types.size,
+      };
+    };
     // a lively island quietly pays a little extra (S13 liveliness dividend), lifted
-    // island-wide by each Grand Assembly Hall (+5% each, capped at +20%).
+    // island-wide by each Grand Assembly Hall (+5% each, capped at +20%), plus a warm
+    // top-up when the neighbours are happy (post-1.0: up to +30% when delighted).
     const livelinessBonus = (): number => {
       let sum = 0;
       for (const p of island.allPlacements()) sum += itemDef(p.def)?.livelinessBonus ?? 0;
-      return Math.min(sum, 0.2);
+      return Math.min(sum, 0.2) + computeHappiness(ratingSnapshot()).score * 0.3;
     };
     const liveliness = new LivelinessSystem(
       state.economy,
@@ -372,10 +402,21 @@ export class App {
         particles.coinBurst(a.x, 1.2, a.z);
       }
       audio.chime();
-      showToast(t('toast.npcArrived').replace('{name}', t(e.nameKey)));
+      showToast(t('toast.npcArrived').replace('{name}', state.nameOf(e.id)));
     });
     // tap-to-greet: a cute babble when an Islander speaks (bubble handled by SpeechLayer)
     bus.on('npc:spoke', () => audio.chatter());
+
+    // — Islander requests (post-1.0): a wish appears (soft chime) → granted (hearts + toast)
+    bus.on('request:new', (e) => {
+      audio.chatter();
+      showToast(`💭 ${t(e.wishKey).replace('{name}', state.nameOf(e.id))}`);
+    });
+    bus.on('request:fulfilled', (e) => {
+      audio.chime();
+      particles.hearts(e.wx + 0.5, 1.0, e.wz + 0.5);
+      showToast(t('wish.granted').replace('{name}', state.nameOf(e.id)));
+    });
 
     // — fishing (post-1.0): cast splash / nibble blip / reel flourish + a water sparkle
     bus.on('fishing:cast', (e) => {
@@ -403,15 +444,29 @@ export class App {
       if (p) particles.hearts(p.x, 0.8, p.z);
       audio.pet();
     });
+    // — Pal tricks (post-1.0): petted enough → learns a trick (extra sparkle + toast)
+    bus.on('pal:learnedTrick', (e) => {
+      const p = state.pals.positionOf(e.id);
+      if (p) {
+        particles.sparkle(p.x, 0.9, p.z);
+        particles.hearts(p.x, 0.9, p.z);
+      }
+      audio.chime();
+      showToast(t('toast.palTrick').replace('{pal}', t(e.nameKey)));
+    });
 
     // — UI (thumbnails render post-boot; they'd otherwise delay first frame)
     initToasts(uiRoot);
     new Tooltip(uiRoot); // one delegated custom tooltip for the whole HUD (replaces title=)
-    const topBar = new TopBar(uiRoot, () => ({
-      dayPhase: timeOfDay.dayPhase,
-      season: season.current,
-      weather: weather.counts.raining ? 'rain' : weather.counts.rainbow ? 'rainbow' : 'clear',
-    }));
+    const topBar = new TopBar(
+      uiRoot,
+      () => ({
+        dayPhase: timeOfDay.dayPhase,
+        season: season.current,
+        weather: weather.counts.raining ? 'rain' : weather.counts.rainbow ? 'rainbow' : 'clear',
+      }),
+      () => state.islandName(),
+    );
     new Mailbox(uiRoot);
     new IslandStats(uiRoot, () => ({
       neighbours: state.islanders.snapshot().residents.length,
@@ -430,6 +485,7 @@ export class App {
     const surveyLayer = new SurveyLayer(uiRoot, (x, y, z) => rig.projectToScreen(x, y, z));
     const secretLayer = new SecretLayer(uiRoot, (x, y, z) => rig.projectToScreen(x, y, z));
     const speechLayer = new SpeechLayer(uiRoot, (x, y, z) => rig.projectToScreen(x, y, z));
+    const wishLayer = new WishLayer(uiRoot, (x, y, z) => rig.projectToScreen(x, y, z));
     const fishingLayer = new FishingLayer(uiRoot, (x, y, z) => rig.projectToScreen(x, y, z));
     const gardenLayer = new GardenLayer(uiRoot, (x, y, z) => rig.projectToScreen(x, y, z), () => state.garden.view());
     const seedPicker = new SeedPicker(uiRoot, () => state.save.player.level);
@@ -455,36 +511,74 @@ export class App {
     const dock = document.createElement('div');
     dock.className = 'hud-dock';
     uiRoot.appendChild(dock);
-    const album = new Album(dock, () => ({
-      milestones: state.save.quests.milestones,
-      residents: state.islanders.snapshot().residents,
-      pals: state.pals.snapshot().pals,
-      themes: island.allChunks().map((c) => island.themeAt(c.cx, c.cz)),
-    }));
+    const album = new Album(
+      dock,
+      () => {
+        const h = computeHappiness(ratingSnapshot());
+        return {
+          milestones: state.save.quests.milestones,
+          residents: state.islanders.snapshot().residents,
+          pals: state.pals.snapshot().pals,
+          themes: island.allChunks().map((c) => island.themeAt(c.cx, c.cz)),
+          mood: { emoji: h.emoji, moodKey: h.moodKey },
+          palTricks: state.pals.tricks(),
+          nameOf: (id) => state.nameOf(id),
+        };
+      },
+      (id, name) => state.setName(id, name), // rename an Islander/Pal inline (post-1.0)
+    );
     const journal = new FishJournal(dock, () => state.fishing.collection());
     const stamps = new AchievementsWall(dock, () => state.achievements.view()); // Stamp Book (K)
-    // Island Charm rating (retention + "what next?" tips) — snapshot assembled from live state
-    const ratingSnapshot = (): RatingSnapshot => {
-      let nature = 0, decor = 0, homes = 0, income = 0, gardens = 0;
-      const types = new Set<string>();
-      for (const p of island.allPlacements()) {
-        const def = itemDef(p.def);
-        if (!def) continue;
-        types.add(p.def);
-        if (def.id === 'nature.garden') gardens++;
-        if (def.category === 'nature') nature++;
-        else if (def.category === 'decor') decor++;
-        else if (def.category === 'home') homes++;
-        else if (def.category === 'income') income++;
-      }
+    // camera bookmarks (post-1.0): save the current view, jump back to it later
+    const bookmarks = new CameraBookmarks(
+      dock,
+      () => state.bookmarks(),
+      () => {
+        state.addBookmark('', rig.viewpoint());
+        audio.plop();
+      },
+      (i) => {
+        const vp = state.bookmarks()[i];
+        if (vp) rig.applyViewpoint(vp);
+      },
+      (i, name) => state.renameBookmark(i, name),
+      (i) => state.deleteBookmark(i),
+    );
+    // statistics page (post-1.0): an at-a-glance summary of this island
+    const statsPanel = new StatsPanel(dock, () => {
+      const m = state.save.quests.milestones;
       return {
-        chunks: island.chunkCount,
-        nature, decor, homes, income, crops: gardens,
+        playMs: state.save.stats.playMs,
+        createdAt: state.save.createdAt,
+        level: state.save.player.level,
+        itemsPlaced: m.itemsPlaced,
+        popsCollected: m.popsCollected,
+        questsDone: m.questsDone,
+        secretsFound: m.secretsFound,
+        fishTotal: state.fishing.collection().total,
+        cropsHarvested: state.garden.harvested,
         neighbours: state.islanders.snapshot().residents.length,
         pals: state.pals.snapshot().pals.length,
-        distinctTypes: types.size,
+        chunks: island.chunkCount,
+        stamps: state.achievements.view().earned,
+        giftClaims: state.save.dailyGift.claims,
+        museumDonated: state.museum.view().donatedCount,
       };
-    };
+    });
+    // minimap / island overview (post-1.0): top-down map, tap to recenter the camera
+    const minimap = new MinimapPanel(
+      dock,
+      () => ({
+        chunks: island.allChunks().map((c) => ({ cx: c.cx, cz: c.cz, theme: island.themeAt(c.cx, c.cz) })),
+        dots: island
+          .allPlacements()
+          .map((p) => ({ wx: p.wx, wz: p.wz, category: itemDef(p.def)?.category }))
+          .filter((p): p is { wx: number; wz: number; category: Category } => p.category !== undefined),
+        cam: rig.lookTarget,
+      }),
+      (wx, wz) => rig.focusOn(wx, wz),
+    );
+    // Island Charm rating (retention + "what next?" tips) — reuses the shared ratingSnapshot
     const rating = new RatingPanel(dock, ratingSnapshot);
     new DailyGiftUI(uiRoot); // the once-a-day present (self-wires to gift:* events)
     const museumPanel = new MuseumPanel(uiRoot, () => {
@@ -512,6 +606,13 @@ export class App {
     dock.appendChild(photoBtn);
     const buildBar = new BuildBar(uiRoot);
     setTimeout(() => buildBar.setThumbnails(renderThumbnails(assets)), 80);
+    // feed the catalog's "not placed" filter with the live set of placed def ids
+    const refreshPlacedDefs = (): void => {
+      placedDefsSignal.set(new Set(island.allPlacements().map((p) => p.def)));
+    };
+    refreshPlacedDefs();
+    bus.on('item:placed', refreshPlacedDefs);
+    bus.on('item:removed', refreshPlacedDefs);
     // brand-new players: a friendly welcome coach-mark pointing at the build bar
     // (only when nothing has ever been placed; retires on the first placement)
     new WelcomeHint(uiRoot, state.save.quests.milestones.itemsPlaced === 0);
@@ -540,6 +641,11 @@ export class App {
       VERSION,
       () => state.shareCode(),
       (code) => state.loadShareCode(code),
+      () => state.islandName(),
+      (name) => state.setIslandName(name),
+      () => state.listSlots(),
+      (slot) => state.switchSlot(slot),
+      (slot) => state.deleteSlot(slot),
     );
 
     // — quality: explicit setting wins; 'auto' uses the probe
@@ -586,6 +692,9 @@ export class App {
         else if (album.open) album.toggle(false);
         else if (journal.open) journal.toggle(false);
         else if (stamps.open) stamps.toggle(false);
+        else if (bookmarks.open) bookmarks.toggle(false);
+        else if (statsPanel.open) statsPanel.toggle(false);
+        else if (minimap.open) minimap.toggle(false);
         else if (settings.open) settings.toggle(false);
         else if (session.isActive) session.cancel();
       },
@@ -625,6 +734,7 @@ export class App {
       if (!setPiece) input.update(dt);
     });
     loop.add((dt) => session.update(dt));
+    loop.add((dt) => state.addPlayMs(dt * 1000)); // accrue active playtime (Stats)
     loop.add((dt) => state.economy.tick(dt));
     loop.add((dt) => state.fishing.tick(dt)); // advance an active cast's wait/nibble timers
     loop.add(() => state.quests.tick()); // refill postcard slots once a cooldown lapses
@@ -632,6 +742,8 @@ export class App {
       state.islanders.update(dt); // sim integrates kinematics (three.js-free)…
       agents.sync(state.islanders.agents, dt); // …then Tier C projects + animates
       speechLayer.update(state.islanders.agents, dt); // bubbles track their speaker
+      state.requests.update(dt); // roll neighbour wishes now and then
+      wishLayer.update(state.islanders.agents, dt); // wish bubbles track their wisher
       state.pals.update(dt);
       palAgents.sync(state.pals.agents, dt);
     });
@@ -739,6 +851,34 @@ export class App {
         palRoster: () => state.pals.snapshot().pals.slice(),
         palMeshes: () => palAgents.count,
         clickPal: (id: string) => bus.emit('cmd:clickPal', { id }),
+        petCount: (id: string) => state.pals.petCount(id),
+        palTricks: () => state.pals.tricks(),
+        // — naming (post-1.0): rename the island + individual Islanders/Pals
+        islandName: () => state.islandName(),
+        setIslandName: (name: string) => state.setIslandName(name),
+        nameOf: (id: string) => state.nameOf(id),
+        setName: (id: string, name: string) => state.setName(id, name),
+        // — camera bookmarks (post-1.0)
+        camView: () => rig.viewpoint(),
+        bookmarks: () => state.bookmarks(),
+        saveView: (name = '') => state.addBookmark(name, rig.viewpoint()),
+        jumpView: (i: number) => {
+          const vp = state.bookmarks()[i];
+          if (vp) rig.applyViewpoint(vp);
+        },
+        deleteView: (i: number) => state.deleteBookmark(i),
+        // — statistics (post-1.0)
+        playMs: () => state.save.stats.playMs,
+        addPlayMs: (ms: number) => state.addPlayMs(ms),
+        // — minimap (post-1.0)
+        openMinimap: () => minimap.toggle(true),
+        focusOn: (wx: number, wz: number) => rig.focusOn(wx, wz),
+        camTarget: () => rig.lookTarget,
+        // — save slots (post-1.0)
+        slots: () => state.listSlots(),
+        activeSlot: () => state.activeSlot(),
+        switchSlot: (slot: string) => state.switchSlot(slot),
+        deleteSlot: (slot: string) => state.deleteSlot(slot),
         tileShapes: () =>
           island
             .allPlacements()
@@ -771,11 +911,17 @@ export class App {
         openMuseum: () => bus.emit('cmd:openMuseum', undefined),
         donate: (species: string) => bus.emit('cmd:donate', { species }),
         islanderUsage: () => state.islanders.debugUsage(),
+        wishes: () => state.requests.debugWishes(),
+        newWish: (id?: string, category?: string) => state.requests.debugNewWish(id, category),
+        retireAll: () => state.islanders.debugRetireAll(),
+        hiddenCount: () => state.islanders.debugHiddenCount(),
         sitNow: (pid?: string) => state.islanders.debugSitNow(pid),
         endUse: (id: string) => state.islanders.debugEndUse(id),
         agentMeshY: (id: string) => agents.debugMeshY(id),
         achievementsView: () => state.achievements.view(),
         ratingView: () => computeRating(ratingSnapshot()),
+        happiness: () => computeHappiness(ratingSnapshot()),
+        livelinessBonus: () => livelinessBonus(),
         openRating: () => rating.toggle(true),
         gardenView: () => state.garden.view(),
         gardenStage: (id: string) => state.garden.stageOf(id),

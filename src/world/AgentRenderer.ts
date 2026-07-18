@@ -78,6 +78,12 @@ export class AgentRenderer {
       if (!this.assets.has(a.model)) continue;
       this.seen.add(a.id);
       const rec = this.recs.get(a.id) ?? this.spawn(a);
+      // tucked in at home for the night (post-1.0 routines) — hide + skip the mixer
+      if (a.hidden) {
+        rec.root.visible = false;
+        continue;
+      }
+      rec.root.visible = true;
       // a render-only lean/lift lets a seated avatar rest ON the bench while the sim
       // keeps the agent logically on its walkable approach cell (ox/oz/lift ⇒ 0 default)
       rec.root.position.set(a.x + (a.ox ?? 0), rec.footY + (a.lift ?? 0), a.z + (a.oz ?? 0));

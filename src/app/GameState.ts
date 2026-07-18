@@ -5,7 +5,16 @@
  * and drives autosave + export/import.
  */
 import { bus } from '@/core/events';
-import { freshSave, SaveManager, withCarried, type Save, type SavePlacement } from '@/core/save';
+import {
+  freshSave,
+  SaveManager,
+  withCarried,
+  type Save,
+  type SavePlacement,
+  type SaveBookmark,
+  type SlotInfo,
+} from '@/core/save';
+import type { CameraViewpoint } from '@/render/CameraRig';
 import { encodeShareCode, decodeShareCode } from '@/core/islandCode';
 import { loadSettings, snapshotSettings } from '@/core/settingsStore';
 import { loadWallet, snapshotWallet, loadPlayer } from '@/core/playerStore';
@@ -17,6 +26,10 @@ import { ExpansionSystem } from '@/sim/ExpansionSystem';
 import { SecretSystem } from '@/sim/SecretSystem';
 import { IslanderSystem } from '@/sim/IslanderSystem';
 import { PalSystem } from '@/sim/PalSystem';
+import { islanderDef } from '@/content/roster';
+import { palDef } from '@/content/pals';
+import { t } from '@/core/strings';
+import { RequestSystem } from '@/sim/RequestSystem';
 import { FishingSystem } from '@/sim/FishingSystem';
 import { DailyGiftSystem } from '@/sim/DailyGiftSystem';
 import { MuseumSystem } from '@/sim/MuseumSystem';
@@ -36,6 +49,7 @@ export class GameState {
   readonly secrets: SecretSystem;
   readonly islanders: IslanderSystem;
   readonly pals: PalSystem;
+  readonly requests: RequestSystem;
   readonly fishing: FishingSystem;
   readonly dailyGift: DailyGiftSystem;
   readonly museum: MuseumSystem;
@@ -85,6 +99,12 @@ export class GameState {
     // islanders + pals own their rosters + wander AI (mutate save.islanders in place)
     this.islanders = new IslanderSystem(this.island, this.save.islanders, this.save.seed);
     this.pals = new PalSystem(this.island, this.save.islanders, this.save.seed);
+    // neighbours leave little wishes for something nearby (ephemeral, reward on grant)
+    this.requests = new RequestSystem(
+      () => this.islanders.snapshot().residents,
+      (id) => this.islanders.positionOf(id),
+      this.save.seed,
+    );
     // fishing owns the pond minigame + catch collection (mutates save.fishing on snapshot)
     this.fishing = new FishingSystem(this.island, this.save.fishing, this.save.seed);
     // daily gift owns the once-a-day present (mutates save.dailyGift in place)
@@ -125,6 +145,7 @@ export class GameState {
       'secret:found', // discovered → persist + reward flows credited
       'npc:arrived', // a neighbour moved in → persist the roster
       'pal:adopted', // a Pal came to visit → persist the roster
+      'pal:petted', // petting bumps the pet count (→ tricks) → persist it
       'fishing:caught', // reeled in a fish → persist the collection
       'gift:claimed', // opened the daily present → persist the claim
       'museum:donated', // put a fish on display → persist the donation
@@ -152,6 +173,7 @@ export class GameState {
     this.secrets.wire();
     this.islanders.wire();
     this.pals.wire();
+    this.requests.wire(); // AFTER islanders so a grant reads live positions
     this.fishing.wire();
     this.garden.wire();
     this.economy.resolveOffline();
@@ -241,6 +263,99 @@ export class GameState {
     this.save.garden = this.garden.snapshot();
     this.save.settings = snapshotSettings();
     return this.save;
+  }
+
+  // — custom names (post-1.0): the island + each Islander/Pal can be renamed —
+
+  /** The island's display name — the player's choice, or the default title. */
+  islandName(): string {
+    return this.save.islandName?.trim() || t('app.title');
+  }
+
+  /** Rename the island (blank reverts to the default). Persists + notifies the HUD. */
+  setIslandName(name: string): void {
+    const clean = name.trim().slice(0, 24);
+    if (clean) this.save.islandName = clean;
+    else delete this.save.islandName; // blank reverts to the default title
+    this.manager.requestSave();
+    bus.emit('island:renamed', { name: this.islandName() });
+  }
+
+  /** An Islander/Pal's display name — the player's choice, or the roster default. */
+  nameOf(id: string): string {
+    const custom = this.save.islanders.names[id];
+    if (custom) return custom;
+    const def = islanderDef(id) ?? palDef(id);
+    return def ? t(def.nameKey) : id;
+  }
+
+  /** Rename an Islander/Pal (blank reverts to the roster default). Persists + notifies. */
+  setName(id: string, name: string): void {
+    const clean = name.trim().slice(0, 20);
+    if (clean) this.save.islanders.names[id] = clean;
+    else delete this.save.islanders.names[id];
+    this.manager.requestSave();
+    bus.emit('agent:renamed', { id, name: this.nameOf(id) });
+  }
+
+  // — camera bookmarks (post-1.0): saved viewpoints, persisted per island —
+
+  /** The saved camera viewpoints (read-only view). */
+  bookmarks(): readonly SaveBookmark[] {
+    return this.save.bookmarks;
+  }
+
+  /** Save the given viewpoint under a name (auto-named "View N" if blank). Persists. */
+  addBookmark(name: string, vp: CameraViewpoint): void {
+    const clean =
+      name.trim().slice(0, 20) || t('bookmarks.default').replace('{n}', String(this.save.bookmarks.length + 1));
+    this.save.bookmarks.push({ name: clean, ...vp });
+    this.manager.requestSave();
+  }
+
+  /** Rename a saved viewpoint (blank keeps the old name). Persists. */
+  renameBookmark(index: number, name: string): void {
+    const bm = this.save.bookmarks[index];
+    if (!bm) return;
+    bm.name = name.trim().slice(0, 20) || bm.name;
+    this.manager.requestSave();
+  }
+
+  /** Forget a saved viewpoint. Persists. */
+  deleteBookmark(index: number): void {
+    if (index < 0 || index >= this.save.bookmarks.length) return;
+    this.save.bookmarks.splice(index, 1);
+    this.manager.requestSave();
+  }
+
+  /** Accrue active playtime (post-1.0 Stats). Mutates in place — no explicit save;
+   *  it rides along on the next autosave / the pagehide flush (kept out of collect). */
+  addPlayMs(ms: number): void {
+    this.save.stats.playMs += ms;
+  }
+
+  // — save slots (post-1.0): several local islands, no backend —
+
+  /** Summaries of every save slot for the "My Islands" picker. */
+  listSlots(): SlotInfo[] {
+    return this.manager.listSlots();
+  }
+
+  /** The active slot id ('1'..'5'). */
+  activeSlot(): string {
+    return this.manager.activeSlotId();
+  }
+
+  /** Switch to another slot — saves the current island, then reloads into that one.
+   *  Switching to an EMPTY slot starts a fresh island there. */
+  switchSlot(slot: string): void {
+    this.manager.switchTo(slot);
+    window.location.reload(); // placements-are-truth → clean reload hydrates the new slot
+  }
+
+  /** Forget another slot's island (never the active one). */
+  deleteSlot(slot: string): void {
+    this.manager.deleteSlot(slot);
   }
 
   exportToFile(): void {

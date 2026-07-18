@@ -169,6 +169,12 @@ export interface AppEvents extends Record<string, unknown> {
   'pal:adopted': { id: string; nameKey: StringKey }; // a Pal came to visit — juice + persist
   'cmd:clickPal': { id: string }; // player tapped a Pal → pet it
   'pal:petted': { id: string }; // a Pal was petted → hearts + happy sound
+  'pal:learnedTrick': { id: string; nameKey: StringKey }; // petted enough → learns a trick
+  'island:renamed': { name: string }; // player renamed the island (post-1.0)
+  'agent:renamed': { id: string; name: string }; // player renamed an Islander/Pal (post-1.0)
+  // Islander requests (post-1.0): a neighbour wishes for something nearby → grant it
+  'request:new': { id: string; nameKey: StringKey; icon: string; wishKey: StringKey };
+  'request:fulfilled': { id: string; nameKey: StringKey; wx: number; wz: number; rewards: QuestReward };
 
   // fishing (post-1.0): the pond cast→nibble→catch minigame
   'cmd:castLine': { placementId: string }; // player tapped a pond — the FSM casts or reels

@@ -53,6 +53,11 @@ export interface SaveSecret {
 export interface SaveIslanders {
   residents: string[];
   pals: string[];
+  /** Lifetime pet count per Pal id (post-1.0 Pal tricks). A Pal learns a trick once
+   *  petted enough; the count persists so the trick sticks across sessions. */
+  palPets: Record<string, number>;
+  /** Custom names by Islander/Pal id (post-1.0). Absent id ⇒ the roster default. */
+  names: Record<string, string>;
 }
 
 /** Persisted fishing collection (post-1.0): `caught` maps a stable fish-species id
@@ -179,9 +184,49 @@ export interface SaveV9 extends Omit<SaveV8, 'v'> {
   garden: SaveGarden;
 }
 
+/** v10 (post-1.0): per-Pal pet counts (Pal tricks) — a sub-field of the islanders slice. */
+export interface SaveV10 extends Omit<SaveV9, 'v'> {
+  v: 10;
+}
+
+/** v11 (post-1.0): a custom island name + custom Islander/Pal names. */
+export interface SaveV11 extends Omit<SaveV10, 'v'> {
+  v: 11;
+  /** Player-chosen island name; absent ⇒ the default title. */
+  islandName?: string;
+}
+
+/** A saved camera viewpoint (post-1.0 bookmarks). Plain numbers — no three.js types. */
+export interface SaveBookmark {
+  name: string;
+  azimuth: number;
+  polar: number;
+  distance: number;
+  tx: number;
+  tz: number;
+}
+
+/** v12 (post-1.0): saved camera viewpoints (bookmarks). */
+export interface SaveV12 extends Omit<SaveV11, 'v'> {
+  v: 12;
+  bookmarks: SaveBookmark[];
+}
+
+/** Lifetime play statistics not already tracked elsewhere (post-1.0 Stats page). */
+export interface SaveStats {
+  /** Active (tab-visible) playtime for this island, in milliseconds. */
+  playMs: number;
+}
+
+/** v13 (post-1.0): the stats slice (active playtime). */
+export interface SaveV13 extends Omit<SaveV12, 'v'> {
+  v: 13;
+  stats: SaveStats;
+}
+
 /** The current schema. Bump this alias (not scattered `SaveVn`s) each version. */
-export type Save = SaveV9;
-export const SAVE_VERSION = 9;
+export type Save = SaveV13;
+export const SAVE_VERSION = 13;
 
 export const DEFAULT_SETTINGS: SaveSettings = {
   volume: 0.8,
@@ -194,16 +239,43 @@ export const DEFAULT_SETTINGS: SaveSettings = {
   uiScale: 1,
 };
 
-const KEY = 'poplands.save';
-const BACKUP_KEYS = [`${KEY}.bak1`, `${KEY}.bak2`];
+// — save slots (post-1.0): several local islands under namespaced keys. Slot '1'
+// IS the legacy `poplands.save` key, so existing players' saves become slot 1 with
+// zero migration. A pointer key records which slot is active. Backend-free.
+const SAVE_ROOT = 'poplands.save';
+const SLOT_POINTER = 'poplands.slot';
+export const MAX_SLOTS = 5;
+const SLOT_IDS = ['1', '2', '3', '4', '5'] as const;
 const AUTOSAVE_DEBOUNCE_MS = 5000;
+
+/** Storage key for a slot's main save. Slot '1' == the legacy key (no copy needed). */
+function slotKey(slot: string): string {
+  return slot === '1' ? SAVE_ROOT : `${SAVE_ROOT}.s${slot}`;
+}
+function backupKeysFor(slot: string): [string, string] {
+  const k = slotKey(slot);
+  return [`${k}.bak1`, `${k}.bak2`];
+}
+
+/** A save slot's summary, for the "My Islands" picker. */
+export interface SlotInfo {
+  id: string;
+  active: boolean;
+  exists: boolean;
+  /** The island's custom name, if any (undefined ⇒ the default title). */
+  name?: string;
+  level: number;
+  chunks: number;
+  placements: number;
+  lastSeenAt: number;
+}
 
 export function freshEconomy(): SaveEconomy {
   return { accrual: [] };
 }
 
 export function freshIslanders(): SaveIslanders {
-  return { residents: [], pals: [] };
+  return { residents: [], pals: [], palPets: {}, names: {} };
 }
 
 export function freshFishing(): SaveFishing {
@@ -309,11 +381,37 @@ const migrations: Record<number, (s: AnySave) => AnySave> = {
     // No plots planted yet — the garden starts bare.
     return { ...v8, v: 9, garden: freshGarden() } as unknown as AnySave;
   },
+  9: (s) => {
+    const v9 = s as unknown as SaveV9;
+    // Pal tricks start un-learned — nobody's been petted enough yet.
+    return {
+      ...v9,
+      v: 10,
+      islanders: { ...v9.islanders, palPets: v9.islanders?.palPets ?? {} },
+    } as unknown as AnySave;
+  },
+  10: (s) => {
+    const v10 = s as unknown as SaveV10;
+    // No custom names yet — the island keeps its default title, everyone their roster name.
+    return {
+      ...v10,
+      v: 11,
+      islanders: { ...v10.islanders, names: v10.islanders?.names ?? {} },
+    } as unknown as AnySave;
+  },
+  11: (s) => {
+    // No saved camera viewpoints yet — start with an empty bookmark list.
+    return { ...(s as unknown as SaveV11), v: 12, bookmarks: [] } as unknown as AnySave;
+  },
+  12: (s) => {
+    // No prior playtime tracked — start the counter at zero.
+    return { ...(s as unknown as SaveV12), v: 13, stats: { playMs: 0 } } as unknown as AnySave;
+  },
 };
 
 export function freshSave(seed: number, now: number): Save {
   return {
-    v: 9,
+    v: 13,
     createdAt: now,
     lastSeenAt: now,
     seed,
@@ -336,6 +434,8 @@ export function freshSave(seed: number, now: number): Save {
     museum: freshMuseum(), // empty Collections Hall
     achievements: freshAchievements(), // empty Stamp Book
     garden: freshGarden(), // no crops planted yet
+    bookmarks: [], // no saved camera viewpoints yet
+    stats: { playMs: 0 }, // lifetime playtime accrues from zero
     attic: [],
     settings: { ...DEFAULT_SETTINGS },
   };
@@ -392,6 +492,8 @@ function normalize(v2: Save): Save {
   v2.islanders ??= freshIslanders();
   v2.islanders.residents ??= [];
   v2.islanders.pals ??= [];
+  v2.islanders.palPets ??= {};
+  v2.islanders.names ??= {};
   v2.fishing ??= freshFishing();
   v2.fishing.caught ??= {};
   v2.fishing.total ??= 0;
@@ -405,6 +507,9 @@ function normalize(v2: Save): Save {
   v2.garden ??= freshGarden();
   v2.garden.plots ??= {};
   v2.garden.harvested ??= 0;
+  v2.bookmarks ??= [];
+  v2.stats ??= { playMs: 0 };
+  v2.stats.playMs ??= 0;
   v2.settings = { ...DEFAULT_SETTINGS, ...v2.settings };
   v2.island.placements ??= [];
   v2.player.level ??= 1;
@@ -438,9 +543,13 @@ export class SaveManager {
    *  pagehide / visibilitychange writeNow can't clobber the freshly-imported save with
    *  the now-stale in-memory state. */
   private suspended = false;
+  /** Which save slot is active (post-1.0 multiple islands). Slot '1' == legacy key. */
+  private activeSlot: string;
 
   constructor(private readonly collect: () => Save) {
     this.storage = typeof localStorage === 'undefined' ? null : localStorage;
+    const pointer = this.storage?.getItem(SLOT_POINTER);
+    this.activeSlot = pointer && (SLOT_IDS as readonly string[]).includes(pointer) ? pointer : '1';
     if (typeof window !== 'undefined') {
       window.addEventListener('pagehide', () => this.writeNow());
       document.addEventListener('visibilitychange', () => {
@@ -449,15 +558,24 @@ export class SaveManager {
     }
   }
 
+  /** The active slot's main + backup storage keys. */
+  private get mainKey(): string {
+    return slotKey(this.activeSlot);
+  }
+  private get backupKeys(): [string, string] {
+    return backupKeysFor(this.activeSlot);
+  }
+
   /** Try main slot, then backups, oldest last. Null = no usable save. */
   load(): Save | null {
     if (!this.storage) return null;
-    for (const key of [KEY, ...BACKUP_KEYS]) {
+    const main = this.mainKey;
+    for (const key of [main, ...this.backupKeys]) {
       const raw = this.storage.getItem(key);
       if (!raw) continue;
       const parsed = parseSave(raw);
       if (parsed) {
-        if (key !== KEY) console.warn(`[save] main slot unusable, recovered from ${key}`);
+        if (key !== main) console.warn(`[save] main slot unusable, recovered from ${key}`);
         return parsed;
       }
     }
@@ -486,14 +604,16 @@ export class SaveManager {
       console.error('[save] collect/serialize failed', err);
       return;
     }
+    const main = this.mainKey;
+    const backups = this.backupKeys;
     // Rotate backups best-effort — a full backup SLOT must never block the real
     // save (the main slot is load-bearing; backups are a luxury).
     try {
-      const current = this.storage.getItem(KEY);
+      const current = this.storage.getItem(main);
       if (current) {
-        const bak1 = this.storage.getItem(BACKUP_KEYS[0]!);
-        if (bak1) this.storage.setItem(BACKUP_KEYS[1]!, bak1);
-        this.storage.setItem(BACKUP_KEYS[0]!, current);
+        const bak1 = this.storage.getItem(backups[0]);
+        if (bak1) this.storage.setItem(backups[1], bak1);
+        this.storage.setItem(backups[0], current);
       }
     } catch {
       /* backup rotation failed (likely quota) — proceed to the main save anyway */
@@ -501,12 +621,12 @@ export class SaveManager {
     // The main save matters most. On quota, free the backups and retry once, so a
     // nearly-full localStorage sacrifices recovery history rather than the save.
     try {
-      this.storage.setItem(KEY, payload);
+      this.storage.setItem(main, payload);
     } catch {
       try {
-        this.storage.removeItem(BACKUP_KEYS[1]!);
-        this.storage.removeItem(BACKUP_KEYS[0]!);
-        this.storage.setItem(KEY, payload);
+        this.storage.removeItem(backups[1]);
+        this.storage.removeItem(backups[0]);
+        this.storage.setItem(main, payload);
         console.warn('[save] storage full — dropped backups to keep the main save');
       } catch (err) {
         console.error('[save] write failed (storage full even after clearing backups)', err);
@@ -524,13 +644,69 @@ export class SaveManager {
   importString(json: string): Save | null {
     const parsed = parseSave(json);
     if (!parsed || !this.storage) return null;
-    this.storage.setItem(KEY, JSON.stringify(parsed));
+    this.storage.setItem(this.mainKey, JSON.stringify(parsed));
     this.suspended = true;
     return parsed;
   }
 
   clearAll(): void {
     if (!this.storage) return;
-    for (const key of [KEY, ...BACKUP_KEYS]) this.storage.removeItem(key);
+    for (const key of [this.mainKey, ...this.backupKeys]) this.storage.removeItem(key);
+  }
+
+  // — save slots (post-1.0): several local islands, no backend —
+
+  /** The active slot's id ('1'..'5'). */
+  activeSlotId(): string {
+    return this.activeSlot;
+  }
+
+  /** Summaries of every slot for the "My Islands" picker (parses each, read-only). */
+  listSlots(): SlotInfo[] {
+    return SLOT_IDS.map((id) => {
+      const raw = this.storage?.getItem(slotKey(id)) ?? null;
+      const parsed = raw ? parseSave(raw) : null;
+      return {
+        id,
+        active: id === this.activeSlot,
+        exists: parsed !== null,
+        ...(parsed?.islandName !== undefined ? { name: parsed.islandName } : {}),
+        level: parsed?.player.level ?? 0,
+        chunks: parsed?.island.chunks.length ?? 0,
+        placements: parsed?.island.placements.length ?? 0,
+        lastSeenAt: parsed?.lastSeenAt ?? 0,
+      };
+    });
+  }
+
+  /** Point at another slot. Flushes the CURRENT slot first, then suspends writes so
+   *  the imminent reload's pagehide can't clobber the new slot with stale state. */
+  switchTo(slot: string): void {
+    if (slot === this.activeSlot || !(SLOT_IDS as readonly string[]).includes(slot)) return;
+    this.writeNow(); // persist the current island before we leave it (not yet suspended)
+    this.suspended = true;
+    this.storage?.setItem(SLOT_POINTER, slot);
+    this.activeSlot = slot;
+  }
+
+  /** Switch to the first empty slot (a fresh island loads there on reload). Null if full. */
+  createSlot(): string | null {
+    const empty = SLOT_IDS.find((id) => !(this.storage?.getItem(slotKey(id)) ?? null));
+    if (empty === undefined) return null;
+    if (empty === this.activeSlot) {
+      // already sitting on an empty slot — just point the pointer + suspend for reload
+      this.suspended = true;
+      this.storage?.setItem(SLOT_POINTER, empty);
+      return empty;
+    }
+    this.switchTo(empty);
+    return empty;
+  }
+
+  /** Delete another slot's save + backups. Never the active slot (guarded). */
+  deleteSlot(slot: string): void {
+    if (slot === this.activeSlot || !this.storage) return;
+    this.storage.removeItem(slotKey(slot));
+    for (const b of backupKeysFor(slot)) this.storage.removeItem(b);
   }
 }

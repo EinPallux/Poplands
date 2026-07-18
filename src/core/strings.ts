@@ -33,11 +33,18 @@ const en = {
   'build.blocked.afford': 'Not enough Pops yet',
   'build.blocked.edge': 'Needs to reach the island’s edge',
   'build.locked': 'Unlocks at Level {level}',
+  // catalog search/filter (post-1.0)
+  'build.search.placeholder': 'Search…',
+  'build.search.tip': 'Type to find items by name',
+  'build.search.affordable': '● Affordable',
+  'build.search.unplaced': 'Not placed',
+  'build.search.empty': 'Nothing matches — try another search or filter.',
   'toast.levelUp': 'Level {level}! ✨ New things to build',
   'toast.questDone': 'Postcard complete! 💌',
   'toast.secretFound': 'A discovery! ✨',
   'toast.npcArrived': '{name} moved in! 🏡',
   'toast.palAdopted': 'A {pal} came to visit! 🐾',
+  'toast.palTrick': '{pal} learned a trick! 🎉',
 
   // expansion (S8) — survey markers on the island's free edges
   'survey.call': 'Call this chunk',
@@ -162,9 +169,41 @@ const en = {
   'album.title': 'Island Album',
   'album.milestones': 'Milestones',
   'album.neighbours': 'Neighbours',
+  'album.friends': 'Best friends',
   'album.pals': 'Pals',
   'album.biomes': 'Biomes',
   'album.empty': 'Nobody yet — build a home!',
+  'album.renameHint': 'Tap to rename',
+
+  // camera bookmarks (post-1.0)
+  'bookmarks.title': 'Camera Views',
+  'bookmarks.save': 'Save current view',
+  'bookmarks.jump': 'Jump to this view',
+  'bookmarks.delete': 'Forget this view',
+  'bookmarks.name': 'View name',
+  'bookmarks.default': 'View {n}',
+  'bookmarks.empty': 'No saved views yet — frame a nice angle and save it!',
+
+  // statistics page (post-1.0)
+  'statspage.title': 'Statistics',
+  'statspage.playtime': 'played',
+  'statspage.since': 'Island started {date}',
+  'statspage.level': 'Level',
+  'statspage.placed': 'Things placed',
+  'statspage.pops': 'Pops collected',
+  'statspage.chunks': 'Chunks',
+  'statspage.neighbours': 'Neighbours',
+  'statspage.pals': 'Pals',
+  'statspage.fish': 'Fish caught',
+  'statspage.crops': 'Crops harvested',
+  'statspage.secrets': 'Secrets found',
+  'statspage.quests': 'Postcards done',
+  'statspage.stamps': 'Stamps earned',
+  'statspage.gifts': 'Gifts claimed',
+
+  // minimap / island overview (post-1.0)
+  'minimap.title': 'Island Map',
+  'minimap.hint': 'Tap the map to recenter the camera',
 
   // fishing journal + catch moment (post-1.0)
   'journal.title': 'Fish Journal',
@@ -312,6 +351,19 @@ const en = {
 
   // settings
   'settings.title': 'Settings',
+  'settings.islandName': 'Island name',
+  'settings.islandNamePlaceholder': 'Poplands',
+  // multiple save slots (post-1.0)
+  'slots.title': 'My Islands',
+  'slots.empty': 'Empty slot',
+  'slots.meta': 'Lv {lv} · {chunks} chunks',
+  'slots.current': 'Current',
+  'slots.play': 'Play',
+  'slots.new': 'New',
+  'slots.delete': 'Delete this island',
+  'slots.confirmSwitch': 'Switch to this island? Your current island is saved first.',
+  'slots.confirmNew': 'Start a new island here? Your current island is saved first.',
+  'slots.confirmDelete': 'Delete this island for good? This can’t be undone.',
   'settings.quality': 'Quality',
   'settings.quality.auto': 'Auto',
   'settings.quality.high': 'High',
@@ -342,6 +394,16 @@ const en = {
   'weather.clear': 'Clear',
   'weather.rain': 'Rain',
   'weather.rainbow': 'Rainbow',
+  // Islander requests / wishes (post-1.0). {name} is filled in by the toast.
+  'wish.nature': '{name} would love a tree or flowers nearby 🌳',
+  'wish.decor': '{name} wishes for a pretty decoration nearby ✨',
+  'wish.home': '{name} would love a neighbour’s home nearby 🏡',
+  'wish.income': '{name} dreams of a little shop nearby 🛍️',
+  'wish.thanks.nature': 'Oh, how leafy — thank you! 🌳',
+  'wish.thanks.decor': 'It’s just lovely, thank you! ✨',
+  'wish.thanks.home': 'A new neighbour! Wonderful! 🏡',
+  'wish.thanks.income': 'A shop! You’re the best! 🛍️',
+  'wish.granted': 'Wish granted! {name} is delighted 💛',
   // biome names + the re-theme picker (post-1.0)
   'theme.meadow': 'Meadow',
   'theme.sandbar': 'Sandbar',
@@ -373,6 +435,12 @@ const en = {
   'rating.tip.bustle': 'Place an income building to keep the Pops flowing ●',
   'rating.tip.room': 'Call a new chunk to give your island room to grow 🧭',
   'rating.tip.perfect': 'Your island is wonderfully cozy — nothing to add! 💛',
+  'rating.mood': 'Neighbours are',
+  'mood.content': 'settling in',
+  'mood.happy': 'happy',
+  'mood.cheerful': 'cheerful',
+  'mood.delighted': 'delighted',
+  'stats.mood': 'How happy your neighbours are',
   // island stats strip (UI rework)
   'stats.neighbours': 'Neighbours',
   'stats.pals': 'Pals',
