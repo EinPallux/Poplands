@@ -5,6 +5,12 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 
 ## [Unreleased]
 
+### Added — Quality-of-life batch · Statistics page (post-1.0, user 2026-07-12)
+- **A cozy stats summary for your island.** A new **📊 Statistics** dock panel: a header showing **active playtime** (e.g. *"2h 34m played"*) and the date the island was started, then a tidy grid of lifetime counters — Level, Things placed, Pops collected, Chunks, Neighbours, Pals, Fish caught, Crops harvested, Secrets found, Postcards done, Stamps earned, Gifts claimed. A nice at-a-glance "look how far my island's come".
+- **Playtime is the only new number tracked** (Save v13, a tiny `stats.playMs` slice + v12→v13 migration); everything else reads live counters the game already keeps (quest milestones, fishing/garden tallies, rosters, chunk count, Stamp Book). Playtime counts **active, tab-visible** time only — it accrues off the clamped frame delta (so a stall never inflates it) and the loop is paused at 0 CPU when the tab's hidden. It's kept out of `collect()` and rides along on the next autosave / pagehide flush, so it survives reloads.
+- **`formatDuration(ms)`** is a pure helper (unit-tested); the panel is a dock flyout matching the Album/Journal/Views.
+- **Verification.** `scripts/verify-stats.mts` (6 checks: playtime accrues while open, the panel shows a full 12-counter grid, "Things placed" tracks placements, the playtime line is non-zero, and playtime **persists + keeps accruing across a reload**) + 4 `formatDuration` unit tests (seconds/minutes/hours formatting, never negative) + the v1→v13 migration round-trip (`playMs: 0`). **246 tests + verify-stats green;** check + build clean.
+
 ### Added — Quality-of-life batch · Camera bookmarks (post-1.0, user 2026-07-12)
 - **Save & jump to favourite viewpoints.** A new **🔖 Camera Views** dock panel: frame a nice angle, hit **"Save current view"**, and it's remembered (auto-named "View 1", "View 2" — rename inline to "Sunset spot" or whatever you like). Each saved view has a **📍 jump** button that eases the camera right back to it, and a **🗑** to forget it. Handy the moment your island sprawls across many chunks and you keep returning to the same corners.
 - **Persisted per island (Save v12).** A `bookmarks` slice joins the save with a v11→v12 migration + normalize default; older islands start with an empty list. Bookmarks are kept out of `collect()` (like names) so a just-saved view survives autosave, and the whole list rides along in exported/shared islands. No cost, no limit worth worrying about.

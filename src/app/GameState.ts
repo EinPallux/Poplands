@@ -320,6 +320,12 @@ export class GameState {
     this.manager.requestSave();
   }
 
+  /** Accrue active playtime (post-1.0 Stats). Mutates in place — no explicit save;
+   *  it rides along on the next autosave / the pagehide flush (kept out of collect). */
+  addPlayMs(ms: number): void {
+    this.save.stats.playMs += ms;
+  }
+
   exportToFile(): void {
     const blob = new Blob([this.manager.exportString()], { type: 'application/json' });
     const url = URL.createObjectURL(blob);

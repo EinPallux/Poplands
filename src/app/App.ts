@@ -41,6 +41,7 @@ import { IslandStats } from '@/ui/IslandStats';
 import { Mailbox } from '@/ui/Mailbox';
 import { Album } from '@/ui/Album';
 import { CameraBookmarks } from '@/ui/CameraBookmarks';
+import { StatsPanel } from '@/ui/StatsPanel';
 import { FishJournal } from '@/ui/FishJournal';
 import { FishingLayer } from '@/ui/FishingLayer';
 import { DailyGiftUI } from '@/ui/DailyGiftUI';
@@ -542,6 +543,27 @@ export class App {
       (i, name) => state.renameBookmark(i, name),
       (i) => state.deleteBookmark(i),
     );
+    // statistics page (post-1.0): an at-a-glance summary of this island
+    const statsPanel = new StatsPanel(dock, () => {
+      const m = state.save.quests.milestones;
+      return {
+        playMs: state.save.stats.playMs,
+        createdAt: state.save.createdAt,
+        level: state.save.player.level,
+        itemsPlaced: m.itemsPlaced,
+        popsCollected: m.popsCollected,
+        questsDone: m.questsDone,
+        secretsFound: m.secretsFound,
+        fishTotal: state.fishing.collection().total,
+        cropsHarvested: state.garden.harvested,
+        neighbours: state.islanders.snapshot().residents.length,
+        pals: state.pals.snapshot().pals.length,
+        chunks: island.chunkCount,
+        stamps: state.achievements.view().earned,
+        giftClaims: state.save.dailyGift.claims,
+        museumDonated: state.museum.view().donatedCount,
+      };
+    });
     // Island Charm rating (retention + "what next?" tips) — reuses the shared ratingSnapshot
     const rating = new RatingPanel(dock, ratingSnapshot);
     new DailyGiftUI(uiRoot); // the once-a-day present (self-wires to gift:* events)
@@ -654,6 +676,7 @@ export class App {
         else if (journal.open) journal.toggle(false);
         else if (stamps.open) stamps.toggle(false);
         else if (bookmarks.open) bookmarks.toggle(false);
+        else if (statsPanel.open) statsPanel.toggle(false);
         else if (settings.open) settings.toggle(false);
         else if (session.isActive) session.cancel();
       },
@@ -693,6 +716,7 @@ export class App {
       if (!setPiece) input.update(dt);
     });
     loop.add((dt) => session.update(dt));
+    loop.add((dt) => state.addPlayMs(dt * 1000)); // accrue active playtime (Stats)
     loop.add((dt) => state.economy.tick(dt));
     loop.add((dt) => state.fishing.tick(dt)); // advance an active cast's wait/nibble timers
     loop.add(() => state.quests.tick()); // refill postcard slots once a cooldown lapses
@@ -825,6 +849,9 @@ export class App {
           if (vp) rig.applyViewpoint(vp);
         },
         deleteView: (i: number) => state.deleteBookmark(i),
+        // — statistics (post-1.0)
+        playMs: () => state.save.stats.playMs,
+        addPlayMs: (ms: number) => state.addPlayMs(ms),
         tileShapes: () =>
           island
             .allPlacements()

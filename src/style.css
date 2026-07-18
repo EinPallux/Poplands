@@ -1747,6 +1747,85 @@ body {
   margin-top: 10px;
 }
 
+/* — statistics panel (post-1.0) — */
+.stats-root {
+  position: absolute;
+  top: 196px;
+  right: 12px;
+  pointer-events: auto;
+  z-index: 6;
+  transform: scale(var(--ui-scale, 1));
+  transform-origin: 100% 0%;
+}
+.stats-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: var(--ui-cream);
+  color: var(--ui-ink);
+  font-size: 20px;
+  cursor: pointer;
+  box-shadow: 0 3px 10px rgba(74, 63, 94, 0.25);
+}
+.stats-panel {
+  position: absolute;
+  top: 48px;
+  right: 0;
+  width: 288px;
+  max-height: 74vh;
+  overflow-y: auto;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: var(--ui-cream);
+  color: var(--ui-ink);
+  box-shadow: 0 8px 26px rgba(74, 63, 94, 0.3);
+}
+.stats-panel h2 {
+  margin: 0 0 8px;
+  font-size: 17px;
+}
+.stats-head {
+  margin-bottom: 12px;
+}
+.stats-playtime {
+  font-size: 14px;
+}
+.stats-playtime b {
+  font-size: 16px;
+}
+.stats-since {
+  font-size: 11.5px;
+  opacity: 0.6;
+  margin-top: 2px;
+}
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.stat-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 9px 6px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.5);
+}
+.stat-card .stat-icon {
+  font-size: 17px;
+}
+.stat-value {
+  font-size: 17px;
+  font-weight: 800;
+}
+.stat-label {
+  font-size: 10.5px;
+  opacity: 0.7;
+  text-align: center;
+}
+
 .journal-root {
   position: absolute;
   top: 108px;

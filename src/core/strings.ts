@@ -184,6 +184,23 @@ const en = {
   'bookmarks.default': 'View {n}',
   'bookmarks.empty': 'No saved views yet — frame a nice angle and save it!',
 
+  // statistics page (post-1.0)
+  'statspage.title': 'Statistics',
+  'statspage.playtime': 'played',
+  'statspage.since': 'Island started {date}',
+  'statspage.level': 'Level',
+  'statspage.placed': 'Things placed',
+  'statspage.pops': 'Pops collected',
+  'statspage.chunks': 'Chunks',
+  'statspage.neighbours': 'Neighbours',
+  'statspage.pals': 'Pals',
+  'statspage.fish': 'Fish caught',
+  'statspage.crops': 'Crops harvested',
+  'statspage.secrets': 'Secrets found',
+  'statspage.quests': 'Postcards done',
+  'statspage.stamps': 'Stamps earned',
+  'statspage.gifts': 'Gifts claimed',
+
   // fishing journal + catch moment (post-1.0)
   'journal.title': 'Fish Journal',
   'journal.progress': 'species',

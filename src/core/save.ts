@@ -212,9 +212,21 @@ export interface SaveV12 extends Omit<SaveV11, 'v'> {
   bookmarks: SaveBookmark[];
 }
 
+/** Lifetime play statistics not already tracked elsewhere (post-1.0 Stats page). */
+export interface SaveStats {
+  /** Active (tab-visible) playtime for this island, in milliseconds. */
+  playMs: number;
+}
+
+/** v13 (post-1.0): the stats slice (active playtime). */
+export interface SaveV13 extends Omit<SaveV12, 'v'> {
+  v: 13;
+  stats: SaveStats;
+}
+
 /** The current schema. Bump this alias (not scattered `SaveVn`s) each version. */
-export type Save = SaveV12;
-export const SAVE_VERSION = 12;
+export type Save = SaveV13;
+export const SAVE_VERSION = 13;
 
 export const DEFAULT_SETTINGS: SaveSettings = {
   volume: 0.8,
@@ -364,11 +376,15 @@ const migrations: Record<number, (s: AnySave) => AnySave> = {
     // No saved camera viewpoints yet — start with an empty bookmark list.
     return { ...(s as unknown as SaveV11), v: 12, bookmarks: [] } as unknown as AnySave;
   },
+  12: (s) => {
+    // No prior playtime tracked — start the counter at zero.
+    return { ...(s as unknown as SaveV12), v: 13, stats: { playMs: 0 } } as unknown as AnySave;
+  },
 };
 
 export function freshSave(seed: number, now: number): Save {
   return {
-    v: 12,
+    v: 13,
     createdAt: now,
     lastSeenAt: now,
     seed,
@@ -392,6 +408,7 @@ export function freshSave(seed: number, now: number): Save {
     achievements: freshAchievements(), // empty Stamp Book
     garden: freshGarden(), // no crops planted yet
     bookmarks: [], // no saved camera viewpoints yet
+    stats: { playMs: 0 }, // lifetime playtime accrues from zero
     attic: [],
     settings: { ...DEFAULT_SETTINGS },
   };
@@ -464,6 +481,8 @@ function normalize(v2: Save): Save {
   v2.garden.plots ??= {};
   v2.garden.harvested ??= 0;
   v2.bookmarks ??= [];
+  v2.stats ??= { playMs: 0 };
+  v2.stats.playMs ??= 0;
   v2.settings = { ...DEFAULT_SETTINGS, ...v2.settings };
   v2.island.placements ??= [];
   v2.player.level ??= 1;
