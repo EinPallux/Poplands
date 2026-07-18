@@ -342,6 +342,16 @@ const en = {
   'weather.clear': 'Clear',
   'weather.rain': 'Rain',
   'weather.rainbow': 'Rainbow',
+  // Islander requests / wishes (post-1.0). {name} is filled in by the toast.
+  'wish.nature': '{name} would love a tree or flowers nearby 🌳',
+  'wish.decor': '{name} wishes for a pretty decoration nearby ✨',
+  'wish.home': '{name} would love a neighbour’s home nearby 🏡',
+  'wish.income': '{name} dreams of a little shop nearby 🛍️',
+  'wish.thanks.nature': 'Oh, how leafy — thank you! 🌳',
+  'wish.thanks.decor': 'It’s just lovely, thank you! ✨',
+  'wish.thanks.home': 'A new neighbour! Wonderful! 🏡',
+  'wish.thanks.income': 'A shop! You’re the best! 🛍️',
+  'wish.granted': 'Wish granted! {name} is delighted 💛',
   // biome names + the re-theme picker (post-1.0)
   'theme.meadow': 'Meadow',
   'theme.sandbar': 'Sandbar',

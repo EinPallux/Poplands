@@ -50,6 +50,9 @@ export class ProgressionSystem {
       bus.on('garden:harvested', (e) => {
         if (e.rewards.xp) this.grantXp(e.rewards.xp, 'discovery');
       }),
+      bus.on('request:fulfilled', (e) => {
+        if (e.rewards.xp) this.grantXp(e.rewards.xp, 'discovery');
+      }),
     );
   }
 

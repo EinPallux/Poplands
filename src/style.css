@@ -2225,3 +2225,47 @@ body {
   background: rgba(127, 220, 164, 0.14);
   border-left: 3px solid var(--accent-mint);
 }
+
+/* ——— Wish bubbles (post-1.0): a persistent 💭 thought over a wishing neighbour ——— */
+.wish-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.wish-bubble {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: var(--ui-cream);
+  box-shadow: 0 4px 14px rgba(74, 63, 94, 0.26);
+  opacity: 0;
+  transform-origin: 50% 100%;
+  transition: opacity 0.2s ease, scale 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+  scale: 0.5;
+  will-change: transform, scale, opacity;
+}
+.wish-bubble.in { opacity: 1; scale: 1; }
+.wish-bubble.granted { opacity: 0; scale: 1.5; } /* a happy pop-out on granting */
+.wish-bubble .wb-think { font-size: 13px; opacity: 0.85; }
+.wish-bubble .wb-icon { font-size: 17px; line-height: 1; }
+.wish-bubble::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -5px;
+  width: 10px;
+  height: 10px;
+  background: var(--ui-cream);
+  border-radius: 0 0 3px 0;
+  transform: translateX(-50%) rotate(45deg);
+  box-shadow: 2px 2px 5px rgba(74, 63, 94, 0.12);
+}
+@media (prefers-reduced-motion: reduce) {
+  .wish-bubble { transition: opacity 0.2s ease; scale: 1; }
+}

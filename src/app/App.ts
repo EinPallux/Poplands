@@ -55,6 +55,7 @@ import { WorldFx } from '@/ui/WorldFx';
 import { SurveyLayer } from '@/ui/SurveyLayer';
 import { SecretLayer } from '@/ui/SecretLayer';
 import { SpeechLayer } from '@/ui/SpeechLayer';
+import { WishLayer } from '@/ui/WishLayer';
 import { ChunkPopup } from '@/ui/ChunkPopup';
 import '@/ui/questState'; // side-effect: registers quest signal subscriptions
 import { initToasts, showToast } from '@/ui/Toasts';
@@ -377,6 +378,17 @@ export class App {
     // tap-to-greet: a cute babble when an Islander speaks (bubble handled by SpeechLayer)
     bus.on('npc:spoke', () => audio.chatter());
 
+    // — Islander requests (post-1.0): a wish appears (soft chime) → granted (hearts + toast)
+    bus.on('request:new', (e) => {
+      audio.chatter();
+      showToast(`💭 ${t(e.wishKey).replace('{name}', t(e.nameKey))}`);
+    });
+    bus.on('request:fulfilled', (e) => {
+      audio.chime();
+      particles.hearts(e.wx + 0.5, 1.0, e.wz + 0.5);
+      showToast(t('wish.granted').replace('{name}', t(e.nameKey)));
+    });
+
     // — fishing (post-1.0): cast splash / nibble blip / reel flourish + a water sparkle
     bus.on('fishing:cast', (e) => {
       audio.splash();
@@ -430,6 +442,7 @@ export class App {
     const surveyLayer = new SurveyLayer(uiRoot, (x, y, z) => rig.projectToScreen(x, y, z));
     const secretLayer = new SecretLayer(uiRoot, (x, y, z) => rig.projectToScreen(x, y, z));
     const speechLayer = new SpeechLayer(uiRoot, (x, y, z) => rig.projectToScreen(x, y, z));
+    const wishLayer = new WishLayer(uiRoot, (x, y, z) => rig.projectToScreen(x, y, z));
     const fishingLayer = new FishingLayer(uiRoot, (x, y, z) => rig.projectToScreen(x, y, z));
     const gardenLayer = new GardenLayer(uiRoot, (x, y, z) => rig.projectToScreen(x, y, z), () => state.garden.view());
     const seedPicker = new SeedPicker(uiRoot, () => state.save.player.level);
@@ -632,6 +645,8 @@ export class App {
       state.islanders.update(dt); // sim integrates kinematics (three.js-free)…
       agents.sync(state.islanders.agents, dt); // …then Tier C projects + animates
       speechLayer.update(state.islanders.agents, dt); // bubbles track their speaker
+      state.requests.update(dt); // roll neighbour wishes now and then
+      wishLayer.update(state.islanders.agents, dt); // wish bubbles track their wisher
       state.pals.update(dt);
       palAgents.sync(state.pals.agents, dt);
     });
@@ -771,6 +786,8 @@ export class App {
         openMuseum: () => bus.emit('cmd:openMuseum', undefined),
         donate: (species: string) => bus.emit('cmd:donate', { species }),
         islanderUsage: () => state.islanders.debugUsage(),
+        wishes: () => state.requests.debugWishes(),
+        newWish: (id?: string, category?: string) => state.requests.debugNewWish(id, category),
         sitNow: (pid?: string) => state.islanders.debugSitNow(pid),
         endUse: (id: string) => state.islanders.debugEndUse(id),
         agentMeshY: (id: string) => agents.debugMeshY(id),

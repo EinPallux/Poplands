@@ -17,6 +17,7 @@ import { ExpansionSystem } from '@/sim/ExpansionSystem';
 import { SecretSystem } from '@/sim/SecretSystem';
 import { IslanderSystem } from '@/sim/IslanderSystem';
 import { PalSystem } from '@/sim/PalSystem';
+import { RequestSystem } from '@/sim/RequestSystem';
 import { FishingSystem } from '@/sim/FishingSystem';
 import { DailyGiftSystem } from '@/sim/DailyGiftSystem';
 import { MuseumSystem } from '@/sim/MuseumSystem';
@@ -36,6 +37,7 @@ export class GameState {
   readonly secrets: SecretSystem;
   readonly islanders: IslanderSystem;
   readonly pals: PalSystem;
+  readonly requests: RequestSystem;
   readonly fishing: FishingSystem;
   readonly dailyGift: DailyGiftSystem;
   readonly museum: MuseumSystem;
@@ -85,6 +87,12 @@ export class GameState {
     // islanders + pals own their rosters + wander AI (mutate save.islanders in place)
     this.islanders = new IslanderSystem(this.island, this.save.islanders, this.save.seed);
     this.pals = new PalSystem(this.island, this.save.islanders, this.save.seed);
+    // neighbours leave little wishes for something nearby (ephemeral, reward on grant)
+    this.requests = new RequestSystem(
+      () => this.islanders.snapshot().residents,
+      (id) => this.islanders.positionOf(id),
+      this.save.seed,
+    );
     // fishing owns the pond minigame + catch collection (mutates save.fishing on snapshot)
     this.fishing = new FishingSystem(this.island, this.save.fishing, this.save.seed);
     // daily gift owns the once-a-day present (mutates save.dailyGift in place)
@@ -152,6 +160,7 @@ export class GameState {
     this.secrets.wire();
     this.islanders.wire();
     this.pals.wire();
+    this.requests.wire(); // AFTER islanders so a grant reads live positions
     this.fishing.wire();
     this.garden.wire();
     this.economy.resolveOffline();
