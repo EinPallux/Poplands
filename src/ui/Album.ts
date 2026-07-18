@@ -6,7 +6,7 @@
 import { t } from '@/core/strings';
 import { tip } from '@/ui/Tooltip';
 import { MILESTONES } from '@/content/quests';
-import { islanderDef } from '@/content/roster';
+import { islanderDef, friendPairs } from '@/content/roster';
 import { palDef } from '@/content/pals';
 import { THEME_EMOJI } from '@/content/themes';
 import type { CounterId } from '@/core/save';
@@ -74,6 +74,15 @@ export class Album {
       })
       .join('');
 
+    // best-friend pairs among the residents who've moved in (post-1.0)
+    const friends = friendPairs(d.residents)
+      .map((p) => {
+        const a = islanderDef(p.a);
+        const b = islanderDef(p.b);
+        return a && b ? `<span class="album-chip">💛 ${t(a.nameKey)} &amp; ${t(b.nameKey)}</span>` : '';
+      })
+      .join('');
+
     // biome tally across the island
     const counts = new Map<ChunkTheme, number>();
     for (const th of d.themes) counts.set(th, (counts.get(th) ?? 0) + 1);
@@ -87,6 +96,7 @@ export class Album {
       <ul class="album-ms">${ms}</ul>
       <h3>${t('album.neighbours')}</h3>
       <div class="album-chips">${people || `<span class="album-empty">${t('album.empty')}</span>`}</div>
+      ${friends ? `<h3>${t('album.friends')}</h3><div class="album-chips">${friends}</div>` : ''}
       <h3>${t('album.pals')}</h3>
       <div class="album-chips">${pals || `<span class="album-empty">${t('album.empty')}</span>`}</div>
       <h3>${t('album.biomes')}</h3>

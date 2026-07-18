@@ -162,6 +162,7 @@ const en = {
   'album.title': 'Island Album',
   'album.milestones': 'Milestones',
   'album.neighbours': 'Neighbours',
+  'album.friends': 'Best friends',
   'album.pals': 'Pals',
   'album.biomes': 'Biomes',
   'album.empty': 'Nobody yet — build a home!',

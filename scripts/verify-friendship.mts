@@ -1,11 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- headless verify pokes the debug handle */
 /**
- * Day/night routines verify (post-1.0): at night Islanders head home and tuck in (the
- * avatars hide; the window glow sells "someone's home"); by morning they reappear and
- * resume wandering. Drives the real time-of-day → sim seam via setTime, plus a forced
- * retire for a deterministic hide count. Night beauty shot. No page errors.
+ * Islander friendships verify (post-1.0): once two neighbours have moved in they're
+ * best friends — shown in the Album ("💛 Mo & Pia") and, over time, they drift together
+ * and mingle rather than wandering apart. No page errors.
  *
- *   npm run build && npx tsx scripts/verify-routines.mts
+ *   npm run build && npx tsx scripts/verify-friendship.mts
  */
 import { chromium, type Page } from 'playwright';
 import http from 'node:http';
@@ -14,7 +13,7 @@ import path from 'node:path';
 
 const ROOT = path.resolve(new URL('..', import.meta.url).pathname);
 const DIST = path.join(ROOT, 'dist');
-const OUT = path.join(ROOT, 'shots', 'routines-night.png');
+const OUT = path.join(ROOT, 'shots', 'friendship-album.png');
 const MIME: Record<string, string> = {
   '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json',
   '.glb': 'model/gltf-binary', '.png': 'image/png', '.svg': 'image/svg+xml', '.map': 'application/json',
@@ -48,54 +47,56 @@ async function main(): Promise<void> {
   await page.goto(`${url}/?debug=1`, { waitUntil: 'domcontentloaded', timeout: 60000 });
   await sleep(page, 9500);
 
-  // place homes so a few neighbours move in
+  // place a couple of homes → two neighbours (a friend pair) move in
   await page.evaluate(() => {
     const h = (window as any).__poplands;
-    let x = 3, z = 3, placed = 0;
-    for (let i = 0; i < 60 && placed < 3; i++) {
-      if (h.place('home.hut', x, z, 0)) placed++;
-      x += 3; if (x > 13) { x = 3; z += 3; }
+    let x = 4, z = 4, placed = 0;
+    for (let i = 0; i < 60 && placed < 2; i++) {
+      if (h.place('home.house', x, z, 0)) placed++;
+      x += 4; if (x > 14) { x = 4; z += 4; }
     }
   });
   await sleep(page, 1500);
   const residents = await page.evaluate(() => (window as any).__poplands.residents().length);
-  check('homes welcome a few neighbours', residents >= 1, `residents=${residents}`);
-  const dayHidden = await page.evaluate(() => (window as any).__poplands.hiddenCount());
-  check('by day, nobody is tucked in', dayHidden === 0, `hidden=${dayHidden}`);
+  check('two neighbours have moved in', residents >= 2, `residents=${residents}`);
 
-  // ── night falls → neighbours walk home and tuck in (natural path via the real seam) ──
-  // poll rather than a fixed sleep: headless fps varies wildly (3–15), and homing is
-  // gated on sim-seconds not wall-clock, so give it real elapsed time to accrue.
-  await page.evaluate(() => (window as any).__poplands.setTime('night'));
-  let nightHidden = 0;
-  for (let i = 0; i < 40 && nightHidden < 1; i++) {
-    await sleep(page, 700);
-    nightHidden = await page.evaluate(() => (window as any).__poplands.hiddenCount());
-  }
-  check('at night, neighbours head home and tuck in', nightHidden >= 1, `hidden=${nightHidden}/${residents}`);
+  // open the Album (J) → it lists a best-friend pair
+  await page.keyboard.press('KeyJ');
+  await sleep(page, 500);
+  const album = await page.evaluate(() => {
+    const panel = document.querySelector('.album-panel');
+    const txt = panel?.textContent ?? '';
+    const chips = Array.from(document.querySelectorAll('.album-chip')).map((c) => c.textContent ?? '');
+    return { hasHeading: txt.includes('Best friends'), friendChips: chips.filter((c) => c.includes('💛')) };
+  });
+  check('the Album shows a Best friends section', album.hasHeading === true, '');
+  check('a friend pair is listed (💛 A & B)', album.friendChips.length >= 1, album.friendChips[0] ?? '(none)');
+  await page.keyboard.press('KeyJ'); // close the album for the behaviour sample
   await page.keyboard.press('Home');
   await sleep(page, 800);
+
+  // over time the two friends drift together and mingle (they orbit, not scatter apart)
+  let minDist = Infinity;
+  for (let i = 0; i < 40; i++) {
+    const d = await page.evaluate(() => {
+      const ags = (window as any).__poplands.islanders();
+      if (ags.length < 2) return Infinity;
+      const [a, b] = ags;
+      return Math.hypot(a.x - b.x, a.z - b.z);
+    });
+    minDist = Math.min(minDist, d);
+    await sleep(page, 500);
+  }
+  check('best friends drift together and mingle', minDist < 5, `closest ≈ ${minDist.toFixed(1)} blocks`);
+  await page.keyboard.press('KeyJ');
+  await sleep(page, 400);
   await page.screenshot({ path: OUT });
   console.log('✓ shot →', OUT);
-
-  // forced retire is deterministic — everyone in
-  const allIn = await page.evaluate(() => {
-    const h = (window as any).__poplands;
-    const n = h.retireAll();
-    return { n, hidden: h.hiddenCount() };
-  });
-  check('every neighbour can tuck in (all hidden)', allIn.hidden === allIn.n && allIn.n >= 1, JSON.stringify(allIn));
-
-  // ── morning → they wake up and get moving ──
-  await page.evaluate(() => (window as any).__poplands.setTime('day'));
-  await sleep(page, 2500);
-  const woke = await page.evaluate(() => (window as any).__poplands.hiddenCount());
-  check('by morning, everyone is up again', woke === 0, `hidden=${woke}`);
 
   check('no page errors across the run', errors.length === 0, errors.slice(0, 2).join(' | '));
 
   await browser.close(); close();
-  console.log('\n── day/night routines verify ──');
+  console.log('\n── Islander friendships verify ──');
   let allPass = true;
   for (const c of checks) { console.log(`${c.ok ? '✓' : '✗'} ${c.n}${c.d ? `  (${c.d})` : ''}`); if (!c.ok) allPass = false; }
   console.log(allPass ? '\nALL PASS' : '\nFAILURES ABOVE');

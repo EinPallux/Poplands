@@ -65,7 +65,32 @@ export const ISLANDERS: readonly IslanderDef[] = NAMES.map((n, i) => ({
 export const MAX_ISLANDERS = 12;
 
 const byId = new Map<string, IslanderDef>(ISLANDERS.map((d) => [d.id, d]));
+const indexById = new Map<string, number>(ISLANDERS.map((d, i) => [d.id, i]));
 
 export function islanderDef(id: string): IslanderDef | undefined {
   return byId.get(id);
+}
+
+/**
+ * Best-friend pairing (post-1.0), deterministic from the roster order so it needs no
+ * save: neighbours pair up two-by-two in arrival order — Mo & Pia, Bram & Lulu, … The
+ * friend is the roster-adjacent id (index ^ 1); it only "activates" once both have
+ * moved in. Stable across sessions and reloads.
+ */
+export function friendId(id: string): string | undefined {
+  const i = indexById.get(id);
+  if (i === undefined) return undefined;
+  return ISLANDERS[i ^ 1]?.id;
+}
+
+/** Unordered friend pairs among the present residents (for the Album). */
+export function friendPairs(present: readonly string[]): Array<{ a: string; b: string }> {
+  const have = new Set(present);
+  const pairs: Array<{ a: string; b: string }> = [];
+  for (let i = 0; i + 1 < ISLANDERS.length; i += 2) {
+    const a = ISLANDERS[i]!.id;
+    const b = ISLANDERS[i + 1]!.id;
+    if (have.has(a) && have.has(b)) pairs.push({ a, b });
+  }
+  return pairs;
 }

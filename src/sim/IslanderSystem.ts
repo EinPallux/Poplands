@@ -28,7 +28,7 @@ import { mulberry32 } from '@/core/math';
 import { footprintCells, footprintCenter } from '@/core/grid';
 import { itemDef } from '@/content/catalog';
 import { CHATTER_LINES, CHATTER_EMOTES } from '@/content/chatter';
-import { ISLANDERS, MAX_ISLANDERS, islanderDef, type IslanderDef } from '@/content/roster';
+import { ISLANDERS, MAX_ISLANDERS, islanderDef, friendId, type IslanderDef } from '@/content/roster';
 import type { SaveIslanders } from '@/core/save';
 import type { Placement, IslandModel } from '@/world/IslandModel';
 import type { ItemDef } from '@/content/catalog';
@@ -88,6 +88,8 @@ const DWELL_SPAN = 2.5;
 // look, how long they linger, and how the sit avatar leans onto the seat.
 const FURNITURE_CHANCE = 0.4; // per idle decision, if a free piece is in reach
 const FURNITURE_RADIUS = 9; // blocks — only seek furniture within a short stroll
+const FRIEND_CHANCE = 0.55; // per idle decision, drift over to a best friend to mingle
+const FRIEND_NEAR = 2.5; // blocks — close enough to count as "together" (don't re-seek)
 const USE_MIN = 6;
 const USE_SPAN = 8; // a visit lasts USE_MIN..USE_MIN+USE_SPAN seconds
 const SIT_INSET = 0.5; // render-nudge toward the seat centre (blocks)
@@ -328,6 +330,8 @@ export class IslanderSystem {
   private pickTarget(a: Agent): void {
     // at dawn the island wakes up — neighbours drift toward a gathering spot for a spell
     if (this.phase === 'dawn' && this.rng() < 0.5 && this.pickGatherTarget(a)) return;
+    // drift over to a best friend now and then, so pairs wander together (post-1.0)
+    if (this.rng() < FRIEND_CHANCE && this.pickFriendTarget(a)) return;
     // sometimes head for a nearby seat/fire/fountain instead of an aimless step
     if (this.rng() < FURNITURE_CHANCE && this.pickFurnitureTarget(a)) return;
     for (let i = 0; i < 8; i++) {
@@ -526,6 +530,31 @@ export class IslanderSystem {
   private wakeUp(a: Agent): void {
     a.hidden = false;
     this.rest(a);
+  }
+
+  /** Head over to a best friend (if present & not already together) to mingle. Both
+   *  aim for the point BETWEEN them, so they meet in the middle instead of forever
+   *  chasing each other's stale spot (which just orbits at a distance). */
+  private pickFriendTarget(a: Agent): boolean {
+    const fid = friendId(a.id);
+    if (!fid) return false;
+    const f = this.list.find((x) => x.id === fid && !x.hidden);
+    if (!f) return false;
+    if (Math.hypot(f.x - a.x, f.z - a.z) < FRIEND_NEAR) return false; // already together
+    const mx = (a.x + f.x) / 2;
+    const mz = (a.z + f.z) / 2;
+    for (let i = 0; i < 8; i++) {
+      const cx = Math.floor(mx + (this.rng() - 0.5) * 2);
+      const cz = Math.floor(mz + (this.rng() - 0.5) * 2);
+      if (this.island.walkable(cx, cz)) {
+        a.tx = cx + 0.5;
+        a.tz = cz + 0.5;
+        a.moving = true;
+        a.timer = WALK_TIMEOUT;
+        return true;
+      }
+    }
+    return false;
   }
 
   /** Drift toward a gathering spot (nearest fountain/fire/statue, else the island's
