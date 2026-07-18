@@ -116,7 +116,7 @@ describe('parseSave', () => {
     };
     const parsed = parseSave(JSON.stringify(v1));
     expect(parsed).not.toBeNull();
-    expect(parsed!.v).toBe(11); // chains v1→v2→…→v11
+    expect(parsed!.v).toBe(12); // chains v1→v2→…→v12
     // wallets preserved, not reset
     expect(parsed!.player.pops).toBe(300);
     expect(parsed!.player.level).toBe(2);
@@ -151,6 +151,8 @@ describe('parseSave', () => {
     // v9: bare garden (no plots planted, nothing harvested)
     expect(parsed!.garden.plots).toEqual({});
     expect(parsed!.garden.harvested).toBe(0);
+    // v12: no saved camera viewpoints yet
+    expect(parsed!.bookmarks).toEqual([]);
   });
 
   it('a v4 save missing the islanders slice normalizes to an empty roster', () => {

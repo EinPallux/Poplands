@@ -5,7 +5,8 @@
  * and drives autosave + export/import.
  */
 import { bus } from '@/core/events';
-import { freshSave, SaveManager, withCarried, type Save, type SavePlacement } from '@/core/save';
+import { freshSave, SaveManager, withCarried, type Save, type SavePlacement, type SaveBookmark } from '@/core/save';
+import type { CameraViewpoint } from '@/render/CameraRig';
 import { encodeShareCode, decodeShareCode } from '@/core/islandCode';
 import { loadSettings, snapshotSettings } from '@/core/settingsStore';
 import { loadWallet, snapshotWallet, loadPlayer } from '@/core/playerStore';
@@ -287,6 +288,36 @@ export class GameState {
     else delete this.save.islanders.names[id];
     this.manager.requestSave();
     bus.emit('agent:renamed', { id, name: this.nameOf(id) });
+  }
+
+  // — camera bookmarks (post-1.0): saved viewpoints, persisted per island —
+
+  /** The saved camera viewpoints (read-only view). */
+  bookmarks(): readonly SaveBookmark[] {
+    return this.save.bookmarks;
+  }
+
+  /** Save the given viewpoint under a name (auto-named "View N" if blank). Persists. */
+  addBookmark(name: string, vp: CameraViewpoint): void {
+    const clean =
+      name.trim().slice(0, 20) || t('bookmarks.default').replace('{n}', String(this.save.bookmarks.length + 1));
+    this.save.bookmarks.push({ name: clean, ...vp });
+    this.manager.requestSave();
+  }
+
+  /** Rename a saved viewpoint (blank keeps the old name). Persists. */
+  renameBookmark(index: number, name: string): void {
+    const bm = this.save.bookmarks[index];
+    if (!bm) return;
+    bm.name = name.trim().slice(0, 20) || bm.name;
+    this.manager.requestSave();
+  }
+
+  /** Forget a saved viewpoint. Persists. */
+  deleteBookmark(index: number): void {
+    if (index < 0 || index >= this.save.bookmarks.length) return;
+    this.save.bookmarks.splice(index, 1);
+    this.manager.requestSave();
   }
 
   exportToFile(): void {

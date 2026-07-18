@@ -40,6 +40,7 @@ import { WelcomeHint } from '@/ui/WelcomeHint';
 import { IslandStats } from '@/ui/IslandStats';
 import { Mailbox } from '@/ui/Mailbox';
 import { Album } from '@/ui/Album';
+import { CameraBookmarks } from '@/ui/CameraBookmarks';
 import { FishJournal } from '@/ui/FishJournal';
 import { FishingLayer } from '@/ui/FishingLayer';
 import { DailyGiftUI } from '@/ui/DailyGiftUI';
@@ -526,6 +527,21 @@ export class App {
     );
     const journal = new FishJournal(dock, () => state.fishing.collection());
     const stamps = new AchievementsWall(dock, () => state.achievements.view()); // Stamp Book (K)
+    // camera bookmarks (post-1.0): save the current view, jump back to it later
+    const bookmarks = new CameraBookmarks(
+      dock,
+      () => state.bookmarks(),
+      () => {
+        state.addBookmark('', rig.viewpoint());
+        audio.plop();
+      },
+      (i) => {
+        const vp = state.bookmarks()[i];
+        if (vp) rig.applyViewpoint(vp);
+      },
+      (i, name) => state.renameBookmark(i, name),
+      (i) => state.deleteBookmark(i),
+    );
     // Island Charm rating (retention + "what next?" tips) — reuses the shared ratingSnapshot
     const rating = new RatingPanel(dock, ratingSnapshot);
     new DailyGiftUI(uiRoot); // the once-a-day present (self-wires to gift:* events)
@@ -637,6 +653,7 @@ export class App {
         else if (album.open) album.toggle(false);
         else if (journal.open) journal.toggle(false);
         else if (stamps.open) stamps.toggle(false);
+        else if (bookmarks.open) bookmarks.toggle(false);
         else if (settings.open) settings.toggle(false);
         else if (session.isActive) session.cancel();
       },
@@ -799,6 +816,15 @@ export class App {
         setIslandName: (name: string) => state.setIslandName(name),
         nameOf: (id: string) => state.nameOf(id),
         setName: (id: string, name: string) => state.setName(id, name),
+        // — camera bookmarks (post-1.0)
+        camView: () => rig.viewpoint(),
+        bookmarks: () => state.bookmarks(),
+        saveView: (name = '') => state.addBookmark(name, rig.viewpoint()),
+        jumpView: (i: number) => {
+          const vp = state.bookmarks()[i];
+          if (vp) rig.applyViewpoint(vp);
+        },
+        deleteView: (i: number) => state.deleteBookmark(i),
         tileShapes: () =>
           island
             .allPlacements()

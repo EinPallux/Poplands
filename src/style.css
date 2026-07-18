@@ -825,7 +825,10 @@ body {
 .hud-dock .album-root,
 .hud-dock .journal-root,
 .hud-dock .stamps-root,
-.hud-dock .rating-root {
+.hud-dock .rating-root,
+.hud-dock .bookmarks-root,
+.hud-dock .stats-root,
+.hud-dock .minimap-root {
   position: static;
   transform: none;
   z-index: auto;
@@ -835,6 +838,9 @@ body {
 .hud-dock .journal-btn,
 .hud-dock .stamps-btn,
 .hud-dock .rating-btn,
+.hud-dock .bookmarks-btn,
+.hud-dock .stats-btn,
+.hud-dock .minimap-btn,
 .dock-btn {
   width: 40px;
   height: 40px;
@@ -853,6 +859,9 @@ body {
 .hud-dock .journal-btn:hover,
 .hud-dock .stamps-btn:hover,
 .hud-dock .rating-btn:hover,
+.hud-dock .bookmarks-btn:hover,
+.hud-dock .stats-btn:hover,
+.hud-dock .minimap-btn:hover,
 .dock-btn:hover {
   background: #fff;
   transform: translateY(-1px);
@@ -861,7 +870,10 @@ body {
 .hud-dock .album-panel,
 .hud-dock .journal-panel,
 .hud-dock .stamps-panel,
-.hud-dock .rating-panel {
+.hud-dock .rating-panel,
+.hud-dock .bookmarks-panel,
+.hud-dock .stats-panel,
+.hud-dock .minimap-panel {
   top: 0;
   right: calc(100% + 14px);
   left: auto;
@@ -1629,6 +1641,112 @@ body {
 }
 
 /* ——— Fish Journal panel ——— */
+/* — camera bookmarks panel (post-1.0) — */
+.bookmarks-root {
+  position: absolute;
+  top: 152px;
+  right: 12px;
+  pointer-events: auto;
+  z-index: 6;
+  transform: scale(var(--ui-scale, 1));
+  transform-origin: 100% 0%;
+}
+.bookmarks-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: var(--ui-cream);
+  color: var(--ui-ink);
+  font-size: 20px;
+  cursor: pointer;
+  box-shadow: 0 3px 10px rgba(74, 63, 94, 0.25);
+}
+.bookmarks-panel {
+  position: absolute;
+  top: 48px;
+  right: 0;
+  width: 272px;
+  max-height: 70vh;
+  overflow-y: auto;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: var(--ui-cream);
+  color: var(--ui-ink);
+  box-shadow: 0 8px 26px rgba(74, 63, 94, 0.3);
+}
+.bookmarks-panel h2 {
+  margin: 0 0 8px;
+  font-size: 17px;
+}
+.bm-save {
+  width: 100%;
+  border: 1.5px solid rgba(74, 63, 94, 0.2);
+  background: #fff;
+  color: var(--ui-ink);
+  font: 700 13px/1 inherit;
+  font-family: inherit;
+  padding: 9px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.bm-save:hover {
+  background: var(--accent-gold);
+  border-color: transparent;
+}
+.bm-list {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.bm-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.bm-jump,
+.bm-del {
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.55);
+  cursor: pointer;
+  font-size: 14px;
+  display: grid;
+  place-items: center;
+}
+.bm-jump:hover {
+  background: var(--accent-mint);
+}
+.bm-del:hover {
+  background: var(--accent-coral);
+}
+.bm-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  font: 600 13px/1 inherit;
+  font-family: inherit;
+  color: var(--ui-ink);
+  background: #fff;
+  border: 1.5px solid rgba(74, 63, 94, 0.15);
+  border-radius: 8px;
+  padding: 7px 9px;
+}
+.bm-name:focus {
+  outline: none;
+  border-color: var(--accent-mint);
+}
+.bm-empty {
+  font-size: 12.5px;
+  opacity: 0.6;
+  margin-top: 10px;
+}
+
 .journal-root {
   position: absolute;
   top: 108px;

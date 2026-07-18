@@ -175,6 +175,15 @@ const en = {
   'album.empty': 'Nobody yet — build a home!',
   'album.renameHint': 'Tap to rename',
 
+  // camera bookmarks (post-1.0)
+  'bookmarks.title': 'Camera Views',
+  'bookmarks.save': 'Save current view',
+  'bookmarks.jump': 'Jump to this view',
+  'bookmarks.delete': 'Forget this view',
+  'bookmarks.name': 'View name',
+  'bookmarks.default': 'View {n}',
+  'bookmarks.empty': 'No saved views yet — frame a nice angle and save it!',
+
   // fishing journal + catch moment (post-1.0)
   'journal.title': 'Fish Journal',
   'journal.progress': 'species',

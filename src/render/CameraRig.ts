@@ -13,6 +13,15 @@ import type { IslandBounds } from './Lights';
 const DEG = Math.PI / 180;
 const tmpProject = new Vector3();
 
+/** A saved camera viewpoint (post-1.0 bookmarks) — plain numbers, safe to persist. */
+export interface CameraViewpoint {
+  azimuth: number;
+  polar: number;
+  distance: number;
+  tx: number;
+  tz: number;
+}
+
 const POLAR_MIN = 30 * DEG;
 const POLAR_MAX = 65 * DEG;
 const POLAR_DEFAULT = 50 * DEG;
@@ -144,6 +153,32 @@ export class CameraRig {
 
   get state(): { azimuth: number; polar: number; distance: number } {
     return { azimuth: ((this.azimuth % TAU) + TAU) % TAU, polar: this.polar, distance: this.distance };
+  }
+
+  /** Capture the current view GOALS for a bookmark (post-1.0). Uses goals, not the
+   *  damped current pose, so a mid-glide save records where the camera is heading. */
+  viewpoint(): CameraViewpoint {
+    return {
+      azimuth: this.azimuthGoal,
+      polar: this.polarGoal,
+      distance: this.distanceGoal,
+      tx: this.targetGoal.x,
+      tz: this.targetGoal.z,
+    };
+  }
+
+  /** Ease the camera to a saved viewpoint (post-1.0 bookmarks), clamped to the safe
+   *  ranges so a stale bookmark from a smaller island never flies off into the void. */
+  applyViewpoint(vp: CameraViewpoint): void {
+    if (this.introPlaying) return;
+    this.azimuthGoal = vp.azimuth;
+    this.polarGoal = clamp(vp.polar, POLAR_MIN, POLAR_MAX);
+    this.distanceGoal = clamp(vp.distance, DIST_MIN, DIST_MAX);
+    this.targetGoal.set(
+      clamp(vp.tx, this.bounds.minX - PAN_MARGIN, this.bounds.maxX + PAN_MARGIN),
+      0,
+      clamp(vp.tz, this.bounds.minZ - PAN_MARGIN, this.bounds.maxZ + PAN_MARGIN),
+    );
   }
 
   /** Project a world point to screen pixels for world-anchored DOM (S21). */

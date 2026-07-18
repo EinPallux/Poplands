@@ -196,9 +196,25 @@ export interface SaveV11 extends Omit<SaveV10, 'v'> {
   islandName?: string;
 }
 
+/** A saved camera viewpoint (post-1.0 bookmarks). Plain numbers — no three.js types. */
+export interface SaveBookmark {
+  name: string;
+  azimuth: number;
+  polar: number;
+  distance: number;
+  tx: number;
+  tz: number;
+}
+
+/** v12 (post-1.0): saved camera viewpoints (bookmarks). */
+export interface SaveV12 extends Omit<SaveV11, 'v'> {
+  v: 12;
+  bookmarks: SaveBookmark[];
+}
+
 /** The current schema. Bump this alias (not scattered `SaveVn`s) each version. */
-export type Save = SaveV11;
-export const SAVE_VERSION = 11;
+export type Save = SaveV12;
+export const SAVE_VERSION = 12;
 
 export const DEFAULT_SETTINGS: SaveSettings = {
   volume: 0.8,
@@ -344,11 +360,15 @@ const migrations: Record<number, (s: AnySave) => AnySave> = {
       islanders: { ...v10.islanders, names: v10.islanders?.names ?? {} },
     } as unknown as AnySave;
   },
+  11: (s) => {
+    // No saved camera viewpoints yet — start with an empty bookmark list.
+    return { ...(s as unknown as SaveV11), v: 12, bookmarks: [] } as unknown as AnySave;
+  },
 };
 
 export function freshSave(seed: number, now: number): Save {
   return {
-    v: 11,
+    v: 12,
     createdAt: now,
     lastSeenAt: now,
     seed,
@@ -371,6 +391,7 @@ export function freshSave(seed: number, now: number): Save {
     museum: freshMuseum(), // empty Collections Hall
     achievements: freshAchievements(), // empty Stamp Book
     garden: freshGarden(), // no crops planted yet
+    bookmarks: [], // no saved camera viewpoints yet
     attic: [],
     settings: { ...DEFAULT_SETTINGS },
   };
@@ -442,6 +463,7 @@ function normalize(v2: Save): Save {
   v2.garden ??= freshGarden();
   v2.garden.plots ??= {};
   v2.garden.harvested ??= 0;
+  v2.bookmarks ??= [];
   v2.settings = { ...DEFAULT_SETTINGS, ...v2.settings };
   v2.island.placements ??= [];
   v2.player.level ??= 1;
